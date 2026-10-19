@@ -1,7 +1,10 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/quickSartHelperTile.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/pages/quickstart_video.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 
 class QuickstartPage extends StatelessWidget {
   const QuickstartPage({super.key});
@@ -37,27 +40,27 @@ class QuickstartPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 12,
             children: [
-              tile(
+              Tile(
                   title: 'Your Study Page',
                   description: 'Daily goal and entries',
                   imagePath: 'assets/images/quickstart/home.png',
                   onTap: () => _navigateToVideoPage(context, 'study')),
-              tile(
+              Tile(
                   title: 'History',
                   description: 'Entry status and submitting',
                   imagePath: 'assets/images/quickstart/history.png',
                   onTap: () => _navigateToVideoPage(context, 'history')),
-              tile(
+              Tile(
                   title: 'Incentives',
                   description: 'What your study pays',
                   imagePath: 'assets/images/quickstart/incentives.png',
                   onTap: () => _navigateToVideoPage(context, 'incentives')),
-              tile(
+              Tile(
                   title: 'Calendar',
                   description: 'Scheduled entries and streak',
                   imagePath: 'assets/images/quickstart/calendar.png',
                   onTap: () => _navigateToVideoPage(context, 'calendar')),
-              tile(
+              Tile(
                   title: 'Settings',
                   description: 'Details, contact, reminders',
                   imagePath: 'assets/images/quickstart/settings.png',
@@ -74,80 +77,6 @@ class QuickstartPage extends StatelessWidget {
       context,
       MaterialPageRoute(
           builder: (context) => QuickstartVideoPage(videoName: videoName)),
-    );
-  }
-
-  Widget tile(
-      {required String title,
-      required String description,
-      required String imagePath,
-      required void Function()? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
-        decoration: ShapeDecoration(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: const BorderSide(
-                    color: CustomColors.productBorderNormal, width: 1)),
-            color: Colors.white),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final details = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 3,
-              children: [
-                Text(
-                  title,
-                  style: CustomTypography().bodyLarge(
-                      color: CustomColors.textNormalContent,
-                      weight: FontWeight.w500),
-                ),
-                Text(
-                  description,
-                  style: CustomTypography()
-                      .bodyMedium(color: CustomColors.textTertiaryContent),
-                ),
-              ],
-            );
-            final image = SizedBox(
-              width: 60,
-              height: 60,
-              child: Image.asset(imagePath),
-            );
-            const chevron = Icon(
-              Icons.chevron_right_rounded,
-              size: 24,
-              color: CustomColors.midGrey,
-            );
-
-            if (MediaQuery.textScalerOf(context).scale(1) >= 1.5) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [image, chevron],
-                  ),
-                  const SizedBox(height: 10),
-                  details,
-                ],
-              );
-            }
-
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              spacing: 14,
-              children: [
-                image,
-                Expanded(child: details),
-                chevron,
-              ],
-            );
-          },
-        ),
-      ),
     );
   }
 }

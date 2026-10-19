@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../theme/custom_colors.dart';
 
 class SettingsMIcTest extends StatefulWidget {
@@ -23,6 +24,7 @@ class _SettingsMIcTestState extends State<SettingsMIcTest> {
           borderRadius: BorderRadius.circular(100)),
       child: Row(children: [
         const Icon(
+          applyTextScaling: true,
           CustomIcons.keyboardVoice,
           color: CustomColors.productNormal,
         ),
@@ -67,7 +69,7 @@ class _GaugeState extends State<Gauge> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 1.5),
                 child: Container(
-                  height: 12,
+                  height: getAdaptiveTextScaler(context).scale(12),
                   decoration: BoxDecoration(
                     color: e,
                     borderRadius: BorderRadius.circular(3),

@@ -136,13 +136,12 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
             Image.asset(
               icon,
               color: color,
-              height: 20,
-              width: 20,
+              height: getAdaptiveTextScaler(context).scale(20),
+              width: getAdaptiveTextScaler(context).scale(20),
             ),
             const SizedBox(width: 6),
             Flexible(
               child: Text(
-                textScaler: getAdaptiveTextScaler(context),
                 study.name,
                 style: CustomTypography().bodyLarge(),
               ),
@@ -225,7 +224,6 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                                   : 1,
                               // Hide the progress indicator when it reaches the lower goal
                               child: Text(
-                                textScaler: getAdaptiveTextScaler(context),
                                 "$currentEntries",
                                 style: CustomTypography().caption(),
                               ),
@@ -249,7 +247,6 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                         ),
                         Flexible(
                           child: Text(
-                            textScaler: getAdaptiveTextScaler(context),
                             "$lowerGoal",
                             style: CustomTypography().caption(),
                           ),
@@ -270,7 +267,6 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                             color: color, size: 20),
                         Flexible(
                           child: Text(
-                            textScaler: getAdaptiveTextScaler(context),
                             "$goal",
                             style: CustomTypography().caption(),
                           ),

@@ -174,9 +174,11 @@ class _DiaryCardState extends State<DiaryCard> {
                 ),
               ),
               !closed
-                  ? Icon(widget.diary!.status == DiaryStatus.submitted
-                      ? Icons.remove_red_eye_outlined
-                      : Icons.keyboard_arrow_right_rounded)
+                  ? Icon(
+                      size: getAdaptiveTextScaler(context).scale(20),
+                      widget.diary!.status == DiaryStatus.submitted
+                          ? Icons.remove_red_eye_outlined
+                          : Icons.keyboard_arrow_right_rounded)
                   : const SizedBox.shrink(),
             ],
           ),
@@ -225,8 +227,8 @@ class _DiaryCardState extends State<DiaryCard> {
       ),
       child: Image.asset(
         determineDiaryIcon(widget.diary!),
-        height: 24,
-        width: 24,
+        height: getAdaptiveTextScaler(context).scale(24),
+        width: getAdaptiveTextScaler(context).scale(24),
         color: closed ? CustomColors.midGrey : color,
       ),
     );
@@ -273,6 +275,7 @@ class _DiaryCardState extends State<DiaryCard> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
       child: Text(
+        textScaler: getAdaptiveTextScaler(context),
         text,
         style: CustomTypography().titleRegular(color: color),
       ),
@@ -325,16 +328,23 @@ class DiaryCardTag extends StatelessWidget {
         Icon(
           icon,
           color: color,
-          size: 20,
+          size: getAdaptiveTextScaler(context).scale(20),
         ),
         const SizedBox(
           width: 5,
         ),
         Flexible(
-          child: Text(text,
-              style: CustomTypography().bodyMedium(
-                  color: CustomColors.textNormalContent,
-                  weight: FontWeight.w400)),
+          //using a fittedbox to avoid the word split for awaiting submissions for Android,
+          // the font will be scaled down to fit the space but other status words are okay
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+                textScaler: getAdaptiveTextScaler(context),
+                text,
+                style: CustomTypography().bodyMedium(
+                    color: CustomColors.textNormalContent,
+                    weight: FontWeight.w400)),
+          ),
         ),
       ],
     );
@@ -391,8 +401,8 @@ class _DiaryCardSmallState extends State<DiaryCardSmall> {
   Widget icon() {
     return Image.asset(
       determineDiaryIcon(widget.diary),
-      height: 24,
-      width: 24,
+      height: getAdaptiveTextScaler(context).scale(24),
+      width: getAdaptiveTextScaler(context).scale(24),
       color: widget.study.color,
     );
   }
@@ -682,6 +692,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
                     play();
                   },
                   icon: Icon(
+                    applyTextScaling: true,
                     isPlaying
                         ? CupertinoIcons.pause_fill
                         : CupertinoIcons.play_arrow_solid,
@@ -850,8 +861,8 @@ class _NewAudioCardState extends State<NewAudioCard>
         children: [
           Container(
               alignment: Alignment.center,
-              width: 24,
-              height: 24,
+              width: getAdaptiveTextScaler(context).scale(24),
+              height: getAdaptiveTextScaler(context).scale(24),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 color: CustomColors.productNormalActive,
@@ -860,24 +871,31 @@ class _NewAudioCardState extends State<NewAudioCard>
                 offset: isPlaying ? const Offset(0, -1) : const Offset(1, -1),
                 child: IconButton(
                   onPressed: () => play(),
-                  icon: Icon(isPlaying
-                      ? CupertinoIcons.pause_fill
-                      : CupertinoIcons.play_arrow_solid),
+                  icon: Icon(
+                      applyTextScaling: true,
+                      isPlaying
+                          ? CupertinoIcons.pause_fill
+                          : CupertinoIcons.play_arrow_solid),
                   color: CustomColors.fillWhite,
                   iconSize: 10,
                 ),
               )),
           const SizedBox(width: 3),
           Expanded(
+            flex: 2,
             child: slider(),
           ),
           Flexible(
+            flex: 2,
             child: FittedBox(
               fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerEnd,
               child: Text(
                 '${formatDuration(currentSliderPosition.toInt())} / ${formatDuration(maxDuration.inMilliseconds)}',
                 textScaler: getAdaptiveTextScaler(context),
-                maxLines: 2,
+                maxLines: 1,
+                softWrap: false,
+                style: CustomTypography().bodyMedium(),
               ),
             ),
           ),
@@ -891,7 +909,8 @@ class _NewAudioCardState extends State<NewAudioCard>
                     });
                     delete();
                   },
-                  icon: const Icon(CupertinoIcons.delete),
+                  icon:
+                      const Icon(applyTextScaling: true, CupertinoIcons.delete),
                   color: CustomColors.warningActive,
                   iconSize: 20,
                 )
@@ -925,7 +944,7 @@ class _NewAudioCardState extends State<NewAudioCard>
         SizedBox(
             child: SliderTheme(
           data: SliderThemeData(
-              trackHeight: 5,
+              trackHeight: getAdaptiveTextScaler(context).scale(5),
               activeTrackColor: CustomColors.productNormalActive,
               thumbColor: CustomColors.productNormalActive,
               inactiveTrackColor: CustomColors.greyTrack,
@@ -980,10 +999,12 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
       ),
       child: Row(children: [
         Expanded(
-          child: Text(widget.answer,
-              style: CustomTypography()
-                  .bodyLarge(color: CustomColors.textSecondaryContent),
-              maxLines: 2,),
+          child: Text(
+            widget.answer,
+            style: CustomTypography()
+                .bodyLarge(color: CustomColors.textSecondaryContent),
+            maxLines: 2,
+          ),
         ),
         widget.isVisible ?? false
             ? IconButton(
@@ -1632,6 +1653,7 @@ class WebViewErrorCard extends StatelessWidget {
                       runAlignment: WrapAlignment.center,
                       children: [
                         Text(
+                          textScaler: getAdaptiveTextScaler(context),
                           buttonText,
                           style: CustomTypography()
                               .button(color: Color(0xFFFF3B30)),
@@ -1990,6 +2012,7 @@ class LowWarningCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(
+            applyTextScaling: true,
             CupertinoIcons.xmark_circle_fill,
             size: 24,
             color: CustomColors.yellowDark,

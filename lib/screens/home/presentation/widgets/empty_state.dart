@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
@@ -16,12 +17,13 @@ class FreeDayWidget extends StatelessWidget {
         children: [
           Image.asset(
             'assets/images/empty-box.png',
-            height: 108,
+            height: getAdaptiveTextScaler(context).scale(108),
           ),
           const SizedBox(
             height: 16,
           ),
           Text(
+            textScaler: getAdaptiveTextScaler(context),
             'No Surveys Scheduled Today',
             style: CustomTypography().titleLarge(),
             textAlign: TextAlign.center,

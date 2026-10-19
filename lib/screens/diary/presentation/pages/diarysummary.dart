@@ -25,6 +25,7 @@ import 'package:path/path.dart' as p;
 import 'package:location/location.dart' as l;
 // import 'package:just_audio/just_audio.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/components/cards.dart';
 import '../../../../theme/custom_colors.dart';
@@ -54,7 +55,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
   final PageTimer timer = PageTimer();
 
   late MaterialLocalizations localizations = MaterialLocalizations.of(context);
-
 
   @override
   void initState() {
@@ -130,13 +130,16 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                         (route) => false,
                       );
                     },
-                    icon: const Icon(CustomIcons.close),
+                    icon: const Icon(applyTextScaling: true, CustomIcons.close),
                     iconSize: 15.0,
                   ),
-                  title: Text(
-                    "Response Summary",
-                    style: CustomTypography()
-                        .headlineMedium(color: CustomColors.textNormalContent),
+                  title: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      "Response Summary",
+                      style: CustomTypography().headlineMedium(
+                          color: CustomColors.textNormalContent),
+                    ),
                   ),
                   centerTitle: true,
                 ),
@@ -160,7 +163,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
           pendoEvent();
           track(timer.stop(), "Submitted");
           Navigator.of(context).pushReplacement(_completionRoute()).then((_) {
-            Future.delayed(Duration(seconds: 1), (){
+            Future.delayed(Duration(seconds: 1), () {
               summaryCubit.loadSummary(widget.diary);
             });
           });
@@ -308,8 +311,11 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Icon(Icons.edit_note_sharp,
-                                  color: Color(0xFF4186F5), size: 24),
+                              Icon(
+                                  applyTextScaling: true,
+                                  Icons.edit_note_sharp,
+                                  color: Color(0xFF4186F5),
+                                  size: 24),
                               Text(' Edit',
                                   style: CustomTypography()
                                       .button(color: Color(0xFF4186F5)))
@@ -504,7 +510,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
         final width = MediaQuery.of(context).size.width;
         return prompt.answer == null
             ? const SizedBox.shrink()
-            : prompt.answer?.response?.firstOrNull?.contains("Item was skipped due to:") ?? true
+            : prompt.answer?.response?.firstOrNull
+                        ?.contains("Item was skipped due to:") ??
+                    true
                 ? Container(
                     width: width,
                     padding:
@@ -516,17 +524,16 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     child: Row(children: [
                       Image.asset(
                         "assets/images/icons/block.png",
-                        height: 16,
-                        width: 16,
+                        height: getAdaptiveTextScaler(context).scale(16),
+                        width: getAdaptiveTextScaler(context).scale(16),
                       ),
                       SizedBox(
                         width: 5,
                       ),
                       Expanded(
                         child: Text(prompt.answer?.response?.firstOrNull ?? "",
-                            style: CustomTypography().bodyMedium(
-                              color: Color(0xFFFF3B30))
-                        ),
+                            style: CustomTypography()
+                                .bodyMedium(color: Color(0xFFFF3B30))),
                       ),
                     ]),
                   )
@@ -549,8 +556,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                       ),
                       Expanded(
                         child: Text("Survey response collected",
-                            style: CustomTypography()
-                                .bodyLarge(color: CustomColors.textSecondaryContent),
+                            style: CustomTypography().bodyLarge(
+                                color: CustomColors.textSecondaryContent),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis),
                       ),
@@ -581,8 +588,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                   child: Row(children: [
                     Expanded(
                       child: Text("Completed the timer ✅",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.textSecondaryContent),
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.textSecondaryContent),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -608,8 +615,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     Expanded(
                       child: Text(
                           "${elapsed.inHours.toString().padLeft(2, '0')} h ${elapsed.inMinutes.remainder(60).toString().padLeft(2, '0')} min",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.textSecondaryContent),
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.textSecondaryContent),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),

@@ -5,7 +5,8 @@ import 'package:audio_diaries_flutter/core/usecases/daily_goal_service.dart'
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/ring_progress_indicator.dart';
-import 'package:audio_diaries_flutter/screens/hub/data/submission_progress.dart' show SubmissionProgress;
+import 'package:audio_diaries_flutter/screens/hub/data/submission_progress.dart'
+    show SubmissionProgress;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -294,7 +295,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     dev.log(
         "Total Progress: ${stats.totalCompleted}/${stats.totalDailyGoal} daily, ${stats.totalCompleted}/${stats.totalWeeklyGoal} weekly");
-    dev.log("Daily Progress: ${(stats.dailyProgress * 100).toStringAsFixed(1)}%");
+    dev.log(
+        "Daily Progress: ${(stats.dailyProgress * 100).toStringAsFixed(1)}%");
     dev.log(
         "Weekly Progress: ${(stats.weeklyProgress * 100).toStringAsFixed(1)}%");
     dev.log("========================");
@@ -313,6 +315,7 @@ class DailyGoalEntries extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
+              applyTextScaling: true,
               Icons.check_circle_rounded,
               color: CustomColors.darkGreen,
               size: 20,
@@ -344,8 +347,8 @@ class DailyGoalEntries extends StatelessWidget {
           Image.asset(
             icon,
             color: color,
-            height: 20,
-            width: 20,
+            height: getAdaptiveTextScaler(context).scale(20),
+            width: getAdaptiveTextScaler(context).scale(20),
           ),
           const SizedBox(width: 6),
           Flexible(

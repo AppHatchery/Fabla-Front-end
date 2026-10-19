@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_icons.dart';
@@ -80,7 +81,7 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
                     color: widget.isEnabled
                         ? CustomColors.textSecondaryContent
                         : CustomColors.textTertiaryContent,
-                    size: 24,
+                    size: getAdaptiveTextScaler(context).scale(24),
                   )),
               IconButton(
                   constraints:
@@ -96,7 +97,7 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
                     color: widget.isEnabled
                         ? CustomColors.warningActive
                         : CustomColors.textTertiaryContent,
-                    size: 24,
+                    size: getAdaptiveTextScaler(context).scale(24),
                   )),
             ],
           ),

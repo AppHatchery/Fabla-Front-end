@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../custom_colors.dart';
 
 /// Custom Bar Indicator.
@@ -26,7 +27,7 @@ class CustomBarIndicator extends StatelessWidget {
               value: (currentPage + 1) / pageCount,
               valueColor:
                   const AlwaysStoppedAnimation<Color>(CustomColors.yellowDark),
-              minHeight: 12,
+              minHeight: getAdaptiveTextScaler(context).scale(12),
               borderRadius: BorderRadius.circular(30),
             ),
           ),

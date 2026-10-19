@@ -214,7 +214,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                     );
                   },
                   icon: const Icon(CustomIcons.close),
-                  iconSize: 15.0,
+                  iconSize: getAdaptiveTextScaler(context).scale(15.0),
                 ),
                 Expanded(
                   child: CustomBarIndicator(

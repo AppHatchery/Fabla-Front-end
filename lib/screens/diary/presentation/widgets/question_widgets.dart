@@ -129,7 +129,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                           CustomColors.textNormalContent.withOpacity(0.35),
                       overlayShape: SliderComponentShape.noOverlay,
                       valueIndicatorColor: CustomColors.productNormal,
-                      trackHeight: 4,
+                      trackHeight: getAdaptiveTextScaler(context).scale(4),
                       valueIndicatorTextStyle: CustomTypography()
                           .bodyLarge(color: CustomColors.textWhite)),
                   child: Slider(
@@ -166,7 +166,8 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
           ],
         ),
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 40,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
               child: Text(
@@ -176,7 +177,6 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                 style: CustomTypography().bodyLarge(color: widget.colorFont),
               ),
             ),
-            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 textScaler: getAdaptiveTextScaler(context),
@@ -316,7 +316,7 @@ class _RadioQuestionState extends State<RadioQuestion> {
         return Column(children: [
           Container(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 4.0, vertical: 3.0),
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 3.0),
               decoration: BoxDecoration(
                   color:
                       widget.options[index] == widget.value && !widget.disabled
@@ -332,7 +332,6 @@ class _RadioQuestionState extends State<RadioQuestion> {
               child: Material(
                   color: Colors.transparent,
                   child: RadioListTile<String>(
-                    contentPadding: EdgeInsets.zero,
                     title: Text(
                       widget.options[index],
                       style: CustomTypography().button(
@@ -539,7 +538,8 @@ class _AudioTextCardState extends State<AudioTextCard> {
                                   width: 65,
                                   child: Divider(
                                     color: Color(0xFFB0B0B0),
-                                    thickness: 1,
+                                    thickness:
+                                        getAdaptiveTextScaler(context).scale(1),
                                   )),
                               SizedBox(width: 24),
                               Text(
@@ -555,7 +555,8 @@ class _AudioTextCardState extends State<AudioTextCard> {
                                   width: 65,
                                   child: Divider(
                                     color: Color(0xFFB0B0B0),
-                                    thickness: 1,
+                                    thickness:
+                                        getAdaptiveTextScaler(context).scale(1),
                                   )),
                             ]),
                         CustomTextAnswerButton(
@@ -889,8 +890,8 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                 spacing: 24,
                 children: [
                   SizedBox(
-                    height: 160,
-                    width: 160,
+                    height: getAdaptiveTextScaler(context).scale(160),
+                    width: getAdaptiveTextScaler(context).scale(160),
                     child: Image.asset("assets/images/icons/check_circle.png"),
                   ),
                   RichText(
@@ -1557,6 +1558,7 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                         onClick: () => showModal(isImage: true),
                         children: [
                           Icon(
+                            applyTextScaling: true,
                             CupertinoIcons.camera_fill,
                             color: CustomColors.fillWhite,
                             size: 24,
@@ -1567,7 +1569,8 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                           Flexible(
                             child: Text(
                               maxLines: 2,
-                              widget.prompt.answer?.recordings.isNotEmpty ?? false
+                              widget.prompt.answer?.recordings.isNotEmpty ??
+                                      false
                                   ? 'Add Another Picture'
                                   : 'Take a Picture',
                               style: CustomTypography()
@@ -1583,6 +1586,7 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                         onClick: () => showModal(isImage: false),
                         children: [
                           Icon(
+                            applyTextScaling: true,
                             CupertinoIcons.camera_fill,
                             color: CustomColors.fillWhite,
                             size: 24,
@@ -1592,11 +1596,13 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                           ),
                           Flexible(
                             child: Text(
-                              widget.prompt.answer?.recordings.isNotEmpty ?? false
+                              widget.prompt.answer?.recordings.isNotEmpty ??
+                                      false
                                   ? 'Add Another Video'
                                   : 'Take a Video',
                               maxLines: 2,
-                              style: CustomTypography().button(color: CustomColors.textWhite),
+                              style: CustomTypography()
+                                  .button(color: CustomColors.textWhite),
                             ),
                           ),
                         ],
@@ -1773,6 +1779,7 @@ class _MediaPreviewState extends State<MediaPreview> {
                                       shape: BoxShape.circle,
                                       color: Color(0xFF616161)),
                                   child: Icon(
+                                    applyTextScaling: true,
                                     Icons.remove,
                                     size: 28,
                                     color: CustomColors.fillWhite,
@@ -2201,6 +2208,7 @@ class _VideoViewerState extends State<VideoViewer> {
                             padding:
                                 EdgeInsets.only(left: videoPlaying ? 0 : 4.0),
                             child: Icon(
+                              applyTextScaling: true,
                               videoPlaying
                                   ? CupertinoIcons.pause_fill
                                   : CupertinoIcons.play_arrow_solid,

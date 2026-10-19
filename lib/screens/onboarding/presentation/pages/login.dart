@@ -186,7 +186,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    OnboardingScaledText("Participant Login",
+                    Text("Participant Login",
+                        textScaler: getAdaptiveTextScaler(context),
                         style: CustomTypography()
                             .headlineLarge(color: CustomColors.textWhite)),
                     const SizedBox(
@@ -227,6 +228,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                 children: [
                   Flexible(
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       "Need help with the participant ID? ",
                       style: CustomTypography()
                           .bodyMedium(color: CustomColors.textWhite),
@@ -235,6 +237,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                   GestureDetector(
                       onTap: () => launchEmail(),
                       child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
                         "Contact us",
                         style: TextStyle(
                             fontSize: CustomTypography().bodyMedium().fontSize,

@@ -7,83 +7,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../core/utils/participant_experiment_details.dart';
 import '../../screens/hub/presentation/cubit/hub_cubit.dart';
 import '../components/buttons.dart';
 import '../components/checkboxes.dart';
 import '../custom_colors.dart';
 import '../custom_icons.dart';
-
-class _PopupText extends StatelessWidget {
-  final String data;
-  final TextStyle style;
-  final TextAlign? textAlign;
-
-  const _PopupText(
-    this.data, {
-    required this.style,
-    this.textAlign,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final maxWidth = MediaQuery.sizeOf(context).width - 64;
-    final scaler = MediaQuery.textScalerOf(context);
-    final direction = Directionality.of(context);
-    final spans = <InlineSpan>[];
-    var skipWhitespace = false;
-    var hasLongWord = false;
-
-    for (final match in RegExp(r'\s+|\S+').allMatches(data)) {
-      final token = match.group(0)!;
-      if (token.trim().isEmpty) {
-        if (!skipWhitespace) spans.add(TextSpan(text: token, style: style));
-        continue;
-      }
-      skipWhitespace = false;
-
-      final painter = TextPainter(
-        text: TextSpan(text: token, style: style),
-        textDirection: direction,
-        textScaler: scaler,
-      )..layout();
-      final exceedsWidth = painter.width > maxWidth;
-      painter.dispose();
-
-      if (exceedsWidth) {
-        hasLongWord = true;
-        spans
-          ..add(TextSpan(text: '\n', style: style))
-          ..add(
-            WidgetSpan(
-              alignment: PlaceholderAlignment.middle,
-              child: SizedBox(
-                width: maxWidth,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(token, style: style),
-                ),
-              ),
-            ),
-          )
-          ..add(TextSpan(text: '\n', style: style));
-        skipWhitespace = true;
-      } else {
-        spans.add(TextSpan(text: token, style: style));
-      }
-    }
-
-    if (!hasLongWord) {
-      return Text(data, style: style, textAlign: textAlign);
-    }
-
-    return Text.rich(
-      TextSpan(children: spans),
-      textAlign: textAlign,
-      semanticsLabel: data,
-    );
-  }
-}
 
 /// Pop up for showing a tip to the user.
 ///
@@ -1182,14 +1112,13 @@ class DeletePopUp extends StatelessWidget {
       surfaceTintColor: CustomColors.fillWhite,
       children: [
         Container(
-          width: MediaQuery.sizeOf(context).width - 32,
           constraints: const BoxConstraints.tightFor(),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Title
-              _PopupText(
+              Text(
                 title ?? "Do you want to delete your response?",
                 style: CustomTypography().headlineMedium(),
                 textAlign: TextAlign.center,
@@ -1349,12 +1278,6 @@ class StudyInfoPopUp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dialogWidth = MediaQuery.sizeOf(context).width - 32;
-    final descriptionStyle = CustomTypography().custom(
-        fontSize: 18.sp,
-        fontWeight: FontWeight.w400,
-        color: const Color(0xA3000000));
-    final largeText = MediaQuery.textScalerOf(context).scale(18.sp) > 28;
     return SimpleDialog(
         backgroundColor: CustomColors.fillWhite,
         contentPadding: const EdgeInsets.all(0),
@@ -1363,103 +1286,90 @@ class StudyInfoPopUp extends StatelessWidget {
           children: [
             Align(
               alignment: Alignment.topRight,
-              child: IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close, size: 24),
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child:  Icon(Icons.close, size: getAdaptiveTextScaler(context).scale(24)),
               ),
             ),
-            Column(
+            Row(
+              spacing: 16,
               children: [
                 Container(
                   decoration: const BoxDecoration(
                       shape: BoxShape.circle, color: Colors.black26),
                   child: Image.asset(
                     "assets/images/study_info.png",
-                    height: 80,
-                    width: 80,
+                    height: getAdaptiveTextScaler(context).scale(80),
+                    width: getAdaptiveTextScaler(context).scale(80),
                   ),
                 ),
-                const SizedBox(height: 12),
-                _PopupText(
-                  "What's my Study String?",
-                  style: CustomTypography().custom(
-                      fontSize: 22.sp,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xDB000000)),
-                  textAlign: TextAlign.center,
+                Flexible(
+                  child: Text(
+                    textScaler: getAdaptiveTextScaler(context),
+                    "What's my Study String?",
+                    style: CustomTypography().custom(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xDB000000)),
+                  ),
                 ),
               ],
             ),
           ],
         ),
         children: [
-          SizedBox(
-            width: dialogWidth,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 41),
-              child: Column(
-                children: [
-                  const SizedBox(height: 26),
-                  Text.rich(
-                    TextSpan(
-                      text: "Your ",
-                      style: descriptionStyle,
-                      children: [
-                        TextSpan(
-                          text: "Study String ",
-                          style: CustomTypography().titleSmall(
-                              color: CustomColors.backgroundSecondary),
-                        ),
-                        if (largeText) ...[
-                          TextSpan(text: "is an\n", style: descriptionStyle),
-                          WidgetSpan(
-                            alignment: PlaceholderAlignment.middle,
-                            child: SizedBox(
-                              width: dialogWidth - 32,
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  "alphanumeric",
-                                  style: descriptionStyle,
-                                ),
-                              ),
-                            ),
-                          ),
-                          TextSpan(
-                            text:
-                                "\ncode (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
-                            style: descriptionStyle,
-                          ),
-                        ] else
-                          TextSpan(
-                            text:
-                                "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
-                            style: descriptionStyle,
-                          ),
-                      ],
-                    ),
+          Padding(
+            padding: const EdgeInsets.only(left: 19, right: 30, bottom: 41),
+            child: Column(
+              children: [
+                const SizedBox(height: 26),
+                Text.rich(TextSpan(
+                    text: "Your ",
+                    style: CustomTypography().custom(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xA3000000)),
+                    children: [
+                      TextSpan(
+                        text: "Study String ",
+                        style: CustomTypography().titleSmall(
+                            color: CustomColors.backgroundSecondary),
+                      ),
+                      TextSpan(
+                        text:
+                        "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
+                        style: CustomTypography().custom(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xA3000000)),
+                      )
+                    ])),
+                const SizedBox(height: 26),
+                Text.rich(
+                  TextSpan(
+                    text: 'If you need help with your Study String, you may ',
+                    style: CustomTypography().custom(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xA3000000)),
+                    children: [
+                      TextSpan(
+                          text: "Contact Us",
+                          style: CustomTypography()
+                              .titleSmall(color: const Color(0xA3000000))
+                              .copyWith(decoration: TextDecoration.underline),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = launchEmail),
+                      TextSpan(
+                          text: ' or reach out to your researcher directly!',
+                          style: CustomTypography().custom(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xA3000000))),
+                    ],
                   ),
-                  const SizedBox(height: 26),
-                  Text.rich(
-                    TextSpan(
-                      text: 'If you need help with your Study String, you may ',
-                      style: descriptionStyle,
-                      children: [
-                        TextSpan(
-                            text: "Contact Us",
-                            style: CustomTypography()
-                                .titleSmall(color: const Color(0xA3000000))
-                                .copyWith(decoration: TextDecoration.underline),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = launchEmail),
-                        TextSpan(
-                            text: ' or reach out to your researcher directly!',
-                            style: descriptionStyle),
-                      ],
-                    ),
-                  )
-                ],
-              ),
+                )
+              ],
             ),
           ),
         ]);
@@ -1472,6 +1382,7 @@ class StudyInfoPopUp extends StatelessWidget {
         example: ': e.g. I do not know my study string');
   }
 }
+
 
 class CompletedPopUp extends StatelessWidget {
   final void Function(BuildContext) onYes;
@@ -1503,7 +1414,7 @@ class CompletedPopUp extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _PopupText(
+              Text(
                 title,
                 style: CustomTypography().titleLarge(),
                 textAlign: TextAlign.center,
@@ -1677,8 +1588,11 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
           color: CustomColors.productLightPrimaryActive,
         ),
         child: const Center(
-          child: Icon(Icons.sync_rounded,
-              size: 40, color: CustomColors.productNormal),
+          child: Icon(
+              applyTextScaling: true,
+              Icons.sync_rounded,
+              size: 40,
+              color: CustomColors.productNormal),
         ),
       ),
       const SizedBox(height: 12),
@@ -1721,12 +1635,12 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       Center(
         child: Image.asset(
           'assets/images/icons/studyUpdateWarning.png',
-          height: 60,
-          width: 60,
+          height: getAdaptiveTextScaler(context).scale(60),
+          width: getAdaptiveTextScaler(context).scale(60),
         ),
       ),
       const SizedBox(height: 12),
-      _PopupText(
+      Text(
         'Warning',
         style: CustomTypography()
             .headlineMedium(color: CustomColors.warningActive),
@@ -1771,9 +1685,9 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
 
   List<Widget> _buildUpdating() {
     return [
-      const SizedBox(
-        width: 40,
-        height: 40,
+      SizedBox(
+        width: getAdaptiveTextScaler(context).scale(40),
+        height: getAdaptiveTextScaler(context).scale(40),
         child: Padding(
           padding: EdgeInsets.all(5.0),
           child: CircularProgressIndicator(
@@ -1784,7 +1698,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         ),
       ),
       const SizedBox(height: 12),
-      _PopupText(
+      Text(
         'Updating Study',
         textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
@@ -1805,18 +1719,18 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         alignment: Alignment.lerp(Alignment.topRight, Alignment.bottomLeft, 0)!,
         child: IconButton(
           onPressed: _exit,
-          icon: const Icon(Icons.close, size: 24),
+          icon: const Icon(applyTextScaling: true, Icons.close, size: 24),
         ),
       ),
       Center(
         child: Image.asset(
           'assets/images/icons/studyUpdateCompleted.png',
-          height: 60,
-          width: 60,
+          height: getAdaptiveTextScaler(context).scale(60),
+          width: getAdaptiveTextScaler(context).scale(60),
         ),
       ),
       const SizedBox(height: 12),
-      _PopupText(
+      Text(
         'Study Update Successful',
         textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
@@ -1836,8 +1750,8 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
     return [
       Image.asset(
         'assets/images/icons/studyUpdateFailed.png',
-        height: 60,
-        width: 60,
+        height: getAdaptiveTextScaler(context).scale(60),
+        width: getAdaptiveTextScaler(context).scale(60),
       ),
       const SizedBox(height: 12),
       Text(
@@ -1941,6 +1855,7 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
     return SimpleDialog(
       backgroundColor: CustomColors.fillWhite,
       contentPadding: const EdgeInsets.all(0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: Colors.grey, width: 2)),
@@ -1956,14 +1871,15 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
                 alignment: Alignment.topRight,
                 child: IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close, size: 24),
+                  icon:
+                      const Icon(applyTextScaling: true, Icons.close, size: 24),
                 ),
               ),
               Center(
                 child: Image.asset(
                   'assets/images/icons/StudyUpdate.png',
-                  height: 60,
-                  width: 60,
+                  height: getAdaptiveTextScaler(context).scale(60),
+                  width: getAdaptiveTextScaler(context).scale(60),
                 ),
               ),
               SizedBox(
@@ -1993,29 +1909,32 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
                   children: [
                     Image.asset(
                       'assets/images/icons/warning.png',
-                      height: 24,
-                      width: 24,
+                      height: getAdaptiveTextScaler(context).scale(24),
+                      width: getAdaptiveTextScaler(context).scale(24),
                       color: CustomColors.pumpkinOrange,
                     ),
                     Expanded(
-                      child: Text.rich(TextSpan(
-                          text: "You have ",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.pumpkinOrange),
-                          children: [
-                            TextSpan(
-                              text: "diaries submitted or pending submissions ",
-                              style: CustomTypography().bodyLarge(
-                                  color: CustomColors.pumpkinOrange,
-                                  weight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  "for the day. You cannot update the study right now. Please check again at the start of tomorrow.",
+                      child: Text.rich(
+                          textScaler: getAdaptiveTextScaler(context),
+                          TextSpan(
+                              text: "You have ",
                               style: CustomTypography()
                                   .bodyLarge(color: CustomColors.pumpkinOrange),
-                            )
-                          ])),
+                              children: [
+                                TextSpan(
+                                  text:
+                                      "diaries submitted or pending submissions ",
+                                  style: CustomTypography().bodyLarge(
+                                      color: CustomColors.pumpkinOrange,
+                                      weight: FontWeight.bold),
+                                ),
+                                TextSpan(
+                                  text:
+                                      "for the day. You cannot update the study right now. Please check again at the start of tomorrow.",
+                                  style: CustomTypography().bodyLarge(
+                                      color: CustomColors.pumpkinOrange),
+                                )
+                              ])),
                     ),
                   ],
                 ),

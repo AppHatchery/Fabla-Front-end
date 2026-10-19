@@ -56,6 +56,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
               const SizedBox(width: 6),
               GestureDetector(
                 child: Icon(
+                  applyTextScaling: true,
                   key: const Key('weekly_goal_icon'),
                   widget.isExpanded
                       ? Icons.keyboard_arrow_up_rounded
@@ -79,7 +80,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                     bottom: 0,
                     child: Container(
                       width: 70,
-                      height: 6,
+                      height: getAdaptiveTextScaler(context).scale(6),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(27),
@@ -91,7 +92,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                     bottom: 0,
                     child: Container(
                       width: progressBarWidth,
-                      height: 6,
+                      height: getAdaptiveTextScaler(context).scale(6),
                       decoration: BoxDecoration(
                         color: color,
                         borderRadius: BorderRadius.circular(27),
@@ -105,8 +106,11 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                           // left: 70 * value - 10,
                           left: lowerGoal,
                           top: 2,
-                          child: Icon(CupertinoIcons.flag_fill,
-                              color: color, size: 12),
+                          child: Icon(
+                            CupertinoIcons.flag_fill,
+                            color: color,
+                            size: getAdaptiveTextScaler(context).scale(12),
+                          ),
                         ),
                 ],
               ),
@@ -115,7 +119,6 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(
-                textScaler: getAdaptiveTextScaler(context),
                 key: const Key('weekly_goal_text'),
                 "$currentEntries/$weeklyGoal",
                 style: CustomTypography().caption(color: color),

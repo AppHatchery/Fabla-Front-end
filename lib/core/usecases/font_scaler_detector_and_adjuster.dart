@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -37,5 +36,3 @@ TextScaler getAdaptiveTextScaler(BuildContext context) {
     maxScaleFactor: maxScaleFactor,
   );
 }
-
-

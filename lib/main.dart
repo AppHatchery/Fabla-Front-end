@@ -516,29 +516,28 @@ class _CustomHubTabViewState extends State<CustomHubTabView> {
         tabs: [
           const Tab(
             icon: Icon(CupertinoIcons.text_badge_checkmark),
-            text: "Study",
+            text: 'Study',
           ),
           Tab(
             icon: Badge(
-              backgroundColor:
-                  showCount ? CustomColors.productNormal : Colors.transparent,
-              textColor: CustomColors.fillWhite,
-              isLabelVisible: showUpload || showCount,
-              label: showUpload
-                  ? Icon(
-                      CupertinoIcons.cloud_upload_fill,
-                      color: CustomColors.warningActive,
-                    )
-                  : showCount
-                      ? Text(_totalSubmissions.toString())
-                      : null,
-              child: const Icon(Icons.history),
-            ),
-            text: "History",
+                backgroundColor:
+                    showCount ? CustomColors.productNormal : Colors.transparent,
+                textColor: CustomColors.fillWhite,
+                isLabelVisible: showUpload || showCount,
+                label: showUpload
+                    ? const Icon(
+                        CupertinoIcons.cloud_upload_fill,
+                        color: CustomColors.warningActive,
+                      )
+                    : showCount
+                        ? Text('$_totalSubmissions')
+                        : null,
+                child: const Icon(Icons.history)),
+            text: 'History',
           ),
           const Tab(
             icon: Icon(Icons.settings_outlined),
-            text: "Settings",
+            text: 'Settings',
           ),
         ],
       ),

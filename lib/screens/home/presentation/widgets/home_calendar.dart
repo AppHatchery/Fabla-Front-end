@@ -109,6 +109,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                           child: IconButton(
                               onPressed: () => Navigator.pop(context),
                               icon: const Icon(
+                                applyTextScaling: true,
                                 CupertinoIcons.clear,
                                 color: CustomColors.productNormalActive,
                                 size: 20,
@@ -274,6 +275,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 20),
                         child: Text(
+                          textScaler: getAdaptiveTextScaler(context),
                           getMonthYear(day),
                           style: CustomTypography().titleSmall(
                               color: CustomColors.textSecondaryContent),
@@ -289,7 +291,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
                           onPressed: () => pageController?.previousPage(
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.ease),
-                          icon: const Icon(Icons.chevron_left_rounded),
+                          icon: const Icon(
+                              applyTextScaling: true,
+                              Icons.chevron_left_rounded),
                         ),
                         IconButton(
                           constraints:
@@ -297,7 +301,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
                           onPressed: () => pageController?.nextPage(
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.ease),
-                          icon: const Icon(Icons.chevron_right_rounded),
+                          icon: const Icon(
+                              applyTextScaling: true,
+                              Icons.chevron_right_rounded),
                         ),
                       ],
                     ),
@@ -581,6 +587,6 @@ class HelpButton extends StatelessWidget {
             arrowHeight: 0,
             arrowWidth: 0,
             barrierColor: Colors.transparent),
-        icon: Icon(Icons.help_outline_rounded));
+        icon: Icon(applyTextScaling: true, Icons.help_outline_rounded));
   }
 }

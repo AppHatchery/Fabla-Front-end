@@ -3,6 +3,8 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 /// Styled progress slider for a [VideoPlayerController], shared between the
 /// quickstart modal (read-only) and the standalone quickstart video page
 /// (seekable via [dragPositionMs] and the change callbacks).
@@ -35,7 +37,7 @@ class VideoProgressBar extends StatelessWidget {
 
         return SliderTheme(
           data: SliderTheme.of(context).copyWith(
-            trackHeight: 12.0,
+            trackHeight: getAdaptiveTextScaler(context).scale(12),
             activeTrackColor: CustomColors.yellowDark,
             inactiveTrackColor: CustomColors.greyTrack,
             disabledActiveTickMarkColor: CustomColors.yellowDark,

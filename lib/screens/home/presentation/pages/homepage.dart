@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 // import '../../../../theme/dialogs/pop_ups.dart';
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../diary/data/diary.dart';
 import '../cubit/cubit/home_cubit.dart';
 import '../widgets/empty_state.dart';
@@ -154,7 +155,8 @@ class _HomePageState extends State<HomePage>
               incentives(state.allStudies),
               IconButton(
                 onPressed: () => _handleCalendarTap(state.allStudies),
-                icon: const Icon(
+                icon: Icon(
+                  size: getAdaptiveTextScaler(context).scale(24),
                   Icons.calendar_month,
                   color: CustomColors.productNormal,
                 ),
@@ -283,8 +285,8 @@ class _HomePageState extends State<HomePage>
             onTap: () => showStudyIncentives(allStudies),
             child: Image.asset(
               "assets/images/icons/incentives.png",
-              height: 24,
-              width: 24,
+              height: getAdaptiveTextScaler(context).scale(24),
+              width: getAdaptiveTextScaler(context).scale(24),
             ),
           );
   }

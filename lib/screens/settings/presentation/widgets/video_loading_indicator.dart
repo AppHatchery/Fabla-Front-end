@@ -44,32 +44,36 @@ class _VideoLoadingIndicatorState extends State<VideoLoadingIndicator> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.widthOf(context);
-    return Center(
-        child: Column(
-      spacing: 24,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (_riveController != null)
-          SizedBox(
-            height: 210,
-            width: width,
-            child: RiveWidget(
-              controller: _riveController!,
-              fit: Fit.fitWidth,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Center(
+          child: Column(
+        spacing: 24,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (_riveController != null)
+            SizedBox(
+              height: 210,
+              width: width,
+              child: RiveWidget(
+                controller: _riveController!,
+                fit: Fit.fitWidth,
+              ),
             ),
-          ),
-        Column(
-          spacing: 12,
-          children: [
-            Text(
-              'Getting your video ready',
-              style: CustomTypography().headlineMedium(),
-            ),
-            Text('Fabio’s lining up the shot.',
-                style: CustomTypography().bodyLarge())
-          ],
-        )
-      ],
-    ));
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 12,
+            children: [
+              Text(
+                'Getting your video ready',
+                style: CustomTypography().headlineMedium(),
+              ),
+              Text('Fabio’s lining up the shot.',
+                  style: CustomTypography().bodyLarge())
+            ],
+          )
+        ],
+      )),
+    );
   }
 }

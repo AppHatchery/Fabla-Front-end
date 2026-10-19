@@ -158,6 +158,7 @@ class CustomElevatedIconButton extends StatelessWidget {
                     horizontal: 12.0, vertical: 12.0),
                 child: Center(
                     child: Icon(
+                  applyTextScaling: true,
                   icon,
                   color: iconColor,
                 )),
@@ -315,7 +316,7 @@ class CustomFlatButton extends StatelessWidget {
                     horizontal: 10.0, vertical: 12.0),
                 child: Center(
                     child: Text(
-                  textScaler: getAdaptiveTextScaler(context),
+                      textScaler: getAdaptiveTextScaler(context),
                   text.toString(),
                   style: CustomTypography()
                       .button(
@@ -400,8 +401,8 @@ class CustomRecordButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                height: 150,
-                width: 150,
+                height: getAdaptiveTextScaler(context).scale(150),
+                width: getAdaptiveTextScaler(context).scale(150),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
@@ -414,24 +415,25 @@ class CustomRecordButton extends StatelessWidget {
                   ),
                   border: Border.all(
                     color: CustomColors.productNormal,
-                    width: 1,
+                    width: getAdaptiveTextScaler(context).scale(1),
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: CustomColors.productNormal.withOpacity(0.5),
-                      spreadRadius: 5,
-                      blurRadius: 7,
-                      offset: const Offset(0, 3),
+                      spreadRadius: getAdaptiveTextScaler(context).scale(5),
+                      blurRadius: getAdaptiveTextScaler(context).scale(7),
+                      offset: Offset(getAdaptiveTextScaler(context).scale(0),
+                          getAdaptiveTextScaler(context).scale(3)),
                     ),
                   ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                       vertical: 24.0, horizontal: 25.0),
-                  child: const Icon(
+                  child: Icon(
                     Icons.mic,
                     color: CustomColors.fillWhite,
-                    size: 100,
+                    size: getAdaptiveTextScaler(context).scale(100),
                   ),
                 ),
               ),
@@ -484,7 +486,9 @@ class CustomTextAnswerButton extends StatelessWidget {
                   child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.keyboard_alt,
+                  const Icon(
+                      applyTextScaling: true,
+                      Icons.keyboard_alt,
                       color: CustomColors.productNormal),
                   const SizedBox(
                     width: 8,

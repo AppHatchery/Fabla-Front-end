@@ -7,6 +7,8 @@ import 'package:audio_diaries_flutter/screens/hub/data/submission_progress.dart'
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class RingProgressIndicator extends StatefulWidget {
   final double progress;
   final double size;
@@ -74,8 +76,8 @@ class _RingProgressIndicatorState extends State<RingProgressIndicator>
   }
 
   void _buildAnimation(double begin) {
-    _animation = Tween<double>(begin: begin, end: widget.progress).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _animation = Tween<double>(begin: begin, end: widget.progress)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -93,7 +95,7 @@ class _RingProgressIndicatorState extends State<RingProgressIndicator>
         animation: _animation,
         builder: (context, _) => CircularProgressIndicator(
           value: widget.activateAnimation ? _animation.value : widget.progress,
-          strokeWidth: 5,
+          strokeWidth: getAdaptiveTextScaler(context).scale(5),
           strokeCap: StrokeCap.round,
           backgroundColor: widget.backgroundColor,
           color: widget.color,
@@ -135,7 +137,7 @@ class GoalProgressIndicators extends StatelessWidget {
 
           return RingProgressIndicator(
             progress: data.progress,
-            size: size,
+            size: getAdaptiveTextScaler(context).scale(size),
             color: study.color ?? CustomColors.productNormal,
             backgroundColor: study.color?.withOpacity(0.2) ??
                 CustomColors.productNormal.withOpacity(0.2),
