@@ -2676,7 +2676,7 @@ class BottomTimerModal extends StatefulWidget {
 }
 
 class _BottomTimerModalState extends State<BottomTimerModal>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   double animationHeight = 0;
   // Icon Shake animation
   late AnimationController _shakeController;
@@ -2686,6 +2686,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadRive();
 
     // Initialize animation controller
@@ -2725,6 +2726,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _riveController?.dispose();
     _riveFile?.dispose();
     _shakeController.dispose();
