@@ -27,6 +27,24 @@ class CalendarDayCircle extends StatelessWidget {
     this.baseSize = 32,
   });
 
+  /// Row height for a calendar whose cells are [cellWidth] wide.
+  ///
+  /// [preferredRowHeight] is what the text scale asks for, but the circle stops
+  /// growing once it fills the cell width, so rows are capped at what the
+  /// circle (plus the event marker below it when [hasMarkers]) actually needs.
+  static double rowHeightFor({
+    required double preferredRowHeight,
+    required double cellWidth,
+    double baseSize = 32,
+    bool hasMarkers = true,
+  }) {
+    const minRowHeight = 56.0;
+    final needed = hasMarkers
+        ? 0.86 * cellWidth + 34
+        : math.min(cellWidth - 8, preferredRowHeight) + 4 + 12;
+    return math.min(preferredRowHeight, math.max(minRowHeight, needed));
+  }
+
   @override
   Widget build(BuildContext context) {
     final preferred = MediaQuery.textScalerOf(context).scale(baseSize);
@@ -78,12 +96,6 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
   @override
   Widget build(BuildContext context) {
     final scaler = MediaQuery.of(context).textScaler;
-    final scaled = scaler.scale(56);
-    final rowHeight = scaled < 100
-        ? 60.0
-        : scaled < 130
-            ? 72.0
-            : 80.0;
 
     return Container(
       decoration: BoxDecoration(
@@ -93,138 +105,147 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
           border:
               Border.all(width: 2, color: CustomColors.productBorderNormal)),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
-      child: TableCalendar(
-        firstDay: DateTime.utc(2010, 10, 16),
-        lastDay: DateTime.utc(2060, 3, 14),
-        focusedDay: focusedDay,
-        currentDay: today,
-        availableGestures: AvailableGestures.horizontalSwipe,
-        headerStyle: const HeaderStyle(
-            titleCentered: false,
-            formatButtonVisible: false,
-            rightChevronVisible: false,
-            leftChevronVisible: false),
-        calendarStyle: CalendarStyle(
-          outsideTextStyle: CustomTypography()
-              .bodyLarge(color: CustomColors.textTertiaryContent),
-          todayDecoration: const BoxDecoration(
-              color: CustomColors.productNormal, shape: BoxShape.circle),
-        ),
-        startingDayOfWeek: StartingDayOfWeek.monday,
-        daysOfWeekHeight: scaler.scale(45).clamp(35.0, 52.0),
-        rowHeight: rowHeight,
-        onDaySelected: _onDaySelected,
-        onCalendarCreated: (controller) {
-          pageController = controller;
-        },
-        calendarBuilders: CalendarBuilders(
-          headerTitleBuilder: (context, day) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Text(
-                      textScaler: getAdaptiveTextScaler(context),
-                      getMonthYear(day),
-                      style: CustomTypography()
-                          .titleSmall(color: CustomColors.textSecondaryContent),
+      child: LayoutBuilder(
+          builder: (context, constraints) => TableCalendar(
+                firstDay: DateTime.utc(2010, 10, 16),
+                lastDay: DateTime.utc(2060, 3, 14),
+                focusedDay: focusedDay,
+                currentDay: today,
+                availableGestures: AvailableGestures.horizontalSwipe,
+                headerStyle: const HeaderStyle(
+                    titleCentered: false,
+                    formatButtonVisible: false,
+                    rightChevronVisible: false,
+                    leftChevronVisible: false),
+                calendarStyle: CalendarStyle(
+                  outsideTextStyle: CustomTypography()
+                      .bodyLarge(color: CustomColors.textTertiaryContent),
+                  todayDecoration: const BoxDecoration(
+                      color: CustomColors.productNormal,
+                      shape: BoxShape.circle),
+                ),
+                startingDayOfWeek: StartingDayOfWeek.monday,
+                daysOfWeekHeight: getAdaptiveTextScaler(context).scale(45),
+                rowHeight: CalendarDayCircle.rowHeightFor(
+                  preferredRowHeight: getAdaptiveTextScaler(context).scale(56),
+                  cellWidth: constraints.maxWidth / 7,
+                  hasMarkers: false,
+                ),
+                onDaySelected: _onDaySelected,
+                onCalendarCreated: (controller) {
+                  pageController = controller;
+                },
+                calendarBuilders: CalendarBuilders(
+                  headerTitleBuilder: (context, day) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 20),
+                            child: Text(
+                              textScaler: getAdaptiveTextScaler(context),
+                              getMonthYear(day),
+                              style: CustomTypography().titleSmall(
+                                  color: CustomColors.textSecondaryContent),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () => pageController?.previousPage(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.ease),
+                                child: SizedBox(
+                                    height: scaler.scale(24),
+                                    width: scaler.scale(24),
+                                    child: Icon(
+                                      Icons.chevron_left_rounded,
+                                      size: scaler.scale(24),
+                                    )),
+                              ),
+                              const SizedBox(width: 12),
+                              GestureDetector(
+                                onTap: () => pageController?.nextPage(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.ease),
+                                child: SizedBox(
+                                    height: scaler.scale(24),
+                                    width: scaler.scale(24),
+                                    child: Icon(
+                                      Icons.chevron_right_rounded,
+                                      size: scaler.scale(24),
+                                    )),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  dowBuilder: (context, day) {
+                    return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.only(bottom: 8),
+                        decoration: const BoxDecoration(
+                            border: Border(
+                                bottom: BorderSide(
+                                    width: 0.6,
+                                    color: CustomColors.productBorderNormal))),
+                        child: Center(
+                          child: FittedBox(
+                            child: Text(
+                              DateFormat.E().format(day)[0],
+                              style: CustomTypography().titleSmall(
+                                  color: CustomColors.textSecondaryContent),
+                            ),
+                          ),
+                        ));
+                  },
+                  defaultBuilder: (context, day, focusedDay) {
+                    final _day =
+                        DateTime(day.year, day.month, day.day, 0, 0, 0);
+                    final _selected = DateTime(selectedDate.year,
+                        selectedDate.month, selectedDate.day, 0, 0, 0);
+
+                    final isPast = _day.isBefore(DateTime.now());
+                    final color =
+                        _selected == _day ? CustomColors.productNormal : null;
+
+                    final textColor = _selected == _day
+                        ? CustomColors.textWhite
+                        : isPast
+                            ? CustomColors.textTertiaryContent
+                            : CustomColors.textNormalContent;
+                    return CalendarDayCircle(
+                      label: day.day.toString(),
+                      style: CustomTypography().bodyMedium(color: textColor),
+                      color: color,
+                    );
+                  },
+                  todayBuilder: (context, date, time) {
+                    final _day =
+                        DateTime(date.year, date.month, date.day, 0, 0, 0);
+                    final _selected = DateTime(selectedDate.year,
+                        selectedDate.month, selectedDate.day, 0, 0, 0);
+                    final color = (today == _selected || _day == _selected)
+                        ? CustomColors.productNormal
+                        : CustomColors.productLightBackground;
+
+                    final textColor = (today == _selected || _day == _selected)
+                        ? CustomColors.textWhite
+                        : CustomColors.textTertiaryContent;
+                    return CalendarDayCircle(
+                      label: date.day.toString(),
+                      style: CustomTypography().bodyLarge(color: textColor),
+                      color: color,
+                    );
+                  },
                 ),
-                SizedBox(
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => pageController?.previousPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.ease),
-                        child: SizedBox(
-                            height: scaler.scale(24),
-                            width: scaler.scale(24),
-                            child: Icon(
-                              Icons.chevron_left_rounded,
-                              size: scaler.scale(24),
-                            )),
-                      ),
-                      const SizedBox(width: 12),
-                      GestureDetector(
-                        onTap: () => pageController?.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.ease),
-                        child: SizedBox(
-                            height: scaler.scale(24),
-                            width: scaler.scale(24),
-                            child: Icon(
-                              Icons.chevron_right_rounded,
-                              size: scaler.scale(24),
-                            )),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          dowBuilder: (context, day) {
-            return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.only(bottom: 8),
-                decoration: const BoxDecoration(
-                    border: Border(
-                        bottom: BorderSide(
-                            width: 0.6,
-                            color: CustomColors.productBorderNormal))),
-                child: Center(
-                  child: FittedBox(
-                    child: Text(
-                      DateFormat.E().format(day)[0],
-                      style: CustomTypography()
-                          .titleSmall(color: CustomColors.textSecondaryContent),
-                    ),
-                  ),
-                ));
-          },
-          defaultBuilder: (context, day, focusedDay) {
-            final _day = DateTime(day.year, day.month, day.day, 0, 0, 0);
-            final _selected = DateTime(selectedDate.year, selectedDate.month,
-                selectedDate.day, 0, 0, 0);
-
-            final isPast = _day.isBefore(DateTime.now());
-            final color = _selected == _day ? CustomColors.productNormal : null;
-
-            final textColor = _selected == _day
-                ? CustomColors.textWhite
-                : isPast
-                    ? CustomColors.textTertiaryContent
-                    : CustomColors.textNormalContent;
-            return CalendarDayCircle(
-              label: day.day.toString(),
-              style: CustomTypography().bodyMedium(color: textColor),
-              color: color,
-            );
-          },
-          todayBuilder: (context, date, time) {
-            final _day = DateTime(date.year, date.month, date.day, 0, 0, 0);
-            final _selected = DateTime(selectedDate.year, selectedDate.month,
-                selectedDate.day, 0, 0, 0);
-            final color = (today == _selected || _day == _selected)
-                ? CustomColors.productNormal
-                : CustomColors.productLightBackground;
-
-            final textColor = (today == _selected || _day == _selected)
-                ? CustomColors.textWhite
-                : CustomColors.textTertiaryContent;
-            return CalendarDayCircle(
-              label: date.day.toString(),
-              style: CustomTypography().bodyLarge(color: textColor),
-              color: color,
-            );
-          },
-        ),
-      ),
+              )),
     );
   }
 

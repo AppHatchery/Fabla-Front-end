@@ -50,7 +50,11 @@ class _CustomCalenderState extends State<CustomCalender> {
   Widget build(BuildContext context) {
     final scaler = MediaQuery.of(context).textScaler;
     final scaled = scaler.scale(56);
-    final rowHeight = scaled < 100 ? 60.0 : scaled < 130 ? 72.0 : 80.0;
+    final rowHeight = scaled < 100
+        ? 60.0
+        : scaled < 130
+            ? 72.0
+            : 80.0;
     const minCalendarWidth = 7 * 48.0 + 4;
 
     final today =
@@ -92,7 +96,10 @@ class _CustomCalenderState extends State<CustomCalender> {
             ),
             startingDayOfWeek: StartingDayOfWeek.monday,
             daysOfWeekHeight: scaler.scale(45),
-            rowHeight: rowHeight,
+            rowHeight: CalendarDayCircle.rowHeightFor(
+              preferredRowHeight: rowHeight,
+              cellWidth: calendarWidth / 7,
+            ),
             onCalendarCreated: (controller) {
               pageController = controller;
             },
@@ -108,8 +115,8 @@ class _CustomCalenderState extends State<CustomCalender> {
                         padding: const EdgeInsets.only(left: 20),
                         child: Text(
                           getMonthYear(day),
-                      style: CustomTypography()
-                          .titleSmall(color: CustomColors.textSecondaryContent),
+                          style: CustomTypography().titleSmall(
+                              color: CustomColors.textSecondaryContent),
                         ),
                       ),
                     ),
@@ -174,14 +181,22 @@ class _CustomCalenderState extends State<CustomCalender> {
                   color: color,
                 );
               },
+              outsideBuilder: (context, day, focusedDay) {
+                return CalendarDayCircle(
+                  label: day.day.toString(),
+                  style: CustomTypography()
+                      .bodyMedium(color: CustomColors.textTertiaryContent),
+                );
+              },
               todayBuilder: (context, date, time) {
                 final color = (today == selectedDate || date == selectedDate)
                     ? CustomColors.productNormal
                     : CustomColors.productLightBackground;
 
-                final textColor = (today == selectedDate || date == selectedDate)
-                    ? CustomColors.textWhite
-                    : CustomColors.textTertiaryContent;
+                final textColor =
+                    (today == selectedDate || date == selectedDate)
+                        ? CustomColors.textWhite
+                        : CustomColors.textTertiaryContent;
                 return CalendarDayCircle(
                   label: date.day.toString(),
                   style: CustomTypography().bodyLarge(color: textColor),
@@ -199,7 +214,8 @@ class _CustomCalenderState extends State<CustomCalender> {
                 return Container(
                   width: 7.0,
                   height: 7.0,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+                  decoration:
+                      BoxDecoration(shape: BoxShape.circle, color: color),
                   margin: EdgeInsets.symmetric(
                       vertical: scaler.scale(5.0), horizontal: 1.5),
                 );

@@ -239,154 +239,173 @@ class _StudyCalendarState extends State<StudyCalendar> {
             shape: BoxShape.rectangle,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
-          child: TableCalendar(
-            firstDay: DateTime.utc(2010, 10, 16),
-            lastDay: DateTime.utc(2060, 3, 14),
-            focusedDay: focusedDay,
-            currentDay: today,
-            availableGestures: AvailableGestures.horizontalSwipe,
-            rowHeight: 54,
-            headerStyle: const HeaderStyle(
-                titleCentered: false,
-                formatButtonVisible: false,
-                rightChevronVisible: false,
-                leftChevronVisible: false),
-            calendarStyle: CalendarStyle(
-              outsideTextStyle: CustomTypography()
-                  .bodyLarge(color: CustomColors.textTertiaryContent),
-              todayDecoration: const BoxDecoration(
-                  color: CustomColors.productNormalActive,
-                  shape: BoxShape.circle),
-            ),
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            daysOfWeekHeight: scaler.scale(45),
-            onDaySelected: _onDaySelected,
-            onCalendarCreated: (controller) {
-              pageController = controller;
-            },
-            eventLoader: getDiariesForDay,
-            calendarBuilders: CalendarBuilders(
-              headerTitleBuilder: (context, day) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 20),
-                        child: Text(
-                          textScaler: getAdaptiveTextScaler(context),
-                          getMonthYear(day),
-                          style: CustomTypography().titleSmall(
-                              color: CustomColors.textSecondaryContent),
+          child: LayoutBuilder(
+              builder: (context, constraints) => TableCalendar(
+                    firstDay: DateTime.utc(2010, 10, 16),
+                    lastDay: DateTime.utc(2060, 3, 14),
+                    focusedDay: focusedDay,
+                    currentDay: today,
+                    availableGestures: AvailableGestures.horizontalSwipe,
+                    rowHeight: CalendarDayCircle.rowHeightFor(
+                      preferredRowHeight:
+                          getAdaptiveTextScaler(context).scale(56),
+                      cellWidth: constraints.maxWidth / 7,
+                      baseSize: 33,
+                    ),
+                    headerStyle: const HeaderStyle(
+                        titleCentered: false,
+                        formatButtonVisible: false,
+                        rightChevronVisible: false,
+                        leftChevronVisible: false),
+                    calendarStyle: CalendarStyle(
+                      outsideTextStyle: CustomTypography()
+                          .bodyLarge(color: CustomColors.textTertiaryContent),
+                      todayDecoration: const BoxDecoration(
+                          color: CustomColors.productNormalActive,
+                          shape: BoxShape.circle),
+                    ),
+                    startingDayOfWeek: StartingDayOfWeek.monday,
+                    daysOfWeekHeight: scaler.scale(45),
+                    onDaySelected: _onDaySelected,
+                    onCalendarCreated: (controller) {
+                      pageController = controller;
+                    },
+                    eventLoader: getDiariesForDay,
+                    calendarBuilders: CalendarBuilders(
+                      headerTitleBuilder: (context, day) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 20),
+                                child: Text(
+                                  textScaler: getAdaptiveTextScaler(context),
+                                  getMonthYear(day),
+                                  style: CustomTypography().titleSmall(
+                                      color: CustomColors.textSecondaryContent),
+                                ),
+                              ),
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  constraints: const BoxConstraints(
+                                      minWidth: 48, minHeight: 48),
+                                  onPressed: () => pageController?.previousPage(
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      curve: Curves.ease),
+                                  icon: const Icon(
+                                      applyTextScaling: true,
+                                      Icons.chevron_left_rounded),
+                                ),
+                                IconButton(
+                                  constraints: const BoxConstraints(
+                                      minWidth: 48, minHeight: 48),
+                                  onPressed: () => pageController?.nextPage(
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      curve: Curves.ease),
+                                  icon: const Icon(
+                                      applyTextScaling: true,
+                                      Icons.chevron_right_rounded),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
+                      dowBuilder: (context, day) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.only(bottom: 8),
+                          decoration: const BoxDecoration(
+                              border: Border(
+                                  bottom: BorderSide(
+                                      width: 0.6,
+                                      color:
+                                          CustomColors.productBorderNormal))),
+                          child: Center(
+                            child: Text(
+                              DateFormat.E().format(day)[0],
+                              style: CustomTypography().titleSmall(
+                                  color: CustomColors.textSecondaryContent),
+                            ),
+                          ),
+                        );
+                      },
+                      defaultBuilder: (context, day, focusedDay) {
+                        final color = selectedDate == day
+                            ? CustomColors.productNormalActive
+                            : null;
+
+                        final isPast = day.isBefore(today);
+
+                        final textColor = selectedDate == day
+                            ? CustomColors.textWhite
+                            : isPast
+                                ? CustomColors.textTertiaryContent
+                                : CustomColors.textNormalContent;
+                        return CalendarDayCircle(
+                          label: day.day.toString(),
+                          style:
+                              CustomTypography().bodyMedium(color: textColor),
+                          color: color,
+                          baseSize: 33,
+                        );
+                      },
+                      outsideBuilder: (context, day, focusedDay) {
+                        return CalendarDayCircle(
+                          label: day.day.toString(),
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textTertiaryContent),
+                          baseSize: 33,
+                        );
+                      },
+                      todayBuilder: (context, date, time) {
+                        final color =
+                            (today == selectedDate || date == selectedDate)
+                                ? CustomColors.productNormalActive
+                                : CustomColors.productLightBackground;
+
+                        final textColor =
+                            (today == selectedDate || date == selectedDate)
+                                ? CustomColors.textWhite
+                                : CustomColors.productNormal;
+                        return CalendarDayCircle(
+                          label: date.day.toString(),
+                          style: CustomTypography().bodyLarge(color: textColor),
+                          color: color,
+                          baseSize: 33,
+                        );
+                      },
+                      singleMarkerBuilder: (context, date, event) {
+                        isBeforeToday = date.isBefore(today);
+                        final isDiaryOnEventSubmitted =
+                            _diaryOnEventSubmitted(date);
+                        final goal = studyGoalCheck(date);
+
+                        final color = isBeforeToday
+                            ? isDiaryOnEventSubmitted
+                                ? CustomColors.productLightPrimaryActive
+                                : CustomColors.productBorderNormal
+                            : goal
+                                ? CustomColors.productNormalActive
+                                : Colors.transparent;
+                        return Container(
+                          width: 7.0,
+                          height: 7.0,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle, color: color),
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 5.0, horizontal: 1.5),
+                        );
+                      },
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          constraints:
-                              const BoxConstraints(minWidth: 48, minHeight: 48),
-                          onPressed: () => pageController?.previousPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.ease),
-                          icon: const Icon(
-                              applyTextScaling: true,
-                              Icons.chevron_left_rounded),
-                        ),
-                        IconButton(
-                          constraints:
-                              const BoxConstraints(minWidth: 48, minHeight: 48),
-                          onPressed: () => pageController?.nextPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.ease),
-                          icon: const Icon(
-                              applyTextScaling: true,
-                              Icons.chevron_right_rounded),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              dowBuilder: (context, day) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.only(bottom: 8),
-                  decoration: const BoxDecoration(
-                      border: Border(
-                          bottom: BorderSide(
-                              width: 0.6,
-                              color: CustomColors.productBorderNormal))),
-                  child: Center(
-                    child: Text(
-                      textScaler: getAdaptiveTextScaler(context),
-                      DateFormat.E().format(day)[0],
-                      style: CustomTypography()
-                          .titleSmall(color: CustomColors.textSecondaryContent),
-                    ),
-                  ),
-                );
-              },
-              defaultBuilder: (context, day, focusedDay) {
-                final color = selectedDate == day
-                    ? CustomColors.productNormalActive
-                    : null;
-
-                final isPast = day.isBefore(today);
-
-                final textColor = selectedDate == day
-                    ? CustomColors.textWhite
-                    : isPast
-                        ? CustomColors.textTertiaryContent
-                        : CustomColors.textNormalContent;
-                return CalendarDayCircle(
-                  label: day.day.toString(),
-                  style: CustomTypography().bodyMedium(color: textColor),
-                  color: color,
-                  baseSize: 33,
-                );
-              },
-              todayBuilder: (context, date, time) {
-                final color = (today == selectedDate || date == selectedDate)
-                    ? CustomColors.productNormalActive
-                    : CustomColors.productLightBackground;
-
-                final textColor =
-                    (today == selectedDate || date == selectedDate)
-                        ? CustomColors.textWhite
-                        : CustomColors.productNormal;
-                return CalendarDayCircle(
-                  label: date.day.toString(),
-                  style: CustomTypography().bodyLarge(color: textColor),
-                  color: color,
-                  baseSize: 33,
-                );
-              },
-              singleMarkerBuilder: (context, date, event) {
-                isBeforeToday = date.isBefore(today);
-                final isDiaryOnEventSubmitted = _diaryOnEventSubmitted(date);
-                final goal = studyGoalCheck(date);
-
-                final color = isBeforeToday
-                    ? isDiaryOnEventSubmitted
-                        ? CustomColors.productLightPrimaryActive
-                        : CustomColors.productBorderNormal
-                    : goal
-                        ? CustomColors.productNormalActive
-                        : Colors.transparent;
-                return Container(
-                  width: 7.0,
-                  height: 7.0,
-                  decoration:
-                      BoxDecoration(shape: BoxShape.circle, color: color),
-                  margin: const EdgeInsets.symmetric(
-                      vertical: 5.0, horizontal: 1.5),
-                );
-              },
-            ),
-          ),
+                  )),
         )
       ],
     );
@@ -583,7 +602,9 @@ class HelpButton extends StatelessWidget {
                   ),
                 ),
             direction: PopoverDirection.top,
-            constraints: BoxConstraints(maxWidth: getAdaptiveTextScaler(context).scale(220),),
+            constraints: BoxConstraints(
+              maxWidth: getAdaptiveTextScaler(context).scale(220),
+            ),
             arrowHeight: 0,
             arrowWidth: 0,
             barrierColor: Colors.transparent),
