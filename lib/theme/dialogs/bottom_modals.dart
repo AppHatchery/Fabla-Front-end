@@ -1934,7 +1934,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
     final width = MediaQuery.of(context).size.width;
     return SizedBox(
       width: width,
-      height: 68,
+      height: getAdaptiveTextScaler(context).scale(68),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -1946,8 +1946,12 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                   onTap: () => pause(),
                   child: AnimatedContainer(
                       duration: Duration(milliseconds: 100),
-                      height: controller.value.isRecordingPaused ? 68 : 50,
-                      width: controller.value.isRecordingPaused ? 68 : 50,
+                      height: controller.value.isRecordingPaused
+                          ? getAdaptiveTextScaler(context).scale(68)
+                          : getAdaptiveTextScaler(context).scale(50),
+                      width: controller.value.isRecordingPaused
+                          ? getAdaptiveTextScaler(context).scale(68)
+                          : getAdaptiveTextScaler(context).scale(50),
                       decoration: BoxDecoration(
                           color: controller.value.isRecordingPaused
                               ? Colors.transparent
@@ -1965,16 +1969,18 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                         child: controller.value.isRecordingPaused
                             ? Container(
                                 key: ValueKey(1),
-                                height: 60,
-                                width: 60,
+                                height:
+                                    getAdaptiveTextScaler(context).scale(64),
+                                width: getAdaptiveTextScaler(context).scale(64),
                                 decoration: BoxDecoration(
                                     color: CustomColors.warningActive,
                                     borderRadius: BorderRadius.circular(60)),
                               )
                             : SizedBox(
                                 key: ValueKey(2),
-                                height: 50,
-                                width: 50,
+                                height:
+                                    getAdaptiveTextScaler(context).scale(50),
+                                width: getAdaptiveTextScaler(context).scale(50),
                                 child: Icon(
                                   applyTextScaling: true,
                                   Icons.pause_rounded,
@@ -1989,8 +1995,12 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
             onTap: () => record(),
             child: AnimatedContainer(
                 duration: Duration(milliseconds: 100),
-                height: controller.value.isRecordingPaused ? 50 : 64,
-                width: controller.value.isRecordingPaused ? 50 : 64,
+                height: controller.value.isRecordingPaused
+                    ? getAdaptiveTextScaler(context).scale(50)
+                    : getAdaptiveTextScaler(context).scale(64),
+                width: controller.value.isRecordingPaused
+                    ? getAdaptiveTextScaler(context).scale(50)
+                    : getAdaptiveTextScaler(context).scale(64),
                 decoration: BoxDecoration(
                     border: Border.all(color: CustomColors.fillWhite, width: 4),
                     borderRadius: BorderRadius.circular(68)),
@@ -2015,21 +2025,20 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
           GestureDetector(
             onTap: () => flip(),
             child: Container(
-                height: 50,
-                width: 50,
+                height: getAdaptiveTextScaler(context).scale(50),
+                width: getAdaptiveTextScaler(context).scale(50),
                 decoration: BoxDecoration(
                     color: CustomColors.fillWhite,
                     borderRadius: BorderRadius.circular(68)),
                 padding: const EdgeInsets.all(4),
                 child: SizedBox(
-                  height: 45,
-                  width: 45,
+                  height: getAdaptiveTextScaler(context).scale(45),
+                  width: getAdaptiveTextScaler(context).scale(45),
                   child: Center(
                     child: Icon(
-                      applyTextScaling: true,
                       CupertinoIcons.switch_camera_solid,
                       color: CustomColors.productNormal,
-                      size: 25,
+                      size: getAdaptiveTextScaler(context).scale(25),
                     ),
                   ),
                 )),
@@ -2059,27 +2068,31 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
           ),
         ),
         widget.isImage
-            ? const SizedBox(
+            ? SizedBox(
                 height: 64,
                 width: 64,
               )
             : GestureDetector(
                 onTap: () => play(),
                 child: Container(
-                  height: 64,
-                  width: 64,
+                  height: getAdaptiveTextScaler(context).scale(64),
+                  width: getAdaptiveTextScaler(context).scale(64),
                   decoration: BoxDecoration(
                       shape: BoxShape.circle, color: CustomColors.fillWhite),
                   child: Center(
                     child: Padding(
-                      padding: EdgeInsets.only(left: videoPlaying ? 0 : 4.0),
+                      padding: EdgeInsets.only(
+                        left: videoPlaying
+                            ? getAdaptiveTextScaler(context).scale(0)
+                            : getAdaptiveTextScaler(context).scale(4.0),
+                      ),
                       child: Icon(
-                        applyTextScaling: true,
                         videoPlaying
                             ? CupertinoIcons.pause_fill
                             : CupertinoIcons.play_arrow_solid,
                         color: CustomColors.productNormalActive,
                         size: 32,
+                        applyTextScaling: true,
                       ),
                     ),
                   ),
