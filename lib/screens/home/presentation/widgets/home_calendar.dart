@@ -245,7 +245,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
             focusedDay: focusedDay,
             currentDay: today,
             availableGestures: AvailableGestures.horizontalSwipe,
-            rowHeight: math.min(scaler.scale(54), 80.0),
+            rowHeight: 54,
             headerStyle: const HeaderStyle(
                 titleCentered: false,
                 formatButtonVisible: false,
