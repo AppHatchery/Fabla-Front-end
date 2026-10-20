@@ -42,6 +42,7 @@ class _OnBoardingTextFieldState extends State<OnBoardingTextField> {
           suffix: IconButton(
             onPressed: () => widget.controller.clear(),
             icon: const Icon(
+              applyTextScaling: true,
               CustomIcons.cancel,
               size: 20,
             ),
