@@ -128,8 +128,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                       child: Padding(
                         padding: const EdgeInsets.only(top: 5.0),
                         child: SizedBox(
-                          height: 120,
-                          width: 180,
+                          height: getAdaptiveTextScaler(context).scale(120),
+                          width: getAdaptiveTextScaler(context).scale(180),
                           child: _riveController != null
                               ? RiveWidget(
                                   controller: _riveController!,
