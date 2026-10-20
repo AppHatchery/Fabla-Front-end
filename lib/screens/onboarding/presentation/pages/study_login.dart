@@ -8,6 +8,7 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:audio_diaries_flutter/theme/resources/strings.dart';
 import 'package:flutter/material.dart';
+import 'package:bug_reporter/bug_reporter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math' show pi;
 import 'package:rive/rive.dart';
@@ -89,7 +90,9 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
     final height = MediaQuery.of(context).size.height;
     final isIos = Platform.isIOS;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    return Scaffold(
+    return TrackedScreen(
+      name: 'Login',
+      child: Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(
@@ -164,6 +167,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
           ),
         ),
       ),
+    ),
     );
   }
 
