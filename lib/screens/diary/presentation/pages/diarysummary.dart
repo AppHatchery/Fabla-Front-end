@@ -548,8 +548,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                     child: Row(children: [
                       Image.asset(
                         "assets/images/icons/task_alt.png",
-                        height: 16,
-                        width: 16,
+                        height: getAdaptiveTextScaler(context).scale(16),
+                        width: getAdaptiveTextScaler(context).scale(16),
                       ),
                       SizedBox(
                         width: 5,
@@ -558,7 +558,6 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                         child: Text("Survey response collected",
                             style: CustomTypography().bodyLarge(
                                 color: CustomColors.textSecondaryContent),
-                            maxLines: 1,
                             overflow: TextOverflow.ellipsis),
                       ),
                     ]),
