@@ -1732,12 +1732,14 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       ),
       const SizedBox(height: 12),
       Text(
+        textScaler: getAdaptiveTextScaler(context),
         'Study Update Successful',
         textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
       ),
       const SizedBox(height: 12),
       Text(
+        textScaler: getAdaptiveTextScaler(context),
         'Your study has been updated to the latest version.',
         textAlign: TextAlign.center,
         style: CustomTypography()
