@@ -21,7 +21,13 @@ class QuickstartPage extends StatelessWidget {
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const FittedBox(
+            child: Icon(
+              applyTextScaling: true,
+              Icons.arrow_back_rounded,
+              size: 32,
+            ),
+          ),
           onPressed: () {
             Navigator.pop(context);
           },
