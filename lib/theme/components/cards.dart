@@ -391,7 +391,11 @@ class _DiaryCardSmallState extends State<DiaryCardSmall> {
             ),
           ),
           widget.diary.status == DiaryStatus.submitted
-              ? Icon(Icons.check_circle_rounded, color: CustomColors.darkGreen, applyTextScaling: true,)
+              ? Icon(
+                  Icons.check_circle_rounded,
+                  color: CustomColors.darkGreen,
+                  applyTextScaling: true,
+                )
               : const SizedBox.shrink(),
         ],
       ),
@@ -539,7 +543,10 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
       children: [
         Row(
           children: [
-            const Icon(CustomIcons.keyboardVoice, applyTextScaling: true,),
+            const Icon(
+              CustomIcons.keyboardVoice,
+              applyTextScaling: true,
+            ),
             const SizedBox(width: 5),
             Text(
               "New Diary",
@@ -551,7 +558,10 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
           visible: widget.isExpanded,
           child: Row(
             children: [
-              const Icon(Icons.access_time_rounded, applyTextScaling: true,),
+              const Icon(
+                Icons.access_time_rounded,
+                applyTextScaling: true,
+              ),
               const SizedBox(width: 5),
               Text(
                 formatDateShort(widget.recording.date),
@@ -582,7 +592,10 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
             children: [
               const IconButton(
                 onPressed: null,
-                icon: Icon(Icons.edit_note_rounded, applyTextScaling: true,),
+                icon: Icon(
+                  Icons.edit_note_rounded,
+                  applyTextScaling: true,
+                ),
                 color: CustomColors.textSecondaryContent,
               ),
               Text("view full transcript",
@@ -1103,7 +1116,10 @@ class _TextDiaryCardState extends State<TextDiaryCard> {
                     SizedBox(
                       child: Row(
                         children: [
-                          const Icon(CustomIcons.editDocument, applyTextScaling: true,),
+                          const Icon(
+                            CustomIcons.editDocument,
+                            applyTextScaling: true,
+                          ),
                           const SizedBox(
                             width: 5,
                           ),
@@ -1119,7 +1135,10 @@ class _TextDiaryCardState extends State<TextDiaryCard> {
                       child: SizedBox(
                         child: Row(
                           children: [
-                            const Icon(Icons.timer, applyTextScaling: true,),
+                            const Icon(
+                              Icons.timer,
+                              applyTextScaling: true,
+                            ),
                             const SizedBox(
                               width: 5,
                             ),
@@ -1637,43 +1656,35 @@ class WebViewErrorCard extends StatelessWidget {
               "Are you currently offline?",
               style: CustomTypography().bodyLarge(),
             ),
-          Row(
-            spacing: 12,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (buttonText == "Try Again")
-                Expanded(
-                  child: CustomOutlineButton(
-                    onClick: onRetry,
-                    color: Color(0xFFFF3B30),
-                    backgroundColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 14.0),
-                    children: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      alignment: WrapAlignment.center,
-                      runAlignment: WrapAlignment.center,
-                      children: [
-                        Text(
-                          textScaler: getAdaptiveTextScaler(context),
-                          buttonText,
-                          style: CustomTypography()
-                              .button(color: Color(0xFFFF3B30)),
-                        ),
-                      ],
+          if (buttonText == "Try Again")
+            SizedBox(
+              width: double.infinity,
+              child: CustomOutlineButton(
+                onClick: onRetry,
+                color: Color(0xFFFF3B30),
+                backgroundColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 14.0),
+                children: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.center,
+                  runAlignment: WrapAlignment.center,
+                  children: [
+                    Text(
+                      textScaler: getAdaptiveTextScaler(context),
+                      buttonText,
+                      style:
+                          CustomTypography().button(color: Color(0xFFFF3B30)),
                     ),
-                  ),
+                  ],
                 ),
-              Expanded(
-                child: CustomFlatButton(
-                    color: Color(0xFFFF3B30),
-                    borderColor: Color(0xFFFF3B30),
-                    onClick: !connection ? screenChange : skip,
-                    text: !connection ? "Yes, I'm Offline" : "Skip"),
-              )
-            ],
-          ),
+              ),
+            ),
+          CustomFlatButton(
+              color: Color(0xFFFF3B30),
+              borderColor: Color(0xFFFF3B30),
+              onClick: !connection ? screenChange : skip,
+              text: !connection ? "Yes, I'm Offline" : "Skip"),
           if (showContactResearch)
             Padding(
               padding: const EdgeInsets.only(top: 142.0),
