@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/diary_entity.dart';
@@ -94,13 +95,13 @@ class PromptRepository {
 
     // Create a new answer based on response type
     final newAnswer = isMediaResponse
-        ? Answer(id: 0, date: DateTime.now())
-        : Answer(id: 0, date: DateTime.now(), response: responses);
+        ? Answer(id: 0, date: AppClock.now())
+        : Answer(id: 0, date: AppClock.now(), response: responses);
 
     // Create a recording for media responses
     Recording? createRecording() {
       return isMediaResponse
-          ? Recording(prompt.question, response, type, null, DateTime.now())
+          ? Recording(prompt.question, response, type, null, AppClock.now())
           : null;
     }
 

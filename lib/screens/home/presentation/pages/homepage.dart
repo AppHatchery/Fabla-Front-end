@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/home_calendar.dart';
@@ -308,13 +309,13 @@ class _HomePageState extends State<HomePage>
   }
 
   track() async {
-    final now = DateTime.now();
+    final now = AppClock.now();
     await PendoService.track(
         "Weekly Goal", {"viewed_at": now.toIso8601String()});
   }
 
   trackLoad() async {
-    final now = DateTime.now();
+    final now = AppClock.now();
     await PendoService.track("Home", {"loaded_at": now.toIso8601String()});
   }
 

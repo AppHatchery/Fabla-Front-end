@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:rive/rive.dart';
@@ -65,7 +66,7 @@ class _GhostCompletionWidgetState extends State<GhostCompletionWidget> {
   }
 
   Future<void> track(int total, int current) async {
-    final now = DateTime.now();
+    final now = AppClock.now();
     await PendoService.track("Goal Progress",
         {"total": total, "current": current, "date": now.toIso8601String()});
   }

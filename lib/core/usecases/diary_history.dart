@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -34,7 +35,7 @@ void invalidateDiaryHistoryCache() {
 }
 
 List<DiaryModel> _getOrBuildDiaryCache() {
-  final now = DateTime.now();
+  final now = AppClock.now();
 
   if (_cachedProcessedDiaries == null ||
       _cacheTime == null ||
@@ -49,7 +50,7 @@ List<DiaryModel> _getOrBuildDiaryCache() {
 List<DiaryModel> _buildProcessedDiariesList() {
   final unfilteredDiaries = diaryRepository.getAllDiaries();
 
-  final now = DateTime.now();
+  final now = AppClock.now();
   final tomorrow =
       DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
 
@@ -83,7 +84,7 @@ PaginatedDiaryResult getPaginatedHistoryDiariesUseCase({
   required int page,
   required int limit,
 }) {
-  final now = DateTime.now();
+  final now = AppClock.now();
   final allProcessedDiaries = _getOrBuildDiaryCache();
 
   if (allProcessedDiaries.isEmpty) {
@@ -120,7 +121,7 @@ PaginatedDiaryResult getPaginatedHistoryDiariesUseCase({
 //backward compatibility
 Map<String, List<DiaryModel>> getAllHistoryDiariesUseCase() {
   final allProcessedDiaries = _getOrBuildDiaryCache();
-  final now = DateTime.now();
+  final now = AppClock.now();
   return _groupAndSortDiaries(allProcessedDiaries, now);
 }
 
@@ -139,7 +140,7 @@ Map<String, List<DiaryModel>> getAllHistoryDiariesUseCase() {
 // Map<String, List<DiaryModel>> getAllHistoryDiariesUseCase() {
 //   final unfilteredDiaries = diaryRepository.getAllDiaries();
 //
-//   final now = DateTime.now();
+//   final now = AppClock.now();
 //   final tomorrow =
 //       DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
 //

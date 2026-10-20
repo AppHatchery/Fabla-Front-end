@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:async';
 import 'dart:developer' as dev;
 
@@ -13,7 +14,7 @@ import '../../services/preference_service.dart';
 /// completed but not yet submitted, tagged with that diary's due date.
 Future<void> trackUnsubmittedDiaries() async {
   try {
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final today = DateFormat('yyyy-MM-dd').format(AppClock.now());
 
     final lastRun = await PreferenceService().getStringPreference(
       key: 'unsubmitted_diaries_last_run',

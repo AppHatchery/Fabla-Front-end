@@ -1,4 +1,5 @@
 // import 'package:audio_diaries_flutter/theme/custom_colors.dart';
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:convert';
 import 'dart:developer' as dev;
 
@@ -161,7 +162,7 @@ String formatMinsAndSecs(Duration d) {
 }
 
 String formatDiaryCardDue(DateTime due, DateTime start, DiaryStatus status) {
-  final now = DateTime.now();
+  final now = AppClock.now();
   final difference = due.difference(now).inHours;
 
   final dateFormat = DateFormat("MMM d',' y");
@@ -190,7 +191,7 @@ String formatDiaryDueSubmission(DateTime date) {
 // Second element is Text Color
 List<Color> formatDiaryCardDueColors(
     DateTime due, DateTime start, DiaryStatus status, bool optional) {
-  final now = DateTime.now();
+  final now = AppClock.now();
   final difference = due.difference(now).inHours;
 
   // when the diary is due in 2 hr display the due time label in red
@@ -222,7 +223,7 @@ List<Color> formatDiaryCardDueColors(
 String formatHistoryDate(DateTime date) {
   // Get the current date
   DateTime today =
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+      DateTime(AppClock.now().year, AppClock.now().month, AppClock.now().day);
   // Define date formatters
   final DateFormat formatterOne = DateFormat("MMMM d',' y");
   final DateFormat formatterTwo = DateFormat("EEEE - MMMM d',' y");

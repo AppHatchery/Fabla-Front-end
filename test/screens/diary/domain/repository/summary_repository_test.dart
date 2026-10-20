@@ -1,13 +1,16 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/answer_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../dummy_data.dart';
 
@@ -95,6 +98,69 @@ void main() {
 
       expect(result, isFalse);
       verify(() => setupRepository.getParticipant()).called(1);
+    });
+  });
+
+  group('submitDiary simulated no internet', () {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      await DeveloperModeService().enable();
+      when(() => diaryRepository.getDiaryByID(any()))
+          .thenReturn(createTestDiaryModel(currentEntry: 0));
+    });
+
+    tearDown(() => DeveloperModeService().disable());
+
+    test('returns null before anything is sent, once', () async {
+      DeveloperModeService().simulateNextFailure(SimulatedFailure.noInternet);
+      final trace = DebugTrace('diary_submission');
+
+      final result = await trace.run(() => repository
+          .submitDiary(createTestDiaryModel(id: 21, currentEntry: 0)));
+
+      expect(result, isNull);
+      verifyNever(() => setupRepository.getParticipant());
+      expect(trace.rootFailure!.step, 'connectivity');
+      expect(trace.rootFailure!.message, 'No internet connection (simulated)');
+      expect(DeveloperModeService.isSimulated(trace), isTrue);
+      expect(
+          DeveloperModeService().simulatedFailure.value, SimulatedFailure.none);
+    });
+  });
+
+  group('submitDiary skip connectivity check', () {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      await DeveloperModeService().enable();
+      when(() => diaryRepository.getDiaryByID(any()))
+          .thenReturn(createTestDiaryModel(currentEntry: 0));
+    });
+
+    tearDown(() => DeveloperModeService().disable());
+
+    test('goes straight on without checking for internet', () async {
+      await DeveloperModeService().setSkipConnectivityCheck(true);
+      final trace = DebugTrace('diary_submission');
+
+      await trace.run(() => repository
+          .submitDiary(createTestDiaryModel(id: 21, currentEntry: 0)));
+
+      verify(() => setupRepository.getParticipant()).called(1);
+      expect(trace.events.map((e) => e.message),
+          contains('Internet check skipped (developer mode)'));
+      expect(trace.events.map((e) => e.message),
+          isNot(contains('Internet check passed')));
+    });
+
+    test('a simulated no internet still fires', () async {
+      await DeveloperModeService().setSkipConnectivityCheck(true);
+      DeveloperModeService().simulateNextFailure(SimulatedFailure.noInternet);
+
+      final result = await repository
+          .submitDiary(createTestDiaryModel(id: 21, currentEntry: 0));
+
+      expect(result, isNull);
+      verifyNever(() => setupRepository.getParticipant());
     });
   });
 

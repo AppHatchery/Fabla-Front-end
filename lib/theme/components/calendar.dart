@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +23,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
   @override
   void initState() {
     today =
-        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+        DateTime(AppClock.now().year, AppClock.now().month, AppClock.now().day);
     pageController = null;
     selectedDate = widget.date ?? today;
     focusedDay = selectedDate;
@@ -144,7 +145,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
             final _selected = DateTime(selectedDate.year, selectedDate.month,
                 selectedDate.day, 0, 0, 0);
 
-            final isPast = _day.isBefore(DateTime.now());
+            final isPast = _day.isBefore(AppClock.now());
             final color = _selected == _day ? CustomColors.productNormal : null;
 
             final textColor = _selected == _day

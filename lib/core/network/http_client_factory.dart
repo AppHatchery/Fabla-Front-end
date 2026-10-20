@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
+import 'package:audio_diaries_flutter/core/network/tracing_client.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:cronet_http/cronet_http.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -64,8 +66,9 @@ Client _platformClient() {
 /// Wraps [inner] with a per-attempt [timeout] and up to [retries] re-sends of
 /// [isTransientNetworkError] failures, plus 5xx when [retryServerErrors] is
 /// set, which only an idempotent caller may do. Retry sits outside the timeout
-/// so each attempt gets the full budget. [delay] replaces [retryBackoff] in
-/// tests.
+/// so each attempt gets the full budget, and tracing sits under retry so each
+/// attempt is recorded (see [TracingClient]). [delay] replaces [retryBackoff]
+/// in tests.
 Client wrapClient(
   Client inner, {
   Duration timeout = kDefaultTimeout,
@@ -73,11 +76,11 @@ Client wrapClient(
   bool retryServerErrors = false,
   Duration Function(int)? delay,
 }) {
-  final timeoutClient = _TimeoutClient(inner, timeout);
-  if (retries <= 0) return timeoutClient;
+  final attemptClient = TracingClient(_TimeoutClient(inner, timeout));
+  if (retries <= 0) return attemptClient;
 
   return RetryClient(
-    timeoutClient,
+    attemptClient,
     retries: retries,
     when: retryServerErrors
         ? (response) => isRetryableServerError(response.statusCode)
@@ -85,6 +88,8 @@ Client wrapClient(
     whenError: (error, _) => isTransientNetworkError(error),
     delay: delay ?? retryBackoff,
     onRetry: (request, _, retryCount) {
+      DebugTrace.current?.note('Retrying ${request.method} '
+          '${request.url.host} (attempt ${retryCount + 2} of ${retries + 1})');
       CrashlyticsService().log(
           'Network retry ${retryCount + 1}/$retries — '
           '${request.method} ${request.url.path}');

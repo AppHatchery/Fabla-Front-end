@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -66,7 +67,7 @@ class DynamicCubit extends Cubit<DynamicState> {
       if (result) {
         await PreferenceService().setStringPreference(
             key: "onboardingSurveyCompletedDate",
-            value: DateTime.now().toString());
+            value: AppClock.now().toString());
         emit(DynamicUploaded(length));
       } else {
         emit(DynamicError("Uh oh, looks like something went wrong!", length));

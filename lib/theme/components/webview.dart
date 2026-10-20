@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:async';
 import 'dart:developer' as dev;
 
@@ -220,7 +221,7 @@ class CustomWebViewWidgetState extends State<CustomWebViewWidget> {
 
     // force a fresh navigation on iOS
     final cacheBustedUrl = Uri.parse(
-      '${widget.url}${widget.url.contains('?') ? '&' : '?'}_ts=${DateTime.now().millisecondsSinceEpoch}',
+      '${widget.url}${widget.url.contains('?') ? '&' : '?'}_ts=${AppClock.now().millisecondsSinceEpoch}',
     );
 
     try {

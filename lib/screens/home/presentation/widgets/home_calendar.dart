@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -51,7 +52,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
   @override
   void initState() {
     today =
-        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+        DateTime(AppClock.now().year, AppClock.now().month, AppClock.now().day);
     pageController = null;
     controller = ScrollController();
     focusedDay = today;
@@ -150,7 +151,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   track() async {
-    final now = DateTime.now();
+    final now = AppClock.now();
     await PendoService.track(
         "Study Calendar", {"viewed_at": now.toIso8601String()});
   }

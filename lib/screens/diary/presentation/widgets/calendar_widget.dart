@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
@@ -148,7 +149,7 @@ class _CompleteCalendarWidgetState extends State<CompleteCalendarWidget> {
 
   void prepare() async {
     days.clear();
-    final now = DateTime.now();
+    final now = AppClock.now();
     final today = now.weekday;
     DateTime monday = now.subtract(Duration(days: now.weekday - 1));
 

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/usecases/daily_goal_service.dart';
 import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart' show getAllHomeProgressTracking;
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
@@ -48,7 +49,7 @@ class HomeCubit extends Cubit<HomeState> {
     try {
       emit(const HomeLoading());
 
-      final today = DateTime.now();
+      final today = AppClock.now();
       final weekBoundaries = _getWeekBoundaries(today);
 
       // Load all necessary data in parallel for better performance
@@ -82,7 +83,7 @@ class HomeCubit extends Cubit<HomeState> {
       ));
     } catch (e, stackTrace) {
       debugPrint("Error loading home page: $e");
-      final today = DateTime.now();
+      final today = AppClock.now();
       final weekBoundaries = _getWeekBoundaries(today);
       CrashlyticsService().recordError(e, stackTrace,
           context: {
@@ -167,13 +168,13 @@ class HomeCubit extends Cubit<HomeState> {
       repository.getAllDiaries();
 
   List<DiaryModel> getAllDiariesThisWeek() {
-    final today = DateTime.now().weekday;
+    final today = AppClock.now().weekday;
 
     int daysUntilMonday = today == 1 ? 0 : 7 - today;
     final monday = DateTime(
-        DateTime.now().add(Duration(days: -daysUntilMonday)).year,
-        DateTime.now().add(Duration(days: -daysUntilMonday)).month,
-        DateTime.now().add(Duration(days: -daysUntilMonday)).day);
+        AppClock.now().add(Duration(days: -daysUntilMonday)).year,
+        AppClock.now().add(Duration(days: -daysUntilMonday)).month,
+        AppClock.now().add(Duration(days: -daysUntilMonday)).day);
     final sunday = monday.add(const Duration(days: 6));
 
     // Updated to use injected repository instance
@@ -196,7 +197,7 @@ class HomeCubit extends Cubit<HomeState> {
   // Checking if there are no more diaries for study
   // ! Potential problem: Premature showing of 'End of Journey' if study is ongoing and updatable
   Future<bool> noMoreDiaries() async {
-    final today = DateTime.now();
+    final today = AppClock.now();
     final diaries = await getAllDiaries();
     final last = diaries.where((diary) => diary.due.isAfter(today)).toList();
     return last.isEmpty;
