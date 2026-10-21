@@ -6,26 +6,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
-const String devURL =
-    "vqujlfqpuxbfluuojai52fopvy0pregz.lambda-url.us-east-1.on.aws";
-const String prodURL =
-    "bpyla7yzdfordt2mk36oskhudq0yliij.lambda-url.us-east-1.on.aws";
+const String apiURL = "jvcr98ygcj.execute-api.us-east-1.amazonaws.com";
 
 final Map<String, String> headers = {
   'Content-Type': 'application/x-www-form-urlencoded',
   'x-api-key': dotenv.env['APIKEY'] ?? ''
 };
-
-/// Returns the Lambda base URL for the current build mode.
-///
-/// Debug builds use [devURL]; all other builds (profile, release) use [prodURL].
-String base() {
-  if (kDebugMode) {
-    return devURL;
-  } else {
-    return prodURL;
-  }
-}
 
 /// Performs an HTTP GET request to the specified path.
 ///
@@ -48,7 +34,10 @@ Future<String?> get({
       );
 
   try {
-    final url = Uri.https(base(), path);
+    final url = Uri.https(
+      apiURL,
+      '${kDebugMode ? '/dev' : '/prod'}${path.startsWith('/') ? '' : '/'}$path',
+    );
     final response = await httpClient.get(url, headers: headers);
     return response.body;
   } catch (e, stackTrace) {
@@ -86,7 +75,10 @@ Future<String?> post({
       );
 
   try {
-    final url = Uri.https(base(), path);
+    final url = Uri.https(
+      apiURL,
+      '${kDebugMode ? '/dev' : '/prod'}${path.startsWith('/') ? '' : '/'}$path',
+    );
     final response = await httpClient.post(url, headers: headers, body: body);
     if (response.statusCode == 200) {
       return response.body;
