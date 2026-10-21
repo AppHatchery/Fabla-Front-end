@@ -52,6 +52,8 @@ export 'submission_models.dart';
 /// ```
 Future<bool> upload(String participantID, DiaryModel diary) async {
   try {
+    final submittedAt = DateTime.now().toIso8601String(); // Still yet to decide if UTC or Local
+
     final dir = await getApplicationDocumentsDirectory();
     final repository = SetupRepository();
     final diaryRepository = DiaryRepository();
@@ -188,10 +190,10 @@ Future<void> addFileData(
     var reference = PromptEntry.missingFileReference;
 
     if (await _isOnDisk(localPath, fileExists)) {
-      final formattedTime = DateFormat('HH-mm-ss').format(DateTime.now());
+      final formattedTime = DateFormat('HH-mm-ss').format(record.date);
       // Shared by the S3 filename and the Dynamo reference so they match.
       reference =
-          "${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}";
+          "${experimentCode}_${participantID}_${formatSubmissionDate(diary.start)}_${formattedTime}_${record.id}";
       final folder = '${capitalizeFirstLetter(record.type)}s';
 
       files.add(FileData(

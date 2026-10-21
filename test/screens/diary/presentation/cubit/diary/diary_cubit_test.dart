@@ -95,6 +95,7 @@ void main() {
           final diaryFromRepo = baseDiaryModel.copyWith(
             id: baseDiaryModel.id,
             studyID: baseDiaryModel.studyID,
+            submissionID: null,
             status: DiaryStatus.idle,
             start: mockNowMorning.add(const Duration(hours: 1)),
           );
@@ -137,6 +138,7 @@ void main() {
           final diaryFromRepo = baseDiaryModel.copyWith(
             id: baseDiaryModel.id,
             studyID: baseDiaryModel.studyID,
+            submissionID: null,
             status: DiaryStatus.submitted,
             start: mockNowEvening.subtract(const Duration(hours: 1)),
           );
@@ -214,6 +216,7 @@ void main() {
             final diaryFromRepo = baseDiaryModel.copyWith(
               id: baseDiaryModel.id,
               studyID: baseDiaryModel.studyID,
+              submissionID: null,
               status: DiaryStatus.missed,
               start: mockNowMorning,
             );
@@ -243,6 +246,7 @@ void main() {
             final diaryFromRepo = baseDiaryModel.copyWith(
               id: baseDiaryModel.id,
               studyID: baseDiaryModel.studyID,
+              submissionID: null,
               status: DiaryStatus.complete,
               start: mockNowMorning,
             );
@@ -272,6 +276,7 @@ void main() {
             final diaryFromRepo = baseDiaryModel.copyWith(
               id: baseDiaryModel.id,
               studyID: baseDiaryModel.studyID,
+              submissionID: null,
               status: DiaryStatus.ongoing,
               start: mockNowMorning,
             );
@@ -301,6 +306,7 @@ void main() {
             final diaryFromRepo = baseDiaryModel.copyWith(
               id: baseDiaryModel.id,
               studyID: baseDiaryModel.studyID,
+              submissionID: null,
               status: DiaryStatus.idle,
               start: mockNowMorning.subtract(const Duration(hours: 1)),
             );

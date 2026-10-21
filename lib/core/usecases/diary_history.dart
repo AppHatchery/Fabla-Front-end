@@ -191,8 +191,7 @@ List<DiaryModel> _filterDiariesByStudyGoals(List<DiaryModel> diaries) {
   return diaries.where((diary) {
     if (diary.status != DiaryStatus.missed) return true;
 
-    final study =
-        studies.where((s) => s.studyId == diary.studyID).firstOrNull;
+    final study = studies.where((s) => s.studyId == diary.studyID).firstOrNull;
     if (study == null) return false;
     return study.goals.daily != 0 && study.goals.weekly != 0;
   }).toList();
@@ -245,6 +244,7 @@ DiaryModel _createEntryDiary(DiaryModel originalDiary, int entryIndex) {
   return originalDiary.copyWith(
     id: originalDiary.id,
     studyID: originalDiary.studyID,
+    submissionID: originalDiary.submissionID,
     currentEntry: entryIndex,
     status: entryStatus,
     completions: originalDiary.completions,

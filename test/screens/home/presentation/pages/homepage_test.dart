@@ -80,6 +80,8 @@ HomeLoaded createHomeLoadedState({
   final dummyDiary = DiaryModel(
     id: 1,
     studyID: 1,
+    submissionID: null,
+    uploadAttempts: 0,
     name: 'Test Diary',
     prompts: [],
     tags: null,

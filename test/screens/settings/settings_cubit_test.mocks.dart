@@ -126,15 +126,6 @@ class MockSetupRepository extends _i1.Mock implements _i6.SetupRepository {
       );
 
   @override
-  void createProtocol() => super.noSuchMethod(
-        Invocation.method(
-          #createProtocol,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
   _i7.Future<bool> getStudies({bool? partialCleanDB = false}) =>
       (super.noSuchMethod(
         Invocation.method(

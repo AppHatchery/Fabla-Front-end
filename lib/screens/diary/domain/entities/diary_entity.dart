@@ -12,6 +12,7 @@ class Diary {
   @Id()
   int id;
   int studyID;
+  String? submissionID;
   String name;
   @Property(type: PropertyType.date)
   DateTime start;
@@ -28,6 +29,7 @@ class Diary {
   List<int>? activeDays;
   List<String>? submissions;
   List<String>? completions;
+  int uploadAttempts;
 
   @Backlink('diary')
   final prompts = ToMany<Prompt>();
@@ -45,6 +47,7 @@ class Diary {
   Diary(
       {this.id = 0,
       required this.studyID,
+      required this.submissionID,
       required this.name,
       required this.due,
       required this.start,
@@ -56,7 +59,8 @@ class Diary {
       this.status,
       required this.activeDays,
       required this.submissions,
-      required this.completions});
+      required this.completions,
+      required this.uploadAttempts});
 
   /// Ensures the consistency of DiaryStatus enumeration indices.
   /// This private method verifies that the indices of the DiaryStatus enum values correspond to their expected numerical values.
@@ -87,6 +91,7 @@ class Diary {
     return Diary(
         id: model.id,
         studyID: model.studyID,
+        submissionID: model.submissionID,
         name: model.name,
         due: model.due,
         start: model.start,
@@ -103,7 +108,8 @@ class Diary {
             .toList(),
         completions: model.completions
             ?.map((completion) => completion.toString())
-            .toList());
+            .toList(),
+        uploadAttempts: model.uploadAttempts);
   }
 }
 

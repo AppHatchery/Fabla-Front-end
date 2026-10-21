@@ -170,6 +170,7 @@ class DiaryRepository {
           final newDiary = diary.copyWith(
               id: diary.id,
               studyID: diary.studyID,
+              submissionID: diary.submissionID,
               currentEntry: i,
               activeDays: diary.activeDays,
               status: entryCount != i ? DiaryStatus.submitted : null,
@@ -338,6 +339,7 @@ class DiaryRepository {
     return originalDiary.copyWith(
       id: originalDiary.id,
       studyID: originalDiary.studyID,
+      submissionID: originalDiary.submissionID,
       currentEntry: entryIndex,
       status: isSubmittedEntry ? DiaryStatus.submitted : null,
       submissions: originalDiary.submissions,
@@ -453,6 +455,7 @@ class DiaryRepository {
             final newDiary = diary.copyWith(
                 id: diary.id,
                 studyID: diary.studyID,
+                submissionID: diary.submissionID,
                 start: DateTime(
                   currentDate.year,
                   currentDate.month,
@@ -601,7 +604,8 @@ class DiaryRepository {
       _diaryDAO.updateDiary(entity);
       invalidateDiaryHistoryCache();
     } catch (e, stackTrace) {
-      dev.log('Failed to update diary: $e', name: 'DiaryRepository - updateDiary');
+      dev.log('Failed to update diary: $e',
+          name: 'DiaryRepository - updateDiary');
       CrashlyticsService().recordError(e, stackTrace,
           context: {
             'Diary': diary.name.toString(),

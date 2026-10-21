@@ -61,6 +61,12 @@ post_install do |installer|
 
             ]
     config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+
+    # Raise pods declaring an older minimum to iOS 15; leave higher ones alone.
+    deployment_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+    if deployment_target.nil? || Gem::Version.new(deployment_target) < Gem::Version.new('15.0')
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    end
     end
     ################  Awesome Notifications pod modification  ###################
       awesome_pod_file = File.expand_path(File.join('plugins', 'awesome_notifications', 'ios', 'Scripts', 'AwesomePodFile'), '.symlinks')

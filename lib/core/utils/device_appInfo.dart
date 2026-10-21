@@ -1,13 +1,13 @@
-
 library;
 
 import 'dart:io';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:developer' as dev;
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/foundation.dart';
-
 
 String version = "1.0";
 
@@ -58,7 +58,6 @@ Future<bool> checkLowBattery() async {
   }
 }
 
-
 Future<String> getDeviceInfo() async {
   final plugin = DeviceInfoPlugin();
 
@@ -76,4 +75,52 @@ Future<String> getDeviceInfo() async {
 Future<String> getAppVersion() async {
   final packageInfo = await PackageInfo.fromPlatform();
   return packageInfo.version;
+}
+
+Future<Map<String, dynamic>> collectDeviceSnapshot() async {
+  try {
+    final plugin = DeviceInfoPlugin();
+    final timezone = await FlutterTimezone.getLocalTimezone()
+        .then((value) => value.identifier)
+        .catchError((_) => 'Unknown');
+    final utcOffsetMinutes = DateTime.now().timeZoneOffset.inMinutes;
+    final package = await PackageInfo.fromPlatform();
+
+    final shared = {
+      'AppVersion': '${package.version}+${package.buildNumber}',
+      'Timezone': timezone,
+      'UtcOffsetMinutes': utcOffsetMinutes,
+    };
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        final info = await plugin.androidInfo;
+        return {
+          'Platform': 'Android',
+          'Manufacturer': info.manufacturer,
+          'Model': info.model,
+          'OSVersion': info.version.release,
+          'TotalStorageBytes': info.totalDiskSize,
+          'AvailableStorageBytes': info.freeDiskSize,
+          ...shared
+        };
+      case TargetPlatform.iOS:
+        final info = await plugin.iosInfo;
+        return {
+          'Platform': info.systemName,
+          'Manufacturer': 'Apple',
+          'Model': info.modelName,
+          'OSVersion': info.systemVersion,
+          'TotalStorageBytes': info.totalDiskSize,
+          'AvailableStorageBytes': info.freeDiskSize,
+          ...shared
+        };
+      default:
+        return {};
+    }
+  } catch (e, stackTrace) {
+    CrashlyticsService().recordError(e, stackTrace,
+        reason: "Failed retrieving the device information for submission");
+    return {};
+  }
 }

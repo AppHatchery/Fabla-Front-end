@@ -3,6 +3,7 @@ import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
 import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart';
 import 'package:audio_diaries_flutter/core/usecases/incentives.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
+import 'package:audio_diaries_flutter/core/usecases/submission_metadata.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/types.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/prompt_repository.dart';
@@ -70,6 +71,7 @@ class SummaryRepository {
       final newDiary = diary.copyWith(
           id: diary.id,
           studyID: diary.studyID,
+          submissionID: diary.submissionID,
           prompts: cleanPrompts,
           activeDays: diary.activeDays,
           submissions: diary.submissions);
@@ -187,7 +189,18 @@ class SummaryRepository {
   /// Uploads [diary] and, on success, records the submission locally.
   Future<bool> _uploadAndRecord(String participantID, DiaryModel diary) async {
     try {
-      final uploaded = await _upload(participantID, diary);
+      final stored = diaryRepository.getDiaryByID(diary.id) ?? diary;
+      final toUpload = diary.copyWith(
+          id: diary.id,
+          studyID: diary.studyID,
+          submissionID: stored.submissionID ?? getSubmissionID(),
+          uploadAttempts: stored.uploadAttempts + 1,
+          activeDays: diary.activeDays,
+          submissions: diary.submissions,
+          completions: diary.completions);
+
+      await diaryRepository.updateDiary(toUpload);
+      final uploaded = await _upload(participantID, toUpload);
 
       if (uploaded) {
         final study = await diaryRepository.getStudy(diary.studyID);
@@ -202,20 +215,24 @@ class SummaryRepository {
           newDiary = diary.copyWith(
               id: diary.id,
               studyID: diary.studyID,
+              submissionID: null,
               status: DiaryStatus.submitted,
               activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1,
               submissions: submissions,
-              completions: diary.completions);
+              completions: diary.completions,
+              uploadAttempts: 0);
         } else {
           newDiary = diary.copyWith(
               id: diary.id,
               studyID: diary.studyID,
+              submissionID: null,
               status: DiaryStatus.idle,
               activeDays: diary.activeDays,
               currentEntry: diary.currentEntry + 1,
               submissions: submissions,
-              completions: diary.completions);
+              completions: diary.completions,
+              uploadAttempts: 0);
         }
 
         await diaryRepository.updateDiary(newDiary);

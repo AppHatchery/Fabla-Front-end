@@ -37,7 +37,7 @@
     },
     {
       "id": "2:2718562603036521648",
-      "lastPropertyId": "14:7777413689069435084",
+      "lastPropertyId": "16:3643019864863574747",
       "name": "Diary",
       "properties": [
         {
@@ -110,6 +110,16 @@
           "id": "14:7777413689069435084",
           "name": "completions",
           "type": 30
+        },
+        {
+          "id": "15:8961967461543541569",
+          "name": "submissionID",
+          "type": 9
+        },
+        {
+          "id": "16:3643019864863574747",
+          "name": "uploadAttempts",
+          "type": 6
         }
       ],
       "relations": []
@@ -245,40 +255,6 @@
           "id": "9:2371406240884662852",
           "name": "multipleAnswer",
           "type": 1
-        }
-      ],
-      "relations": []
-    },
-    {
-      "id": "6:6091333895423423885",
-      "lastPropertyId": "5:2471532132609385406",
-      "name": "ProtocolEntity",
-      "properties": [
-        {
-          "id": "1:4619257633086111466",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:3213502991969066769",
-          "name": "version",
-          "type": 6
-        },
-        {
-          "id": "3:412174614935791710",
-          "name": "weeklyGoal",
-          "type": 6
-        },
-        {
-          "id": "4:8757730362604045872",
-          "name": "dailyGoal",
-          "type": 6
-        },
-        {
-          "id": "5:2471532132609385406",
-          "name": "diaryBlueprints",
-          "type": 30
         }
       ],
       "relations": []
@@ -446,7 +422,8 @@
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [
-    1748021281935827717
+    1748021281935827717,
+    6091333895423423885
   ],
   "retiredIndexUids": [],
   "retiredPropertyUids": [
@@ -459,7 +436,12 @@
     6174335443674272054,
     5424774880361595912,
     523294475925365727,
-    4226934096153378817
+    4226934096153378817,
+    4619257633086111466,
+    3213502991969066769,
+    412174614935791710,
+    8757730362604045872,
+    2471532132609385406
   ],
   "retiredRelationUids": [],
   "version": 1

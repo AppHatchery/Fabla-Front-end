@@ -10,6 +10,7 @@ import 'tag.dart';
 class DiaryModel implements Comparable<DiaryModel> {
   final int id;
   final int studyID;
+  final String? submissionID;
   final String name;
   List<Tag>? tags;
   DiaryStatus status;
@@ -23,10 +24,12 @@ class DiaryModel implements Comparable<DiaryModel> {
   final List<int>? activeDays;
   final List<DateTime>? submissions;
   final List<DateTime>? completions;
+  final int uploadAttempts;
 
   DiaryModel(
       {required this.id,
       required this.studyID,
+      required this.submissionID,
       required this.name,
       required this.prompts,
       required this.tags,
@@ -39,7 +42,8 @@ class DiaryModel implements Comparable<DiaryModel> {
       required this.notifications,
       required this.activeDays,
       required this.submissions,
-      required this.completions});
+      required this.completions,
+      required this.uploadAttempts});
 
   /// Factory constructor that creates a Diary object from a DiaryEntity.
   /// This function generates a Diary instance using data from a provided DiaryEntity object.
@@ -56,6 +60,7 @@ class DiaryModel implements Comparable<DiaryModel> {
     return DiaryModel(
         id: entity.id,
         studyID: entity.studyID,
+        submissionID: entity.submissionID,
         name: entity.name,
         prompts: _prompts,
         tags: null,
@@ -75,13 +80,15 @@ class DiaryModel implements Comparable<DiaryModel> {
             .toList(),
         completions: entity.completions
             ?.map((completion) => DateTime.parse(completion))
-            .toList());
+            .toList(),
+        uploadAttempts: entity.uploadAttempts);
   }
 
   factory DiaryModel.fromJson(Map<String, dynamic> json, int studyID) {
     return DiaryModel(
         id: 0,
         studyID: studyID,
+        submissionID: null,
         name: json['name'],
         prompts: (json['questions'] as List)
             .map((prompt) => PromptModel.fromJson(prompt))
@@ -103,12 +110,14 @@ class DiaryModel implements Comparable<DiaryModel> {
           return day == 0 ? 7 : day;
         }).toList(),
         submissions: null,
-        completions: null);
+        completions: null,
+        uploadAttempts: 0);
   }
 
   DiaryModel copyWith(
       {required int id,
       required int studyID,
+      required String? submissionID,
       String? name,
       List<PromptModel>? prompts,
       List<Tag>? tags,
@@ -119,10 +128,12 @@ class DiaryModel implements Comparable<DiaryModel> {
       List<Notification>? notifications,
       List<int>? activeDays,
       List<DateTime>? submissions,
-      List<DateTime>? completions}) {
+      List<DateTime>? completions,
+      int? uploadAttempts}) {
     return DiaryModel(
         id: id,
         studyID: studyID,
+        submissionID: submissionID,
         name: name ?? this.name,
         prompts: prompts ?? this.prompts,
         tags: tags ?? this.tags,
@@ -135,7 +146,8 @@ class DiaryModel implements Comparable<DiaryModel> {
         notifications: notifications ?? this.notifications,
         activeDays: activeDays,
         submissions: submissions,
-        completions: completions);
+        completions: completions,
+        uploadAttempts: uploadAttempts ?? this.uploadAttempts);
   }
 
   /// Compares this DiaryModel object with another DiaryModel object.

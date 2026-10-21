@@ -184,12 +184,14 @@ class SummaryCubit extends Cubit<SummaryState> {
       final newDiary = diary.copyWith(
           id: diary.id,
           studyID: diary.studyID,
+          submissionID: diary.submissionID,
           completions: completions,
           submissions: diary.submissions,
           activeDays: diary.activeDays);
       await _summaryRepository.diaryRepository.updateDiary(newDiary);
     }
   }
+
   void saveNetworkError() async {
     final prefs = PreferenceService();
     await prefs.setBoolPreference(key: 'network_error', value: true);

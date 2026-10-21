@@ -386,6 +386,8 @@ class DiaryMergingHelper {
     return DiaryModel(
         id: existingDiary.id,
         studyID: newDiary.studyID,
+        submissionID: existingDiary.submissionID,
+        uploadAttempts: existingDiary.uploadAttempts,
         name: newDiary.name,
         prompts: newDiary.prompts,
         tags: newDiary.tags,

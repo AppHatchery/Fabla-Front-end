@@ -294,12 +294,14 @@ void main() {
         final thisWeekDiary = testDiary.copyWith(
           id: testDiary.id,
           studyID: testDiary.studyID,
+          submissionID: null,
           due: monday.add(
               const Duration(days: 1, hours: 12)), // Tuesday within the week
         );
         final nextWeekDiary = testDiary.copyWith(
           id: 4,
           studyID: testDiary.studyID,
+          submissionID: null,
           due: sunday.add(const Duration(days: 2)), // Clearly outside the week
         );
 
@@ -327,6 +329,7 @@ void main() {
         final nextWeekDiary = testDiary.copyWith(
           id: testDiary.id,
           studyID: testDiary.studyID,
+          submissionID: null,
           due: sunday.add(const Duration(days: 5)), // Well beyond the week
         );
 
@@ -351,11 +354,13 @@ void main() {
         final diary1 = testDiary.copyWith(
           id: 1,
           studyID: testDiary.studyID,
+          submissionID: null,
           due: monday.add(const Duration(days: 3, hours: 12)), // Thursday
         );
         final diary2 = testDiary.copyWith(
           id: 2,
           studyID: testDiary.studyID,
+          submissionID: null,
           due: monday.add(const Duration(days: 1, hours: 12)), // Tuesday
         );
 

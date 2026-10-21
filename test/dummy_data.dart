@@ -62,6 +62,8 @@ entity.Diary createTestDiary({
   return entity.Diary(
     id: id,
     studyID: studyID,
+    submissionID: null,
+    uploadAttempts: 0,
     name: name,
     due: due ?? now,
     start: start ?? now,
@@ -322,6 +324,8 @@ DiaryModel createTestDiaryModel({
   return DiaryModel(
     id: id,
     studyID: studyID,
+    submissionID: null,
+    uploadAttempts: 0,
     name: name,
     start: start ?? now,
     end: end ?? now.add(const Duration(hours: 1)),

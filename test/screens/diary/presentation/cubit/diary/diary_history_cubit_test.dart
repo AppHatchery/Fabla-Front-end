@@ -43,6 +43,8 @@ void main() {
   final testDiary1 = DiaryModel(
     id: 1,
     studyID: 1,
+    submissionID: null,
+    uploadAttempts: 0,
     name: 'Morning Diary',
     status: DiaryStatus.submitted,
     start: DateTime(2023, 1, 1, 9),
@@ -61,6 +63,8 @@ void main() {
   final testDiary2 = DiaryModel(
     id: 2,
     studyID: 1,
+    submissionID: null,
+    uploadAttempts: 0,
     name: 'Evening Diary',
     status: DiaryStatus.submitted,
     start: DateTime(2023, 1, 1, 18),
@@ -79,6 +83,8 @@ void main() {
   final testDiary3 = DiaryModel(
     id: 3,
     studyID: 1,
+    submissionID: null,
+    uploadAttempts: 0,
     name: 'Yesterday Diary',
     status: DiaryStatus.missed,
     start: DateTime(2022, 12, 31, 15),
@@ -582,6 +588,7 @@ void main() {
           final submittedDiary = testDiary1.copyWith(
             id: 1,
             studyID: 1,
+            submissionID: null,
             status: DiaryStatus.submitted,
             submissions: testDiary1.submissions,
             completions: testDiary1.completions,
@@ -590,6 +597,7 @@ void main() {
           final missedDiary = testDiary2.copyWith(
             id: 2,
             studyID: 1,
+            submissionID: null,
             status: DiaryStatus.missed,
             submissions: testDiary2.submissions,
             completions: testDiary2.completions,
@@ -598,6 +606,7 @@ void main() {
           final completeDiary = testDiary3.copyWith(
             id: 3,
             studyID: 1,
+            submissionID: null,
             status: DiaryStatus.complete,
             submissions: testDiary3.submissions,
             completions: testDiary3.completions,
