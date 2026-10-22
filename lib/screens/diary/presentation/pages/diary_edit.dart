@@ -72,7 +72,7 @@ class _EditDiaryPageState extends State<EditDiaryPage>
         leading: IconButton(
             onPressed: () =>
                 proceed ? Navigator.pop(context) : showSnackError(),
-            icon: Icon(Icons.close_rounded)),
+            icon: FittedBox(child: Icon(Icons.close_rounded, applyTextScaling: true,))),
         centerTitle: true,
         title: Text('Edit Response',
             style: CustomTypography()

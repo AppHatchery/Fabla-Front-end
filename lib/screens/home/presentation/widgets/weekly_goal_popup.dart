@@ -187,7 +187,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                       height: 6,
                       constraints: const BoxConstraints(maxHeight: 6),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.2),
+                        color: color.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(27),
                       ),
                     ),

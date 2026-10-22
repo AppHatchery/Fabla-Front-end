@@ -370,6 +370,7 @@ class CustomTextButton extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 18.0),
           child: Text(
+            textScaler: getAdaptiveTextScaler(context),
             text.toString(),
             style: CustomTypography().button(color: textColor),
           ),

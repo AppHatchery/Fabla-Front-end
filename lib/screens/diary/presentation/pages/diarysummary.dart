@@ -298,6 +298,7 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 children: [
                   Expanded(
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       "Q${index + 1}. ${prompt.question}",
                       style: CustomTypography()
                           .custom(fontSize: 18, fontWeight: FontWeight.w400),
@@ -312,11 +313,11 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(
-                                  applyTextScaling: true,
                                   Icons.edit_note_sharp,
                                   color: Color(0xFF4186F5),
-                                  size: 24),
+                                  size: getAdaptiveTextScaler(context).scale(24)),
                               Text(' Edit',
+                                  textScaler: getAdaptiveTextScaler(context),
                                   style: CustomTypography()
                                       .button(color: Color(0xFF4186F5)))
                             ],

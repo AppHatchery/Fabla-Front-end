@@ -793,7 +793,9 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                    child: Text(widget.message,
+                    child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
+                        widget.message,
                         textAlign: TextAlign.center,
                         style: CustomTypography().headlineMedium(
                             color: CustomColors.textNormalContent)),
@@ -838,10 +840,15 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
                     ],
                   ),
 
-                  CustomTextButton(
-                    onClick: () => launchEmail(),
-                    text: 'Contact Researcher',
-                    textColor: CustomColors.warningActive,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CustomTextButton(
+                        onClick: () => launchEmail(),
+                        text: 'Contact Researcher',
+                        textColor: CustomColors.warningActive,
+                      ),
+                    ],
                   ),
                 ],
               ),

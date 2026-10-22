@@ -632,10 +632,9 @@ class _CustomMinuteSecondPickerState extends State<CustomMinuteSecondPicker> {
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
                       icon: Icon(
-                        applyTextScaling: true,
                         Icons.close,
                         color: CustomColors.textNormalContent,
-                        size: closeIconSize,
+                        size: getAdaptiveTextScaler(context).scale(closeIconSize),
                       ),
                     ),
                   ),

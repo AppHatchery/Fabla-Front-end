@@ -98,6 +98,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             widget.isSliderEnabled
                 ? SizedBox.shrink()
                 : Text(
+              textScaler: getAdaptiveTextScaler(context),
                     "Selected value: ${_value.round().toString()}",
                     style: CustomTypography().titleSmall(),
                   ),
@@ -126,7 +127,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                       inactiveTrackColor: CustomColors.fillDisabled,
                       activeTickMarkColor: CustomColors.productNormal,
                       inactiveTickMarkColor:
-                          CustomColors.textNormalContent.withOpacity(0.35),
+                          CustomColors.textNormalContent.withValues(alpha: 0.35),
                       overlayShape: SliderComponentShape.noOverlay,
                       valueIndicatorColor: CustomColors.productNormal,
                       trackHeight: getAdaptiveTextScaler(context).scale(4),
@@ -278,6 +279,7 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
                         });
                       }
                     },
+                    checkboxScaleFactor: getAdaptiveTextScaler(context).scale(1),
                   ))),
           const SizedBox(
             height: 12,
@@ -596,6 +598,7 @@ class _RadioQuestionSummaryState extends State<RadioQuestionSummary> {
       value: widget.selectedOption ?? "",
       groupValue: widget.selectedOption,
       onChanged: (String? value) {},
+      radioScaleFactor: getAdaptiveTextScaler(context).scale(1),
     );
     // },
     // );
@@ -631,6 +634,7 @@ class _MultipleQuestionSummaryState extends State<MultipleQuestionSummary> {
           controlAffinity: ListTileControlAffinity.leading,
           value: true,
           onChanged: (bool? value) {},
+          checkboxScaleFactor: getAdaptiveTextScaler(context).scale(1),
         );
       },
     );
@@ -1477,13 +1481,14 @@ class _TimerWidgetState extends State<TimerWidget>
             child: Text(
               "$pickerMinutes min ${pickerSeconds.toString().padLeft(2, '0')} sec",
               style: CustomTypography().titleMedium(
-                  color: CustomColors.textNormalContent.withOpacity(0.64)),
+                  color: CustomColors.textNormalContent.withValues(alpha: 0.64)),
             ),
           ),
           IconButton(
             onPressed: widget.userInteraction ? _showMinuteSecondPicker : null,
             icon: widget.userInteraction
                 ? const Icon(
+              applyTextScaling: true,
                     Icons.edit_outlined,
                     color: CustomColors.productNormal,
                   )
