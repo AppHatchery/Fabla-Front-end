@@ -75,6 +75,11 @@ import AVFoundation
     let args = call.arguments as? [String: Any]
 
     switch call.method {
+    case "checkLiveActivityPermission":
+      // False when the user turned Live Activities off for the app (or in
+      // Settings > Face ID & Passcode / Focus restrictions).
+      result(ActivityAuthorizationInfo().areActivitiesEnabled)
+
     case "start":
       guard let endDateMillis = args?["endDateMillis"] as? Double else {
         result(FlutterError(code: "BAD_ARGS", message: "endDateMillis required", details: nil))
