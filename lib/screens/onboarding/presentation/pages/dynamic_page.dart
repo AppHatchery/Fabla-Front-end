@@ -485,10 +485,10 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       ));
     } else if (question.type == 'text') {
       children.add(OnBoardingTextField(
-          subtitle: null, controller: textEditingController));
+          subtitle: question.subtitle ?? "", controller: textEditingController));
     } else if (question.type == 'radio') {
       children.add(OnBoardingRadioOptions(
-        subtitle: null,
+        subtitle: question.subtitle ?? "",
         options: question.options!,
         value: answer,
         onChanged: (String? value) {
@@ -507,7 +507,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
               .toList()
           : <String>[];
       children.add(OnBoardingMultipleOption(
-        subtitle: null,
+        subtitle: question.subtitle ?? "",
         options: question.options!,
         selected: selected,
         onChanged: (value) {
@@ -520,6 +520,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
       final value =
           question.answer != null ? double.parse(question.answer!) : null;
       children.add(OnBoardingSlider(
+          subtitle: question.subtitle ?? "",
           scaleMinText: question.minLabel ?? "",
           scaleMaxText: question.maxLabel ?? "",
           scaleMin: question.min!,
@@ -534,6 +535,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
     } else if (question.type == 'date') {
       final _date = answer != null ? stringDateOnlyToDateTime(answer!) : null;
       children.add(CustomDatePicker(
+        subtitle: question.subtitle,
           date: _date,
           onSelect: (date) => setState(() {
                 answer = formatDateOnly(date);
