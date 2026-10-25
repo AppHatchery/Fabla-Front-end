@@ -10,7 +10,7 @@ set -euo pipefail
 if [ -n "${PREVIOUS_TAG:-}" ]; then
   compared="Release \`$RELEASE_TAG\` compared with the previous release \`$PREVIOUS_TAG\`."
 else
-  compared="Release \`$RELEASE_TAG\`. No earlier release was found, so every unit over the threshold is listed."
+  compared="Release \`$RELEASE_TAG\`. No earlier release was found, so every unit over a limit is listed."
 fi
 
 {

@@ -122,13 +122,11 @@ String render(
       : result.findings;
 
   final gateFailures = visible
-      .where((f) => _isGateFailure(f, result, options))
+      .where((f) => isGateFailure(f, result, options))
       .toList(growable: false);
   final inherited = visible
       .where(
-        (f) =>
-            f.complexity > options.threshold &&
-            !_isGateFailure(f, result, options),
+        (f) => isOverLimit(f, options) && !isGateFailure(f, result, options),
       )
       .toList(growable: false);
 
@@ -165,7 +163,7 @@ String render(
     buffer: buffer,
     title: scoped
         ? '${inherited.length} pre-existing in the files you touched'
-        : '${inherited.length} over threshold (> ${options.threshold})',
+        : '${inherited.length} over a limit (${_limits(options)})',
     empty: '_None._',
     findings: inherited,
     cap: options.maxFullBlocks,
@@ -174,8 +172,15 @@ String render(
     renderOne: (f, i) => _fullBlock(f, i, options),
   );
 
+  // A unit over the nesting limit is already listed above, whatever its
+  // complexity.
   final moderate = visible
-      .where((f) => f.complexity >= 6 && f.complexity <= options.threshold)
+      .where(
+        (f) =>
+            f.complexity >= 6 &&
+            f.complexity <= options.threshold &&
+            !isOverLimit(f, options),
+      )
       .toList(growable: false);
   omitted += _writeTier(
     buffer: buffer,
@@ -203,18 +208,10 @@ String render(
   return hardTruncate(body, limit);
 }
 
-/// Whether a finding is what the gate fails on.
-///
-/// With a baseline, only a new or worsened unit counts — inherited debt is
-/// reported but never blocks, which is what lets a repo with existing
-/// violations adopt the gate at all.
-bool _isGateFailure(
-  Finding finding,
-  AuditResult result,
-  AuditOptions options,
-) => result.baselineInUse
-    ? finding.baselineStatus.isGateFailure
-    : finding.complexity > options.threshold;
+/// The two hard limits, as the report states them.
+String _limits(AuditOptions options) =>
+    'complexity > ${options.threshold} or nesting > '
+    '${options.nestingThreshold}';
 
 void _writeVerdict(
   _BudgetBuffer buffer,
@@ -235,8 +232,8 @@ void _writeVerdict(
   } else {
     buffer.writeln(
       '**Complexity gate: FAIL** — ${gateFailures.length} unit(s) '
-      '${result.baselineInUse ? 'new or worse than the baseline' : 'over the '
-            'threshold'} in $scopeText.',
+      '${result.baselineInUse ? 'new or worse than the baseline' : 'over a '
+            'limit'} in $scopeText.',
     );
   }
   buffer.writeln();
@@ -350,13 +347,13 @@ void _writeSummary(
     );
   }
   buffer.writeln(
-    '| **Over threshold (> ${options.threshold})** | '
+    '| **Over a limit (${_limits(options)})** | '
     '**${result.violationCount}** |',
   );
   buffer.writeln();
 
   final top = result.findings
-      .where((f) => f.complexity > options.threshold)
+      .where((f) => isOverLimit(f, options))
       .take(10)
       .toList();
   if (top.isEmpty) return;
@@ -393,6 +390,13 @@ String _fullBlock(Finding f, int index, AuditOptions options) {
     if (f.baselineStatus == BaselineStatus.newViolation) '`[NEW]`',
     if (f.baselineStatus == BaselineStatus.worsened)
       '`[WORSE: was ${f.baselineScore}]`',
+    // Says why a unit under the complexity limit is listed at all.
+    if (f.nestingStatus == BaselineStatus.newViolation)
+      '`[NEW: nesting ${u.nestingDepth}]`'
+    else if (f.nestingStatus == BaselineStatus.worsened)
+      '`[WORSE: nesting was ${f.baselineNesting}]`'
+    else if (u.nestingDepth > options.nestingThreshold)
+      '`[NESTING ${u.nestingDepth}]`',
   ].join(' ');
 
   buffer.writeln(

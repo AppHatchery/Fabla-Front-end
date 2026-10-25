@@ -6,7 +6,7 @@
 # means a release is never compared with itself, and only tags this one
 # descends from count, so a patch tag on another branch is skipped.
 #
-# Reads:  AUDIT_THRESHOLD, AUDIT_EXCLUDE, RUNNER_TEMP
+# Reads:  AUDIT_THRESHOLD, AUDIT_NESTING_THRESHOLD, AUDIT_EXCLUDE, RUNNER_TEMP
 # Sets for later steps (left unset when there is no earlier release):
 #   PREVIOUS_TAG       the previous release's tag
 #   PREVIOUS_BASELINE  the baseline written from it
@@ -14,7 +14,7 @@ set -euo pipefail
 
 prev=$(git describe --tags --abbrev=0 --match 'v*' --match 'V*' HEAD^ 2>/dev/null || true)
 if [ -z "$prev" ]; then
-  echo "::notice::No earlier v-tagged release — reporting against the raw threshold."
+  echo "::notice::No earlier v-tagged release — reporting against the raw limits."
   exit 0
 fi
 
@@ -25,6 +25,7 @@ git worktree add --detach "$checkout" "$prev"
 dart run tool/complexity_audit.dart \
   --root "$checkout" \
   --threshold "$AUDIT_THRESHOLD" \
+  --nesting-threshold "$AUDIT_NESTING_THRESHOLD" \
   --exclude "$AUDIT_EXCLUDE" \
   --baseline "$baseline" \
   --update-baseline

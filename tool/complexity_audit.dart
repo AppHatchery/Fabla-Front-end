@@ -8,8 +8,12 @@
 ///   * `--output-path`  concise, scoped to the change, for the PR comment
 ///   * `--summary-out`  whole repository, for the Actions run Summary page
 ///
+/// Two hard limits are gated: complexity (`--threshold`) and nesting depth
+/// (`--nesting-threshold`). Lines of code and parameter counts are reported as
+/// advice only.
+///
 /// The gate is the baseline ratchet: with `--baseline`, only units that are new
-/// over threshold or worse than recorded fail. Inherited debt is reported and
+/// over a limit or worse than recorded fail. Inherited debt is reported and
 /// never blocks, which is what makes the gate adoptable on a repo that already
 /// has violations.
 library;
@@ -55,7 +59,7 @@ Future<void> main(List<String> args) async {
     }
 
     final gateFailures = result.findings
-        .where((f) => f.inScope && _isGateFailure(f, result, options))
+        .where((f) => f.inScope && isGateFailure(f, result, options))
         .length;
 
     if (result.parseFailures.isNotEmpty) {
@@ -72,7 +76,8 @@ Future<void> main(List<String> args) async {
       code = 0;
       resultLine =
           'RESULT: pass — $gateFailures new, ${result.violationCount} total '
-          'over threshold ${options.threshold}';
+          'over complexity ${options.threshold} or nesting '
+          '${options.nestingThreshold}';
     }
 
     _printDigest(result, options, gateFailures);
@@ -104,14 +109,6 @@ Future<void> main(List<String> args) async {
   exit(code);
 }
 
-bool _isGateFailure(
-  Finding finding,
-  AuditResult result,
-  AuditOptions options,
-) => result.baselineInUse
-    ? finding.baselineStatus.isGateFailure
-    : finding.complexity > options.threshold;
-
 /// Writes `--baseline` from [units] and returns the exit code.
 ///
 /// Refuses when any file failed to parse: a baseline missing those files would
@@ -130,13 +127,22 @@ int writeBaseline(CollectedUnits units, AuditOptions options) {
 
   // Always whole-repo: a baseline written from a diff scope would silently
   // drop every unit the change did not touch, loosening the ratchet.
-  Baseline.save(options.baselinePath, units.units, options.threshold);
+  Baseline.save(
+    options.baselinePath,
+    units.units,
+    options.threshold,
+    nestingThreshold: options.nestingThreshold,
+  );
   final tracked = units.units
-      .where((u) => u.complexityInclusive > options.threshold)
+      .where(
+        (u) =>
+            u.complexityInclusive > options.threshold ||
+            u.nestingDepth > options.nestingThreshold,
+      )
       .length;
   stdout.writeln(
-    'Wrote ${options.baselinePath} with $tracked unit(s) over '
-    'threshold ${options.threshold}.',
+    'Wrote ${options.baselinePath} with $tracked unit(s) over complexity '
+    '${options.threshold} or nesting ${options.nestingThreshold}.',
   );
   stdout.writeln('RESULT: baseline-updated — $tracked unit(s)');
   return 0;
@@ -260,6 +266,7 @@ AuditResult buildResult(CollectedUnits collected, AuditOptions options) {
             (u) => buildFinding(
               u,
               options.threshold,
+              nestingThreshold: options.nestingThreshold,
               inScope: scope == null || scope.contains(u.path),
               baseline: baseline,
             ),
@@ -302,9 +309,7 @@ AuditResult buildResult(CollectedUnits collected, AuditOptions options) {
     findings: findings,
     histogram: histogram,
     totalUnits: collected.units.length,
-    violationCount: findings
-        .where((f) => f.complexity > options.threshold)
-        .length,
+    violationCount: findings.where((f) => isOverLimit(f, options)).length,
     conservationMismatches: collected.conservationMismatches,
     scopedFileCount: scopedFileCount,
     baselineInUse: baseline != null,
@@ -335,14 +340,16 @@ void _printDigest(
     stdout.writeln('Baseline: ${options.baselinePath}');
   }
   stdout.writeln(
-    'Over threshold ${options.threshold}: ${result.violationCount} total, '
+    'Over complexity ${options.threshold} or nesting '
+    '${options.nestingThreshold}: ${result.violationCount} total, '
     '$gateFailures new or worsened in scope.',
   );
   for (final f in result.findings.where(
-    (f) => f.inScope && _isGateFailure(f, result, options),
+    (f) => f.inScope && isGateFailure(f, result, options),
   )) {
     stdout.writeln(
-      '  ${f.complexity.toString().padLeft(3)}  ${f.unit.qualifiedName} '
+      '  ${f.complexity.toString().padLeft(3)}  nesting '
+      '${f.unit.nestingDepth}  ${f.unit.qualifiedName} '
       '(${f.unit.path}:${f.unit.startLine})',
     );
   }

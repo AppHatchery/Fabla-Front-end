@@ -32,6 +32,8 @@ jobs:
       RELEASE_AUTHOR: ${{ github.event.release.author.login }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       AUDIT_THRESHOLD: '10'
+      # The second hard limit: nesting depth 5 and deeper fails.
+      AUDIT_NESTING_THRESHOLD: '4'
       AUDIT_EXCLUDE: '**/*.g.dart,**/*.freezed.dart,**/*.gr.dart,**/*.mocks.dart,**/*.pb.dart'
       # Title prefix, label and assignees follow .github/ISSUE_TEMPLATE.
       ISSUE_LABEL: complexity

@@ -24,6 +24,7 @@ class AuditOptions {
     required this.root,
     required this.path,
     required this.threshold,
+    required this.nestingThreshold,
     required this.excludeGlobs,
     required this.outputPath,
     required this.summaryOut,
@@ -38,6 +39,7 @@ class AuditOptions {
 
   static const String defaultPath = 'lib';
   static const int defaultThreshold = 10;
+  static const int defaultNestingThreshold = 4;
   static const String defaultOutputPath = 'complexity-report.md';
   static const int defaultMaxFullBlocks = 25;
   static const int defaultMaxCondensed = 40;
@@ -53,6 +55,11 @@ class AuditOptions {
 
   final String path;
   final int threshold;
+
+  /// The second hard limit: a unit fails when its deepest nesting is above
+  /// this. Gated through the same baseline ratchet as [threshold].
+  final int nestingThreshold;
+
   final List<String> excludeGlobs;
 
   /// Concise report, scoped to changed files when [diffBase] is set. Feeds the
@@ -108,6 +115,7 @@ class AuditOptions {
     String? root;
     String? path;
     String? threshold;
+    String? nestingThreshold;
     String? exclude;
     String? outputPath;
     String? maxFullBlocks;
@@ -151,6 +159,8 @@ class AuditOptions {
           i = takeValue(i, name, inline, (v) => path = v);
         case '--threshold':
           i = takeValue(i, name, inline, (v) => threshold = v);
+        case '--nesting-threshold':
+          i = takeValue(i, name, inline, (v) => nestingThreshold = v);
         case '--exclude':
           i = takeValue(i, name, inline, (v) => exclude = v);
         case '--output-path':
@@ -188,6 +198,11 @@ class AuditOptions {
       root: _orDefault(root, ''),
       path: _orDefault(path, defaultPath),
       threshold: _parseInt(threshold, '--threshold', defaultThreshold),
+      nestingThreshold: _parseInt(
+        nestingThreshold,
+        '--nesting-threshold',
+        defaultNestingThreshold,
+      ),
       excludeGlobs: _splitGlobs(exclude),
       outputPath: _orDefault(outputPath, defaultOutputPath),
       summaryOut: _orDefault(summaryOut, ''),
@@ -246,6 +261,7 @@ Usage: dart run tool/complexity_audit.dart [options]
                             to it. Default: the current directory
   --path <dir>              Directory to audit. Default: lib
   --threshold <int>         Fail above this complexity. Default: 10
+  --nesting-threshold <int> Fail above this nesting depth. Default: 4
   --exclude "<globs>"       Comma-separated globs, matched against the
                             repo-root-relative path.
   --output-path <file>      Concise report for the PR comment, scoped to
@@ -258,8 +274,8 @@ Usage: dart run tool/complexity_audit.dart [options]
                             history (actions/checkout fetch-depth: 0).
   --baseline <file>         Snapshot of known scores, e.g. the previous
                             release written with --update-baseline. The gate
-                            then fails only on units that are new over
-                            threshold or scored worse than the snapshot.
+                            then fails only on units that are new over a
+                            limit or scored worse than the snapshot.
   --update-baseline         Rewrite --baseline from current whole-repo scores
                             instead of gating. Ignores --diff-base.
   --fail-on-threshold       Exit 1 when the gate finds a violation.
@@ -267,10 +283,11 @@ Usage: dart run tool/complexity_audit.dart [options]
   --max-condensed <int>     Cap on condensed findings. Default: 40
   -h, --help                Show this message.
 
-A unit fails when its complexity is strictly greater than the threshold, so
-the default fails at 11 and above. With --baseline, a unit already recorded at
-the same or a higher score does not fail — only regressions and new violations
-do.
+A unit fails when its complexity is strictly greater than --threshold or its
+nesting is strictly deeper than --nesting-threshold, so the defaults fail at
+complexity 11 and at nesting depth 5. With --baseline, a unit already recorded
+at the same or a higher value does not fail — only regressions and new
+violations do. Lines of code and parameter counts are reported, never gated.
 
 Exit codes:
   0  pass            2  usage error

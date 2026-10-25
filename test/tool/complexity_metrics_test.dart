@@ -579,6 +579,121 @@ void f() {
     });
   });
 
+  group('nesting limit', () {
+    // The second hard limit: nesting depth 5 fails through the same ratchet as
+    // complexity. Lines of code and parameters stay advisory.
+    UnitMetrics unitWith({
+      int complexity = 3,
+      int nesting = 1,
+      String name = 'A.m',
+    }) => UnitMetrics(
+      path: 'lib/a.dart',
+      qualifiedName: name,
+      startLine: 1,
+      endLine: 2,
+      locNonBlank: 2,
+      category: CodeCategory.production,
+      complexityInclusive: complexity,
+      complexitySelf: complexity,
+      nestingDepth: nesting,
+      points: DecisionPoints(),
+      selfPoints: DecisionPoints(),
+      returnTypeSource: '',
+      parameterCount: 0,
+      hasAwaitInOwnBody: false,
+      hasEmptyCatch: false,
+      hasBooleanSelectorParam: false,
+      closures: const [],
+    );
+
+    AuditResult resultOf(List<Finding> findings, {bool baseline = false}) =>
+        AuditResult(
+          filesAudited: 1,
+          filesSkippedGenerated: 0,
+          parseFailures: const {},
+          findings: findings,
+          histogram: {for (final b in ComplexityBand.values) b: 0},
+          totalUnits: findings.length,
+          violationCount: 0,
+          conservationMismatches: const [],
+          baselineInUse: baseline,
+        );
+
+    final options = AuditOptions.parse([]);
+
+    test('defaults to failing at depth 5 and can be changed', () {
+      expect(options.nestingThreshold, 4);
+      expect(
+        AuditOptions.parse(['--nesting-threshold', '3']).nestingThreshold,
+        3,
+      );
+    });
+
+    test('depth 5 fails the gate even when complexity is low', () {
+      final deep = buildFinding(unitWith(nesting: 5), 10);
+      final shallow = buildFinding(unitWith(nesting: 4), 10);
+      expect(isGateFailure(deep, resultOf([deep]), options), isTrue);
+      expect(isGateFailure(shallow, resultOf([shallow]), options), isFalse);
+    });
+
+    test('nesting goes through the same ratchet as complexity', () {
+      const baseline = Baseline(
+        threshold: 10,
+        scores: {},
+        nestingThreshold: 4,
+        nesting: {'lib/a.dart::A.m': 5},
+      );
+      Finding at(int depth, {String name = 'A.m'}) => buildFinding(
+        unitWith(nesting: depth, name: name),
+        10,
+        baseline: baseline,
+      );
+
+      expect(at(5).nestingStatus, BaselineStatus.inherited);
+      expect(at(6).nestingStatus, BaselineStatus.worsened);
+      expect(at(5, name: 'A.other').nestingStatus, BaselineStatus.newViolation);
+      expect(at(4).nestingStatus, BaselineStatus.clean);
+
+      final result = resultOf([at(5)], baseline: true);
+      expect(isGateFailure(at(5), result, options), isFalse);
+      expect(isGateFailure(at(6), result, options), isTrue);
+    });
+
+    test('the baseline records nesting and still reads files without it', () {
+      final dir = Directory.systemTemp.createTempSync('nesting_baseline_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final path = '${dir.path}/baseline.json';
+
+      Baseline.save(
+        path,
+        [unitWith(nesting: 6), unitWith(complexity: 12, name: 'A.big')],
+        10,
+        nestingThreshold: 4,
+      );
+      final loaded = Baseline.load(path);
+      expect(loaded.nesting, {'lib/a.dart::A.m': 6});
+      expect(loaded.scores, {'lib/a.dart::A.big': 12});
+      expect(loaded.nestingThreshold, 4);
+
+      File(path).writeAsStringSync(
+        '{"threshold": 10, "units": {"lib/a.dart::A.big": 12}}',
+      );
+      expect(Baseline.load(path).nesting, isEmpty);
+    });
+
+    test('the report says why a low-complexity unit is listed', () {
+      final deep = buildFinding(
+        unitWith(complexity: 7, nesting: 5),
+        10,
+        baseline: const Baseline(threshold: 10, scores: {}),
+      );
+      final body = render(resultOf([deep], baseline: true), options);
+      expect(body, contains('`[NEW: nesting 5]`'));
+      expect(body, contains('1 new or worsened'));
+      expect(body, contains('0 moderate'));
+    });
+  });
+
   group('options for scoping and the ratchet', () {
     test('--update-baseline without --baseline is a usage error', () {
       expect(

@@ -12,8 +12,8 @@
 # anything else reopens it.
 #
 # Reads: GH_TOKEN, GITHUB_REPOSITORY, ISSUE_LABEL, ISSUE_ASSIGNEES, RELEASE_TAG,
-#        RELEASE_AUTHOR, RUN_URL, AUDIT_THRESHOLD, and when earlier steps set
-#        them PREVIOUS_TAG, AUDIT_CODE and AUDIT_RESULT
+#        RELEASE_AUTHOR, RUN_URL, AUDIT_THRESHOLD, AUDIT_NESTING_THRESHOLD, and
+#        when earlier steps set them PREVIOUS_TAG, AUDIT_CODE and AUDIT_RESULT
 set -euo pipefail
 
 previous_tag=${PREVIOUS_TAG:-}
@@ -33,11 +33,11 @@ rewrite=true
 case "$audit_code" in
   0)
     title="[COMPLEXITY] $RELEASE_TAG: nothing new or worse"
-    summary="No function in \`$RELEASE_TAG\` crossed complexity $AUDIT_THRESHOLD or got worse$since."
+    summary="No function in \`$RELEASE_TAG\` crossed complexity $AUDIT_THRESHOLD or nesting depth $AUDIT_NESTING_THRESHOLD, or got worse$since."
     ;;
   1)
     title="[COMPLEXITY] $RELEASE_TAG: ${count:-some} function(s) new or worse"
-    summary="${count:-Some} function(s) in \`$RELEASE_TAG\` crossed complexity $AUDIT_THRESHOLD or got worse$since."
+    summary="${count:-Some} function(s) in \`$RELEASE_TAG\` crossed complexity $AUDIT_THRESHOLD or nesting depth $AUDIT_NESTING_THRESHOLD, or got worse$since."
     ;;
   *)
     title="[COMPLEXITY] $RELEASE_TAG: check could not run"

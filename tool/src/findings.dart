@@ -6,6 +6,7 @@ library;
 
 import 'baseline.dart';
 import 'metrics.dart';
+import 'options.dart';
 
 enum ComplexityBand {
   low('Low'),
@@ -75,19 +76,20 @@ final RegExp _idiomaticNullChainPattern = RegExp(
   caseSensitive: false,
 );
 
-/// How a finding relates to the committed baseline.
+/// How one metric of a finding relates to the baseline. Complexity and nesting
+/// each get their own status, decided by the same rule.
 enum BaselineStatus {
-  /// Over threshold and not in the baseline — introduced by this change.
+  /// Over the limit and not in the baseline — introduced by this change.
   newViolation('New'),
 
-  /// Over threshold and scored worse than the baseline recorded.
+  /// Over the limit and worse than the baseline recorded.
   worsened('Worse'),
 
-  /// Over threshold but already recorded at this score or higher. Inherited
+  /// Over the limit but already recorded at this value or higher. Inherited
   /// debt: reported, never gated on.
   inherited('Known'),
 
-  /// At or under threshold.
+  /// At or under the limit.
   clean('OK'),
 
   /// No baseline in use.
@@ -114,6 +116,8 @@ class Finding {
     required this.inScope,
     required this.baselineStatus,
     required this.baselineScore,
+    required this.nestingStatus,
+    required this.baselineNesting,
   });
 
   /// Whether the unit's file was touched by the change under audit. Always
@@ -124,6 +128,12 @@ class Finding {
 
   /// The score the baseline recorded, when it tracked this unit.
   final int? baselineScore;
+
+  /// [baselineStatus] for the second hard limit, nesting depth.
+  final BaselineStatus nestingStatus;
+
+  /// The nesting depth the baseline recorded, when it tracked this unit.
+  final int? baselineNesting;
 
   final UnitMetrics unit;
   final ComplexityBand band;
@@ -180,6 +190,26 @@ class AuditResult {
   /// count of the whole file — i.e. unit collection has a gap.
   final List<String> conservationMismatches;
 }
+
+/// Over either hard limit: complexity above `--threshold`, or nesting deeper
+/// than `--nesting-threshold`. Lines of code and parameters are advisory only.
+bool isOverLimit(Finding finding, AuditOptions options) =>
+    finding.complexity > options.threshold ||
+    finding.unit.nestingDepth > options.nestingThreshold;
+
+/// Whether a finding is what the gate fails on.
+///
+/// With a baseline, only a unit that is new over a limit or worse than recorded
+/// counts — inherited debt is reported but never blocks, which is what lets a
+/// repo with existing violations adopt the gate at all.
+bool isGateFailure(
+  Finding finding,
+  AuditResult result,
+  AuditOptions options,
+) => result.baselineInUse
+    ? finding.baselineStatus.isGateFailure ||
+          finding.nestingStatus.isGateFailure
+    : isOverLimit(finding, options);
 
 ComplexityBand bandFor(int complexity) {
   if (complexity <= 5) return ComplexityBand.low;
@@ -449,32 +479,32 @@ String suggestionFor(
   return buffer.toString();
 }
 
+/// The ratchet rule, shared by both limits: new over the limit or worse than
+/// [recorded] fails; at or under the limit, or no worse than recorded, does not.
+BaselineStatus _ratchet(
+  Baseline? baseline,
+  int value,
+  int limit,
+  int? recorded,
+) {
+  if (baseline == null) return BaselineStatus.untracked;
+  if (value <= limit) return BaselineStatus.clean;
+  if (recorded == null) return BaselineStatus.newViolation;
+  if (value > recorded) return BaselineStatus.worsened;
+  return BaselineStatus.inherited;
+}
+
 Finding buildFinding(
   UnitMetrics unit,
   int threshold, {
+  int nestingThreshold = AuditOptions.defaultNestingThreshold,
   bool inScope = true,
   Baseline? baseline,
 }) {
   final widgetTree = isWidgetTree(unit);
   final pattern = selectPattern(unit, widgetTree, threshold);
-
-  final BaselineStatus status;
-  final int? recorded;
-  if (baseline == null) {
-    status = BaselineStatus.untracked;
-    recorded = null;
-  } else {
-    recorded = baseline.scoreFor(unit);
-    if (unit.complexityInclusive <= threshold) {
-      status = BaselineStatus.clean;
-    } else if (recorded == null) {
-      status = BaselineStatus.newViolation;
-    } else if (unit.complexityInclusive > recorded) {
-      status = BaselineStatus.worsened;
-    } else {
-      status = BaselineStatus.inherited;
-    }
-  }
+  final recorded = baseline?.scoreFor(unit);
+  final recordedNesting = baseline?.nestingFor(unit);
 
   return Finding(
     unit: unit,
@@ -489,7 +519,19 @@ Finding buildFinding(
         .where((c) => c.complexitySelf > threshold)
         .toList(growable: false),
     inScope: inScope,
-    baselineStatus: status,
+    baselineStatus: _ratchet(
+      baseline,
+      unit.complexityInclusive,
+      threshold,
+      recorded,
+    ),
     baselineScore: recorded,
+    nestingStatus: _ratchet(
+      baseline,
+      unit.nestingDepth,
+      nestingThreshold,
+      recordedNesting,
+    ),
+    baselineNesting: recordedNesting,
   );
 }

@@ -6,7 +6,8 @@
 # warning. Only a usage error (2) or an internal error such as a parse failure
 # (3) fails the step.
 #
-# Reads:  RELEASE_TAG, AUDIT_THRESHOLD, AUDIT_EXCLUDE, and PREVIOUS_TAG and
+# Reads:  RELEASE_TAG, AUDIT_THRESHOLD, AUDIT_NESTING_THRESHOLD, AUDIT_EXCLUDE,
+#         and PREVIOUS_TAG and
 #         PREVIOUS_BASELINE when complexity_previous_release.sh set them
 # Writes: complexity-report.md, complexity-summary.md, audit.log
 # Sets for later steps:
@@ -16,6 +17,7 @@ set -euo pipefail
 
 args=(
   --threshold "$AUDIT_THRESHOLD"
+  --nesting-threshold "$AUDIT_NESTING_THRESHOLD"
   --exclude "$AUDIT_EXCLUDE"
   --output-path complexity-report.md
   --summary-out complexity-summary.md
@@ -36,9 +38,9 @@ case "$code" in
   0) ;;
   1)
     if [ -n "${PREVIOUS_TAG:-}" ]; then
-      echo "::warning::$RELEASE_TAG has units new or worse than $PREVIOUS_TAG over complexity $AUDIT_THRESHOLD — see the job summary."
+      echo "::warning::$RELEASE_TAG has units new or worse than $PREVIOUS_TAG over complexity $AUDIT_THRESHOLD or nesting $AUDIT_NESTING_THRESHOLD — see the job summary."
     else
-      echo "::warning::$RELEASE_TAG has units over complexity $AUDIT_THRESHOLD — see the job summary."
+      echo "::warning::$RELEASE_TAG has units over complexity $AUDIT_THRESHOLD or nesting $AUDIT_NESTING_THRESHOLD — see the job summary."
     fi
     ;;
   *) exit "$code" ;;
