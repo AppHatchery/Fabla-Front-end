@@ -31,7 +31,7 @@ import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart'
-    show StudyUpdatePopUp;
+    show StudyUpdatePopUp, MyUpgrader, MyUpgradeAlert;
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -44,6 +44,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pendo_sdk/pendo_sdk.dart';
 import 'package:rive/rive.dart' show RiveNative;
+import 'package:upgrader/upgrader.dart';
 import 'dart:io' show Platform;
 
 import 'core/database/object_box.dart';
@@ -63,6 +64,9 @@ NotificationsController notificationController = NotificationsController();
 late List<CameraDescription> cameras;
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  await Upgrader.clearSavedSettings();
+
   FlutterNativeSplash.preserve(
       widgetsBinding: widgetsBinding); // Start Splash Screen
 
@@ -117,6 +121,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final RouteService routeService = RouteService();
   late Widget _route;
+  final upgrader = MyUpgrader(debugLogging: true);
   @override
   initState() {
     NotificationService.setListeners();
@@ -162,7 +167,10 @@ class _MyAppState extends State<MyApp> {
                   theme: ThemeData(
                       primaryColor: CustomColors.productNormal,
                       useMaterial3: true),
-                  home: child,
+                  home: MyUpgradeAlert(
+                    upgrader: upgrader,
+                    child: child,
+                  ),
                   debugShowCheckedModeBanner: false,
                   navigatorObservers: [
                     PendoNavigationObserver(),
