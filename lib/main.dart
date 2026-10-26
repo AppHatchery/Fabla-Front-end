@@ -6,7 +6,6 @@ import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart'
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/diary_counter.dart';
 import 'package:audio_diaries_flutter/core/utils/quickstart_handler.dart';
-import 'package:audio_diaries_flutter/core/utils/safe_font_size.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/bulk_submission/bulk_submission_cubit.dart';
@@ -126,37 +125,16 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
 
-  final _reported = <String>{};
-  late final _fontSizeResolver = safeWidthFontSizeResolver(
-    onFallback: (scaled, fontSize) => _reportOnce(
-        'font_size_fallback', 'scaled=$scaled designFontSize=$fontSize'),
-  );
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final size = MediaQuery.sizeOf(context);
-    if (!isValidDesignSize(size.width, size.height)) {
-      _reportOnce('invalid_screen_size', '${size.width}x${size.height}');
-    }
-  }
-
-  /// Tags Crashlytics once per [key] so the "Infinity or NaN toInt" guards are
-  /// visible in reports without flooding them on every build.
-  void _reportOnce(String key, String value) {
-    if (!_reported.add(key)) return;
-    CrashlyticsService().setCustomKey(key, value);
-    CrashlyticsService().log('Font scaling guard hit: $key=$value');
-  }
-
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
         minTextAdapt: true,
-        designSize: resolveDesignSize(width, height),
-        fontSizeResolver: _fontSizeResolver,
+        // First frame can report 0x0, which turns every .sp into NaN.
+        designSize: width.isFinite && height.isFinite && width > 0 && height > 0
+            ? Size(width, height)
+            : ScreenUtil.defaultSize,
         builder: (context, child) {
           return MultiBlocProvider(
               providers: [
