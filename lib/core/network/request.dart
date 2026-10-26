@@ -13,6 +13,13 @@ final Map<String, String> headers = {
   'x-api-key': dotenv.env['APIKEY'] ?? ''
 };
 
+Uri _buildUrl(String path) {
+  final stage = kDebugMode ? '/dev' : '/prod';
+  final normalizedPath = path.startsWith('/') ? path : '/$path';
+
+  return Uri.https(apiURL, '$stage$normalizedPath');
+}
+
 /// Performs an HTTP GET request to the specified path.
 ///
 /// The [client] parameter is optional and used primarily for testing.
@@ -34,10 +41,7 @@ Future<String?> get({
       );
 
   try {
-    final url = Uri.https(
-      apiURL,
-      '${kDebugMode ? '/dev' : '/prod'}${path.startsWith('/') ? '' : '/'}$path',
-    );
+    final url = _buildUrl(path);
     final response = await httpClient.get(url, headers: headers);
     return response.body;
   } catch (e, stackTrace) {
@@ -75,10 +79,7 @@ Future<String?> post({
       );
 
   try {
-    final url = Uri.https(
-      apiURL,
-      '${kDebugMode ? '/dev' : '/prod'}${path.startsWith('/') ? '' : '/'}$path',
-    );
+    final url = _buildUrl(path);
     final response = await httpClient.post(url, headers: headers, body: body);
     if (response.statusCode == 200) {
       return response.body;
