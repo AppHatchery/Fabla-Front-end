@@ -313,6 +313,8 @@ class AudioRecordingService {
       // is active, so going ahead would show "Recording" over silence. Most
       // likely straight after an interruption, while the call that caused it
       // still holds the session.
+      CrashlyticsService().log('Activating audio session: start of take');
+
       if (!await _audioSession.activate()) {
         _emit(
           status: AudioRecordingStatus.stopped,
@@ -413,6 +415,12 @@ class AudioRecordingService {
     // silence under "Recording". A sealed segment always reclaims, because
     // the interruption that sealed it took the session.
     if (_state.value.isInterrupted || _segmentSealed) {
+      CrashlyticsService().log(
+        'Activating audio session: resume of take, '
+        'interrupted=${_state.value.isInterrupted}, '
+        'segmentSealed=$_segmentSealed',
+      );
+
       if (!await _audioSession.activate()) {
         _emit(microphoneUnavailable: true);
         return;
@@ -900,6 +908,11 @@ class AudioRecordingService {
   Future<void> handleAppResumed() async {
     if (_disposed) return;
     if (!_recorder.isRecording && !_recorder.isPaused) return;
+
+    CrashlyticsService().log(
+      'Activating audio session: app resumed, '
+      'recording=${_recorder.isRecording}, paused=${_recorder.isPaused}',
+    );
 
     await _audioSession.activate();
   }
