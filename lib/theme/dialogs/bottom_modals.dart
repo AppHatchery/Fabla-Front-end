@@ -10,6 +10,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/audio_recording_service.dart';
+import 'package:audio_diaries_flutter/services/recording_live_activity_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart'
     show PendoService;
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
@@ -44,6 +45,10 @@ class BottomRecordingModal extends StatefulWidget {
   final ValueChanged<String?>? onSave;
   final String? subtitle;
 
+  /// The question's place in the diary, for the Live Activity's "Q3 of 8".
+  final int? questionNumber;
+  final int? questionCount;
+
   const BottomRecordingModal(
       {super.key,
       required this.promptId,
@@ -52,6 +57,8 @@ class BottomRecordingModal extends StatefulWidget {
       this.suggested,
       this.limit,
       this.hint,
+      this.questionNumber,
+      this.questionCount,
       required this.subtitle});
 
   @override
@@ -64,6 +71,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   /// the foreground service, the wakelock, the elapsed timer, the file. This
   /// modal only renders what the service publishes and forwards taps to it.
   late final AudioRecordingService _recordingService;
+
+  /// Mirrors the take onto the iOS Lock Screen and Dynamic Island.
+  late final RecordingLiveActivityService _liveActivity;
 
   /// Clears the waveform. Purely a display concern — the service has no
   /// opinion on it — so it stays here.
@@ -111,10 +121,21 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       onLimitReached: () => unawaited(save()),
     );
     unawaited(_recordingService.initialize());
+    _liveActivity = RecordingLiveActivityService(
+      // The same length the sheet's own timer and progress bar show.
+      limit: _displayedDuration,
+      questionNumber: widget.questionNumber,
+      questionCount: widget.questionCount,
+      onTogglePause: _recordingService.record,
+    )..attach();
+    _recordingService.state.addListener(_syncLiveActivity);
     WidgetsBinding.instance.addObserver(this);
     _loadRive();
     super.initState();
   }
+
+  void _syncLiveActivity() =>
+      unawaited(_liveActivity.sync(_recordingService.state.value));
 
   Future<void> _loadRive() async {
     final file = await r.File.asset(
@@ -145,6 +166,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     // Fire-and-forget: the teardown inside awaits platform calls, and the
     // service marks itself spent synchronously so nothing it publishes can
     // reach this modal afterwards.
+    _recordingService.state.removeListener(_syncLiveActivity);
+    _liveActivity.detach();
+    unawaited(_liveActivity.end());
     unawaited(_recordingService.dispose());
     _riveController?.dispose();
     _riveFile?.dispose();
@@ -453,9 +477,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     child: _buildControlButton(
                       icon: CupertinoIcons.stop_fill,
                       size: recordingState.isPaused ? 24 : 34,
-                      onPressed: recordingState.elapsed < const Duration(seconds: 1)
-                          ? null
-                          : () => unawaited(_recordingService.stop()),
+                      onPressed:
+                          recordingState.elapsed < const Duration(seconds: 1)
+                              ? null
+                              : () => unawaited(_recordingService.stop()),
                       color: CustomColors.warningActive,
                     ),
                   ),

@@ -371,6 +371,8 @@ class _EditDiaryPageState extends State<EditDiaryPage>
                     promptId: prompt.id,
                     question: prompt.question,
                     subtitle: prompt.subtitle,
+                    questionNumber: widget.index,
+                    questionCount: widget.diary.prompts.length,
                     hint: hint,
                     limit: prompt.option?.maxLength,
                     suggested: prompt.option?.suggestedLength,

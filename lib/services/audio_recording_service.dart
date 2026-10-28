@@ -202,6 +202,13 @@ class AudioRecordingService {
 
   Timer? _timer;
 
+  /// When the current stretch of recording began, and the elapsed time at
+  /// that moment. Elapsed time is read off the clock from these rather than
+  /// counted in ticks, because ticks stall while the app is in the background
+  /// and the count then fell behind the Live Activity's timer.
+  DateTime? _runStartedAt;
+  Duration _elapsedAtRunStart = Duration.zero;
+
   String? _requestedTakePath;
 
   String? _takePath;
@@ -384,7 +391,7 @@ class AudioRecordingService {
   }) async {
     _setWakelock(enable: false);
 
-    _timer?.cancel();
+    _stopTimer();
 
     try {
       await _recorder.pauseRecorder();
@@ -525,7 +532,7 @@ class AudioRecordingService {
     final startedAt = _recordingStartedAt;
     if (startedAt == null) return false;
 
-    _timer?.cancel();
+    _stopTimer();
     _recordingStartedAt = null;
 
     _setWakelock(enable: false);
@@ -618,7 +625,7 @@ class AudioRecordingService {
   Future<void> _sealSegment() async {
     if (_recordingStartedAt == null || _segmentSealed) return;
 
-    _timer?.cancel();
+    _stopTimer();
 
     _setWakelock(enable: false);
     await _foregroundService.stop();
@@ -799,7 +806,7 @@ class AudioRecordingService {
   /// explicitly rejected it. The path reference is cleared either way, so a
   /// later [save] cannot persist a path that no longer exists.
   Future<void> discardTake() async {
-    _timer?.cancel();
+    _stopTimer();
 
     _emit(
       elapsed: Duration.zero,
@@ -825,7 +832,7 @@ class AudioRecordingService {
   Future<RecordingSaveResult> save() async {
     try {
       _setWakelock(enable: false);
-      _timer?.cancel();
+      _stopTimer();
 
       await _foregroundService.stop();
 
@@ -922,6 +929,7 @@ class AudioRecordingService {
     _disposed = true;
 
     _timer?.cancel();
+    _runStartedAt = null;
     _audioSession.stopListening();
 
     // Let an in-flight move finish before teardown touches the audio stack.
@@ -990,12 +998,14 @@ class AudioRecordingService {
   void _startTimer() {
     if (_disposed) return;
     _timer?.cancel();
+    _elapsedAtRunStart = _state.value.elapsed;
+    _runStartedAt = DateTime.now();
 
     final effectiveLimit =
         (limit != null && limit!.inSeconds > 0) ? limit! : null;
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) async {
-      if (effectiveLimit != null && _state.value.elapsed >= effectiveLimit) {
+      if (effectiveLimit != null && _runningElapsed >= effectiveLimit) {
         final stopped = await stop();
 
         if (stopped && !_disposed) {
@@ -1005,8 +1015,26 @@ class AudioRecordingService {
         return;
       }
 
-      _emit(elapsed: _state.value.elapsed + const Duration(seconds: 1));
+      _emit(elapsed: _runningElapsed);
     });
+  }
+
+  /// Elapsed time of the take right now, in whole seconds like the display.
+  Duration get _runningElapsed {
+    final startedAt = _runStartedAt;
+    if (startedAt == null) return _state.value.elapsed;
+    final elapsed = _elapsedAtRunStart + DateTime.now().difference(startedAt);
+    return Duration(seconds: elapsed.inSeconds);
+  }
+
+  /// Stops the elapsed timer, keeping the time recorded up to this moment so
+  /// a pause shows the same time everywhere.
+  void _stopTimer() {
+    _timer?.cancel();
+    if (_runStartedAt == null) return;
+    final elapsed = _runningElapsed;
+    _runStartedAt = null;
+    _emit(elapsed: elapsed);
   }
 
   /// Ends any live take before closing the recorder.

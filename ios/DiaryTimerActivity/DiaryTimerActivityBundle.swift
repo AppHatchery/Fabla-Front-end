@@ -12,5 +12,8 @@ struct DiaryTimerActivityBundle: WidgetBundle {
         if #available(iOS 16.1, *) {
             DiaryTimerActivityLiveActivity()
         }
+        if #available(iOS 17.0, *) {
+            DiaryRecordingLiveActivity()
+        }
     }
 }

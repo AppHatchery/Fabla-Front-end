@@ -832,6 +832,8 @@ class _QuestionPageState extends State<QuestionPage>
                     promptId: prompt.id,
                     question: prompt.question,
                     subtitle: prompt.subtitle,
+                    questionNumber: widget.currentPage + 1,
+                    questionCount: widget.diary.prompts.length,
                     hint: hint,
                     limit: prompt.option?.maxLength,
                     suggested: prompt.option?.suggestedLength,

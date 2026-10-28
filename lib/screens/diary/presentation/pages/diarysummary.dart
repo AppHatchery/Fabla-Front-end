@@ -664,6 +664,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 promptId: prompt.id,
                 question: prompt.question,
                 subtitle: prompt.subtitle,
+                questionNumber: widget.diary.prompts.indexOf(prompt) + 1,
+                questionCount: widget.diary.prompts.length,
                 limit: prompt.option?.maxLength,
                 suggested: prompt.option?.suggestedLength,
                 hint: hint,

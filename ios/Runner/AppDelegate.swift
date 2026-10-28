@@ -15,6 +15,11 @@ import AVFoundation
   @available(iOS 16.2, *)
   private static var currentTimerActivity: Activity<DiaryTimerActivityAttributes>?
 
+  @available(iOS 17.0, *)
+  private static var currentRecordingActivity: Activity<DiaryRecordingActivityAttributes>?
+
+  private var liveActivityChannel: FlutterMethodChannel?
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -41,6 +46,26 @@ import AVFoundation
       binaryMessenger: engineBridge.applicationRegistrar.messenger())
     liveActivityChannel.setMethodCallHandler { [weak self] call, result in
       self?.handleLiveActivityCall(call, result: result)
+    }
+    self.liveActivityChannel = liveActivityChannel
+
+    // The recording Live Activity's button runs ToggleRecordingPauseIntent in
+    // this process; hand it to Dart, which owns the recorder, and wait for it
+    // so the activity redraws with the new state rather than the old one.
+    if #available(iOS 17.0, *) {
+      RecordingIntentBridge.togglePause = { [weak self] in
+        await withCheckedContinuation { continuation in
+          DispatchQueue.main.async {
+            guard let channel = self?.liveActivityChannel else {
+              continuation.resume()
+              return
+            }
+            channel.invokeMethod("recordingTogglePause", arguments: nil) { _ in
+              continuation.resume()
+            }
+          }
+        }
+      }
     }
 
     // Joins the segments of a recording split by an interruption. See
@@ -129,10 +154,68 @@ import AVFoundation
         result(nil)
       }
 
+    case "recordingStart", "recordingUpdate", "recordingEnd":
+      guard #available(iOS 17.0, *) else {
+        result(FlutterError(code: "UNAVAILABLE", message: "Recording Live Activity requires iOS 17+", details: nil))
+        return
+      }
+      handleRecordingCall(call.method, args: args, result: result)
+
     default:
       result(FlutterMethodNotImplemented)
     }
   }
+
+  @available(iOS 17.0, *)
+  private func handleRecordingCall(_ method: String, args: [String: Any]?, result: @escaping FlutterResult) {
+    let state = AppDelegate.recordingState(from: args)
+    switch method {
+    case "recordingStart":
+      // Zero or less is no limit; a zero-length timer range never ticks.
+      let limit = (args?["limitMillis"] as? Double).map { $0 / 1000 }.flatMap { $0 > 0 ? $0 : nil }
+      let attributes = DiaryRecordingActivityAttributes(
+        questionNumber: args?["questionNumber"] as? Int,
+        questionCount: args?["questionCount"] as? Int,
+        limit: limit)
+      Task {
+        if let existing = AppDelegate.currentRecordingActivity {
+          await existing.end(nil, dismissalPolicy: .immediate)
+        }
+        do {
+          AppDelegate.currentRecordingActivity = try Activity.request(
+            attributes: attributes,
+            content: .init(state: state, staleDate: nil))
+          result(nil)
+        } catch {
+          result(FlutterError(code: "START_FAILED", message: error.localizedDescription, details: nil))
+        }
+      }
+
+    case "recordingUpdate":
+      Task {
+        await AppDelegate.currentRecordingActivity?.update(.init(state: state, staleDate: nil))
+        result(nil)
+      }
+
+    default:
+      Task {
+        await AppDelegate.currentRecordingActivity?.end(nil, dismissalPolicy: .immediate)
+        AppDelegate.currentRecordingActivity = nil
+        result(nil)
+      }
+    }
+  }
+
+  /// Running: elapsed counts up from `startDate`. Paused: frozen at `elapsed`.
+  @available(iOS 17.0, *)
+  private static func recordingState(from args: [String: Any]?) -> DiaryRecordingActivityAttributes.ContentState {
+    let elapsed = (args?["elapsedMillis"] as? Double ?? 0) / 1000
+    let isPaused = args?["isPaused"] as? Bool ?? false
+    return DiaryRecordingActivityAttributes.ContentState(
+      startDate: isPaused ? nil : Date().addingTimeInterval(-elapsed),
+      pausedElapsed: isPaused ? elapsed : nil)
+  }
+
 
   override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     Messaging.messaging().apnsToken = deviceToken
