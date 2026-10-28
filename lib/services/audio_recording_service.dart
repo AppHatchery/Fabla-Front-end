@@ -237,6 +237,11 @@ class AudioRecordingService {
 
   bool _recorderBusy = false;
 
+  /// Whether the session was taken back when the last interruption ended,
+  /// so resuming need not activate it again. See
+  /// [_reclaimSessionAfterInterruption].
+  bool _sessionReclaimed = false;
+
   bool _disposed = false;
 
   DateTime? _recordingStartedAt;
@@ -264,6 +269,7 @@ class AudioRecordingService {
         const Duration(milliseconds: 60),
       );
 
+      _audioSession.onInterruptionEnded = _reclaimSessionAfterInterruption;
       await _audioSession.startListening();
     } catch (e, s) {
       CrashlyticsService().recordError(
@@ -412,25 +418,31 @@ class AudioRecordingService {
   }
 
   Future<void> _resumeTake() async {
-    // The only place an interrupted take reclaims the session. Nothing does it
-    // when the interruption ends, because the take stays paused until here —
-    // so the route is re-snapshotted against what is actually plugged in at
-    // the moment capture starts again, not at the moment Siri finished.
+    // An interrupted take reclaims the session here, or already did when the
+    // interruption ended (see [_reclaimSessionAfterInterruption]), since iOS
+    // refuses a background app the session any later. Either way the route
+    // is re-snapshotted here, against what is plugged in as capture starts
+    // again, not at the moment Siri finished.
     //
     // Before anything is claimed. If the session will not come back, a call
     // still holding it, the take stays paused: resuming anyway would record
     // silence under "Recording". A sealed segment always reclaims, because
     // the interruption that sealed it took the session.
-    if (_state.value.isInterrupted || _segmentSealed) {
-      CrashlyticsService().log(
-        'Activating audio session: resume of take, '
-        'interrupted=${_state.value.isInterrupted}, '
-        'segmentSealed=$_segmentSealed',
-      );
+    final reclaimed = _sessionReclaimed;
+    _sessionReclaimed = false;
 
-      if (!await _audioSession.activate()) {
-        _emit(microphoneUnavailable: true);
-        return;
+    if (_state.value.isInterrupted || _segmentSealed) {
+      if (!reclaimed) {
+        CrashlyticsService().log(
+          'Activating audio session: resume of take, '
+          'interrupted=${_state.value.isInterrupted}, '
+          'segmentSealed=$_segmentSealed',
+        );
+
+        if (!await _audioSession.activate()) {
+          _emit(microphoneUnavailable: true);
+          return;
+        }
       }
       await _audioSession.captureInputDevices();
     }
@@ -1132,8 +1144,34 @@ class AudioRecordingService {
   /// Nothing is checked before the lock is held. A take still starting or
   /// resuming reads as not recording, and bailing out then dropped the
   /// interruption: the take carried on as if nothing had happened.
+  /// Takes the session back as soon as an interruption ends, for a take it
+  /// paused.
+  ///
+  /// iOS only hands the session back to a background app at this moment. The
+  /// take stays paused and keeps its interrupted notice: this only makes sure
+  /// a resume from the Live Activity, with Fabla still in the background, has
+  /// a session to record into. Without it that resume hit '!int' and did
+  /// nothing.
+  Future<void> _reclaimSessionAfterInterruption() async {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    if (!await _acquireRecorderLock()) return;
+
+    try {
+      if (!_state.value.isInterrupted) return;
+
+      CrashlyticsService().log(
+        'Activating audio session: interruption ended, '
+        'segmentSealed=$_segmentSealed',
+      );
+      _sessionReclaimed = await _audioSession.activate();
+    } finally {
+      _recorderBusy = false;
+    }
+  }
+
   Future<void> _respondToCaptureLoss(CaptureLoss loss) async {
     if (!await _acquireRecorderLock()) return;
+    _sessionReclaimed = false;
 
     try {
       if (loss == CaptureLoss.interruption && _interruptionSealsSegment) {

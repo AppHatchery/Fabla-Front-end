@@ -19,6 +19,64 @@ private extension Color {
     static let recordingDot = Color(red: 0xF8 / 255, green: 0x34 / 255, blue: 0x48 / 255) // #F83448
     static let pausedCard = Color(red: 0x01 / 255, green: 0x47 / 255, blue: 0xA0 / 255) // #0147A0
     static let pausedDot = Color(red: 0x8E / 255, green: 0xC0 / 255, blue: 0xFE / 255) // #8EC0FE
+    static let callCard = Color(red: 0xFE / 255, green: 0x96 / 255, blue: 0x00 / 255) // #FE9600
+    static let callInk = Color(red: 0x24 / 255, green: 0x24 / 255, blue: 0x24 / 255) // #242424
+    static let lastMinuteCard = Color(red: 0xFE / 255, green: 0xB9 / 255, blue: 0x54 / 255) // #FEB954
+    static let cueCardInk = Color(red: 0x2B / 255, green: 0x24 / 255, blue: 0x40 / 255) // #2B2440
+}
+
+/// Which Figma frame the activity is showing. Each sets its own colours,
+/// label and Fabio.
+@available(iOS 17.0, *)
+private enum Phase {
+    case recording, lastMinute, paused, call
+
+    /// The orange cards, which take dark ink.
+    var isOrange: Bool { self == .call || self == .lastMinute }
+
+    /// The Lock Screen card.
+    var card: Color {
+        switch self {
+        case .recording: return .recordingCard
+        case .paused: return .pausedCard
+        case .call: return .callCard
+        case .lastMinute: return .lastMinuteCard
+        }
+    }
+
+    /// Text and the timer on the Lock Screen card; dark on the orange card.
+    var lockInk: Color { isOrange ? .callInk : .white }
+
+    var lockDot: Color {
+        switch self {
+        case .recording: return .recordingDot
+        case .paused: return .pausedDot
+        case .call, .lastMinute: return .callInk
+        }
+    }
+
+    /// The colour on black: the island, Always-On, the rings.
+    var accent: Color {
+        switch self {
+        case .call: return .callCard
+        case .lastMinute: return .lastMinuteCard
+        case .recording, .paused: return .recordingBrand
+        }
+    }
+
+    /// The status dot on black.
+    var darkDot: Color { self == .recording ? .recordingDot : accent }
+
+    var trackOpacity: Double { isOrange ? 0.28 : 0.35 }
+
+    var label: String {
+        switch self {
+        case .recording: return "Recording"
+        case .paused: return "Paused"
+        case .call: return "Paused by a call"
+        case .lastMinute: return "One minute left"
+        }
+    }
 }
 
 @available(iOS 17.0, *)
@@ -43,6 +101,13 @@ private func formatElapsed(_ seconds: TimeInterval) -> String {
 @available(iOS 17.0, *)
 private extension ActivityViewContext<DiaryRecordingActivityAttributes> {
     var isPaused: Bool { state.startDate == nil }
+
+    var phase: Phase {
+        // The app sets the stale date a minute before the limit, so the
+        // system flips this over on time with no app process running.
+        guard isPaused else { return isStale ? .lastMinute : .recording }
+        return state.interrupted == true ? .call : .paused
+    }
 
     /// "Q3 of 8", or nil when the question's place isn't known.
     var questionLabel: String? {
@@ -80,6 +145,15 @@ private struct Part {
     let inset: (t: CGFloat, r: CGFloat, b: CGFloat, l: CGFloat)
     var mirrored = false
     var rotation: Double = 0
+    /// Lettering drawn on the part, as on the "1 MIN" cue card.
+    var caption: Caption?
+
+    struct Caption {
+        let text: String
+        /// From the part frame's top-leading corner.
+        let origin: CGPoint
+        let size: CGFloat
+    }
 
     var rect: CGRect {
         let r = CGRect(x: frame.minX + frame.width * inset.l / 100,
@@ -100,16 +174,40 @@ private struct FabioArt: View {
         ZStack(alignment: .topLeading) {
             ForEach(parts.indices, id: \.self) { i in
                 let rect = parts[i].rect
-                Image(parts[i].image)
-                    .resizable()
-                    .frame(width: rect.width, height: rect.height)
-                    .scaleEffect(x: parts[i].mirrored ? -1 : 1, y: 1)
-                    .rotationEffect(.degrees(parts[i].rotation))
-                    .offset(x: rect.minX, y: rect.minY)
+                if let caption = parts[i].caption {
+                    captioned(parts[i], caption)
+                } else {
+                    Image(parts[i].image)
+                        .resizable()
+                        .frame(width: rect.width, height: rect.height)
+                        .scaleEffect(x: parts[i].mirrored ? -1 : 1, y: 1)
+                        .rotationEffect(.degrees(parts[i].rotation))
+                        .offset(x: rect.minX, y: rect.minY)
+                }
             }
         }
         .frame(width: size.width, height: size.height, alignment: .topLeading)
         .clipped()
+    }
+
+    /// The part and its lettering turned together about the part frame.
+    private func captioned(_ part: Part, _ caption: Part.Caption) -> some View {
+        let rect = part.rect
+        return ZStack(alignment: .topLeading) {
+            Image(part.image)
+                .resizable()
+                .frame(width: rect.width, height: rect.height)
+                .offset(x: rect.minX - part.frame.minX, y: rect.minY - part.frame.minY)
+            Text(caption.text)
+                .font(.rubik(.semibold, size: caption.size))
+                .tracking(0.3)
+                .foregroundStyle(Color.cueCardInk)
+                .fixedSize()
+                .offset(x: caption.origin.x, y: caption.origin.y)
+        }
+        .frame(width: part.frame.width, height: part.frame.height, alignment: .topLeading)
+        .rotationEffect(.degrees(part.rotation))
+        .offset(x: part.frame.minX, y: part.frame.minY)
     }
 }
 
@@ -121,6 +219,11 @@ private enum Insets {
     static let headsetNearBoom: (CGFloat, CGFloat, CGFloat, CGFloat) = (19.8, 47.59, 50.41, 7.92)
     static let headsetNear: (CGFloat, CGFloat, CGFloat, CGFloat) = (19.8, 73.83, 54.87, 7.92)
     static let faceNeutral: (CGFloat, CGFloat, CGFloat, CGFloat) = (33.9, 35.46, 56.35, 52.99)
+    static let faceConcerned: (CGFloat, CGFloat, CGFloat, CGFloat) = (29.57, 33.67, 55.94, 51.1)
+    static let holdingPaw: (CGFloat, CGFloat, CGFloat, CGFloat) = (22.64, 7.06, 15.11, 29.59)
+    static let phone: (CGFloat, CGFloat, CGFloat, CGFloat) = (2.38, -1.48, 0, 6.3)
+    static let faceTalking: (CGFloat, CGFloat, CGFloat, CGFloat) = (33.9, 35.46, 55.21, 52.99)
+    static let cueCard: (CGFloat, CGFloat, CGFloat, CGFloat) = (4.76, 1.11, 0.48, 3.7)
 }
 
 @available(iOS 17.0, *)
@@ -149,6 +252,40 @@ private enum LockArt {
             part("PausedV2KeptTape", tape, (2.94, -1.2, -2.94, 2), mirrored: true),
             part("PausedV2PawFar", CGRect(x: 315.05, y: 117.96, width: 57.379, height: 57.379), (22.64, 7.06, 15.11, 29.59)),
             part("PausedV2PawNear", CGRect(x: 254.14, y: 117.96, width: 57.379, height: 57.379), (22.64, 29.59, 15.11, 7.06)),
+        ]
+    }()
+
+    /// Paused by a call: in the doorman's coat and cap, surprised, holding
+    /// the phone that took the microphone.
+    static let callParts: [Part] = {
+        let f = CGRect(x: 266.94, y: 41.93, width: 163.31, height: 179.862)
+        // Each rotated part's own box, centred in the slot Figma rotates it in.
+        let phone = CGRect(x: 263.177, y: 99.586, width: 28.303, height: 44.028)
+        let paw = CGRect(x: 247.865, y: 109.735, width: 57.379, height: 57.379)
+        return [
+            part("RecV2Body", f, Insets.body, mirrored: true),
+            part("CallV2Coat", f, (48.1, 0.81, 0.99, 0.57), mirrored: true),
+            part("CallV2FaceSurprised", f, (29.37, 33.88, 54.72, 51.38), mirrored: true),
+            part("CallV2Cap", f, (8.77, 27.28, 66.94, 15.3), mirrored: true),
+            part("CallV2Phone", phone, Insets.phone, mirrored: true, rotation: 8),
+            part("PausedV2PawFar", paw, Insets.holdingPaw, rotation: 8),
+        ]
+    }()
+
+    /// One minute left: in the coach's cap, holding up the "1 MIN" card.
+    static let lastMinuteParts: [Part] = {
+        let f = CGRect(x: 266.94, y: 41.93, width: 163.31, height: 179.862)
+        // Each rotated part's own box, centred in the slot Figma rotates it in.
+        let paw = CGRect(x: 262.093, y: 109.803, width: 57.379, height: 57.379)
+        var card = part("OneMinV2Card", CGRect(x: 265.152, y: 91.851, width: 54.819, height: 42.637),
+                        Insets.cueCard, rotation: 4)
+        card.caption = .init(text: "1 MIN", origin: CGPoint(x: 7.11, y: 12.04), size: 15.23)
+        return [
+            part("RecV2Body", f, Insets.body, mirrored: true),
+            part("OneMinV2Face", f, Insets.faceTalking, mirrored: true),
+            part("OneMinV2Cap", f, (7.98, 20.1, 64.97, 17.02), mirrored: true),
+            part("OneMinV2Paw", paw, Insets.holdingPaw, rotation: 4),
+            card,
         ]
     }()
 
@@ -182,6 +319,38 @@ private enum IslandArt {
 
     /// Paused: Fabio turned around, waving. The wave paw pokes 4.34pt past
     /// his frame on the left, so this canvas is that much wider.
+    /// Paused by a call: Fabio a little larger, holding the phone. The paw
+    /// starts 4.14pt left of his frame.
+    static let callSize = CGSize(width: 78.5, height: 81.897)
+    static let callParts: [Part] = {
+        let f = CGRect(x: 4.14, y: 0, width: 74.36, height: 81.897)
+        let phone = CGRect(x: 6.283, y: 12.448, width: 12.209, height: 18.992)
+        let paw = CGRect(x: 1.691, y: 15.171, width: 26.127, height: 26.127)
+        return [
+            part("CallIslandBody", f, Insets.body, mirrored: true),
+            part("CallIslandFace", f, Insets.faceConcerned, mirrored: true),
+            part("CallIslandPhone", phone, Insets.phone, mirrored: true, rotation: 8),
+            part("CallIslandPaw", paw, Insets.holdingPaw, rotation: 8),
+        ]
+    }()
+
+    /// One minute left: Fabio in his headset, holding up the "1 MIN" card.
+    static let lastMinuteParts: [Part] = {
+        let f = CGRect(origin: .zero, size: size)
+        let paw = CGRect(x: 1.432, y: 14.742, width: 24.702, height: 24.702)
+        var card = part("OneMinIslandCard", CGRect(x: 3.112, y: 11.367, width: 20.522, height: 15.961),
+                        Insets.cueCard, rotation: 4)
+        card.caption = .init(text: "1 MIN", origin: CGPoint(x: 2.66, y: 4.51), size: 5.7)
+        return [
+            part("RecIslandHeadsetFar", f, Insets.headsetFar, mirrored: true),
+            part("RecIslandBody", f, Insets.body, mirrored: true),
+            part("OneMinIslandFace", f, Insets.faceTalking, mirrored: true),
+            part("PausedIslandHeadsetNear", f, Insets.headsetNear, mirrored: true),
+            part("OneMinIslandPaw", paw, Insets.holdingPaw, rotation: 4),
+            card,
+        ]
+    }()
+
     static let pausedSize = CGSize(width: 74.646, height: 77.431)
     static let pausedParts: [Part] = {
         let f = CGRect(x: 4.34, y: 0, width: 70.306, height: 77.431)
@@ -202,32 +371,48 @@ private enum IslandArt {
 @available(iOS 17.0, *)
 private struct FabioAvatar: View {
     let minimal: Bool
-    let isPaused: Bool
+    let phase: Phase
 
     var body: some View {
         let d: CGFloat = minimal ? 20 : 18
+        FabioArt(parts: parts, size: CGSize(width: d, height: d))
+            .background(phase.card)
+            .clipShape(Circle())
+    }
+
+    private var parts: [Part] {
         let prefix = minimal ? "RecMinimal" : "RecCompact"
         let f = minimal
             ? CGRect(x: -26.52, y: -15.65, width: 64.348, height: 70.87)
             : CGRect(x: -23.87, y: -14.09, width: 57.913, height: 63.783)
-        let face = isPaused
-            ? part(minimal ? "PausedMinimalFace" : "PausedCompactFace", f, Insets.faceNeutral)
-            : part("\(prefix)Face", f, Insets.face)
-        FabioArt(parts: [
-            part("\(prefix)HeadsetFar", f, Insets.headsetFar),
-            part("\(prefix)Body", f, Insets.body),
-            face,
-            part("\(prefix)HeadsetNear", f, Insets.headsetNear),
-        ], size: CGSize(width: d, height: d))
-        .background(isPaused ? Color.pausedCard : Color.recordingCard)
-        .clipShape(Circle())
+        switch phase {
+        case .call:
+            // The call frame takes the headset off.
+            return [
+                part("\(prefix)Body", f, Insets.body),
+                part(minimal ? "CallMinimalFace" : "CallCompactFace", f, Insets.faceConcerned),
+            ]
+        case .paused, .recording, .lastMinute:
+            let face: Part
+            switch phase {
+            case .paused: face = part(minimal ? "PausedMinimalFace" : "PausedCompactFace", f, Insets.faceNeutral)
+            case .lastMinute: face = part(minimal ? "OneMinMinimalFace" : "OneMinCompactFace", f, Insets.faceTalking)
+            default: face = part("\(prefix)Face", f, Insets.face)
+            }
+            return [
+                part("\(prefix)HeadsetFar", f, Insets.headsetFar),
+                part("\(prefix)Body", f, Insets.body),
+                face,
+                part("\(prefix)HeadsetNear", f, Insets.headsetNear),
+            ]
+        }
     }
 }
 
 // MARK: - Shared pieces
 
-/// The status dot: a 2pt ring around an 8pt dot, 16pt overall. Red while
-/// recording, blue while paused.
+/// The status dot: a 2pt ring around an 8pt dot, 16pt overall, coloured by
+/// [Phase].
 @available(iOS 17.0, *)
 private struct StatusDot: View {
     var color: Color = .recordingDot
@@ -364,7 +549,7 @@ private struct RingProgress: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.recordingBrand.opacity(0.35), lineWidth: 2.5)
+                .stroke(context.phase.accent.opacity(context.phase.trackOpacity), lineWidth: 2.5)
                 .padding(1.25)
             if let interval = context.fillInterval {
                 ProgressView(timerInterval: interval, countsDown: false) {
@@ -373,15 +558,15 @@ private struct RingProgress: View {
                     EmptyView()
                 }
                 .progressViewStyle(.circular)
-                .tint(.recordingBrand)
+                .tint(context.phase.accent)
             } else {
                 Circle()
                     .trim(from: 0, to: context.pausedFraction)
-                    .stroke(Color.recordingBrand, style: StrokeStyle(lineWidth: 2.5, lineCap: .butt))
+                    .stroke(context.phase.accent, style: StrokeStyle(lineWidth: 2.5, lineCap: .butt))
                     .rotationEffect(.degrees(-90))
                     .padding(1.25)
             }
-            FabioAvatar(minimal: diameter > 26, isPaused: context.isPaused)
+            FabioAvatar(minimal: diameter > 26, phase: context.phase)
         }
         .frame(width: diameter, height: diameter)
     }
@@ -406,22 +591,24 @@ private struct ElapsedText: View {
 @available(iOS 17.0, *)
 private struct StatusLabel: View {
     let context: ActivityViewContext<DiaryRecordingActivityAttributes>
+    var ink: Color = .white
 
     var body: some View {
-        Text(context.isPaused ? "Paused" : "Recording")
+        Text(context.phase.label)
             .font(.rubik(.medium, size: 15))
-            .foregroundStyle(.white.opacity(0.7))
+            .foregroundStyle(ink.opacity(0.7))
     }
 }
 
 @available(iOS 17.0, *)
 private struct DetailLabel: View {
     let text: String
+    var ink: Color = .white
 
     var body: some View {
         Text("· \(text)")
             .font(.rubik(.medium, size: 15))
-            .foregroundStyle(.white.opacity(0.5))
+            .foregroundStyle(ink.opacity(0.5))
     }
 }
 
@@ -435,13 +622,13 @@ private struct RecordingLockScreenView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 6) {
-                    StatusDot(color: context.isPaused ? (isAlwaysOn ? .recordingBrand : .pausedDot) : .recordingDot)
-                    StatusLabel(context: context)
-                    if let q = context.questionLabel { DetailLabel(text: q) }
+                    StatusDot(color: isAlwaysOn ? phase.darkDot : phase.lockDot)
+                    StatusLabel(context: context, ink: ink)
+                    if let q = context.questionLabel { DetailLabel(text: q, ink: ink) }
                     Spacer(minLength: 8)
                     Text("Fabla")
                         .font(.rubik(.medium, size: 15))
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(ink.opacity(0.7))
                 }
                 .frame(height: 18)
 
@@ -450,25 +637,22 @@ private struct RecordingLockScreenView: View {
                         .font(.rubik(.semibold, size: 46))
                         .tracking(-1.5)
                         .monospacedDigit()
-                        .foregroundStyle(.white)
+                        .foregroundStyle(ink)
                         .frame(width: 112, height: 55, alignment: .leading)
                     if let limit = context.limitLabel {
                         Text("/ \(limit)")
                             .font(.rubik(.medium, size: 15))
-                            .foregroundStyle(.white.opacity(0.5))
+                            .foregroundStyle(ink.opacity(0.5))
                     }
                 }
                 .padding(.top, 4)
                 .padding(.leading, -1)
 
                 HStack(spacing: 14) {
-                    PauseButton(isPaused: context.isPaused,
-                                style: isAlwaysOn ? .outlined(.recordingBrand) : .filled(.white, glyph: cardColor))
+                    PauseButton(isPaused: context.isPaused, style: buttonStyle)
                     // Nothing is filling while paused, so the paused frame drops it.
                     if !context.isPaused {
-                        WaveformProgress(context: context,
-                                         filled: isAlwaysOn ? .recordingBrand : .white,
-                                         unfilled: (isAlwaysOn ? Color.recordingBrand : .white).opacity(0.35))
+                        WaveformProgress(context: context, filled: waveInk, unfilled: waveInk.opacity(0.35))
                     }
                 }
                 .padding(.top, 7)
@@ -482,14 +666,33 @@ private struct RecordingLockScreenView: View {
         // Backgrounds never size their view, so the 408pt art can't widen
         // the card past the Lock Screen's width; it's cropped instead.
         .background(alignment: .bottomTrailing) {
-            FabioArt(parts: context.isPaused ? LockArt.pausedParts : LockArt.parts, size: LockArt.size)
+            FabioArt(parts: art, size: LockArt.size)
                 .opacity(isAlwaysOn ? 0.5 : 1)
         }
-        .background(isAlwaysOn ? Color.black : cardColor)
+        .background(isAlwaysOn ? Color.black : phase.card)
         .clipped()
     }
 
-    private var cardColor: Color { context.isPaused ? .pausedCard : .recordingCard }
+    private var phase: Phase { context.phase }
+
+    private var ink: Color { isAlwaysOn ? .white : phase.lockInk }
+
+    private var waveInk: Color { isAlwaysOn ? phase.accent : phase.lockInk }
+
+    private var buttonStyle: PauseButton.Style {
+        if isAlwaysOn { return .outlined(phase.accent) }
+        // Dark on the orange card, white on the blue ones.
+        return phase.isOrange ? .filled(.callInk, glyph: phase.card) : .filled(.white, glyph: phase.card)
+    }
+
+    private var art: [Part] {
+        switch phase {
+        case .recording: return LockArt.parts
+        case .paused: return LockArt.pausedParts
+        case .call: return LockArt.callParts
+        case .lastMinute: return LockArt.lastMinuteParts
+        }
+    }
 }
 
 // MARK: - Dynamic Island
@@ -510,8 +713,8 @@ struct DiaryRecordingLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: DiaryRecordingActivityAttributes.self) { context in
             RecordingLockScreenView(context: context)
-                .activityBackgroundTint(.recordingCard)
-                .activitySystemActionForegroundColor(.white)
+                .activityBackgroundTint(context.phase.card)
+                .activitySystemActionForegroundColor(context.phase.lockInk)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
@@ -531,18 +734,23 @@ struct DiaryRecordingLiveActivity: Widget {
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(alignment: .leading, spacing: 8) {
                             HStack(spacing: 6) {
-                                StatusDot(color: context.isPaused ? .recordingBrand : .recordingDot)
+                                StatusDot(color: context.phase.darkDot)
                                 StatusLabel(context: context)
                                 if let q = context.questionLabel { DetailLabel(text: q) }
                                 if let limit = context.limitLabel { DetailLabel(text: "up to \(limit)") }
                             }
+                            // Keep clear of Fabio in the corner: the longer labels
+                            // ("Paused by a call") shrink to fit rather than run under him.
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                            .padding(.trailing, 84)
                             HStack(spacing: 14) {
                                 PauseButton(isPaused: context.isPaused,
-                                            style: .filled(.recordingBrand, glyph: .white))
+                                            style: .filled(context.phase.accent, glyph: .white))
                                 if !context.isPaused {
                                     WaveformProgress(context: context,
-                                                     filled: .recordingBrand,
-                                                     unfilled: .recordingBrand.opacity(0.35))
+                                                     filled: context.phase.accent,
+                                                     unfilled: context.phase.accent.opacity(0.35))
                                 }
                             }
                     }
@@ -552,10 +760,15 @@ struct DiaryRecordingLiveActivity: Widget {
                     // and draws nothing at all when its content is taller.
                     .overlay(alignment: .bottomTrailing) {
                         Group {
-                            if context.isPaused {
-                                FabioArt(parts: IslandArt.pausedParts, size: IslandArt.pausedSize)
-                            } else {
+                            switch context.phase {
+                            case .recording:
                                 FabioArt(parts: IslandArt.parts, size: IslandArt.size)
+                            case .lastMinute:
+                                FabioArt(parts: IslandArt.lastMinuteParts, size: IslandArt.size)
+                            case .paused:
+                                FabioArt(parts: IslandArt.pausedParts, size: IslandArt.pausedSize)
+                            case .call:
+                                FabioArt(parts: IslandArt.callParts, size: IslandArt.callSize)
                             }
                         }
                         .allowsHitTesting(false)
@@ -566,14 +779,14 @@ struct DiaryRecordingLiveActivity: Widget {
                 ElapsedText(context: context)
                     .font(.rubik(.medium, size: 15))
                     .monospacedDigit()
-                    .foregroundStyle(Color.recordingBrand)
+                    .foregroundStyle(context.phase.accent)
                     .frame(maxWidth: 44)
             } compactTrailing: {
                 RingProgress(context: context, diameter: 26)
             } minimal: {
                 RingProgress(context: context, diameter: 28)
             }
-            .keylineTint(Color.recordingBrand.opacity(0.6))
+            .keylineTint(context.phase.accent.opacity(0.6))
             // Less than the default bottom margin, or the pause row is cut off.
             .contentMargins(.bottom, 12, for: .expanded)
         }

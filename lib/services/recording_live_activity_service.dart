@@ -37,12 +37,21 @@ class RecordingLiveActivityService {
 
   bool _active = false;
   bool? _lastPaused;
+  bool? _lastInterrupted;
+
+  /// The last state [sync] saw, read back after the activity's button runs.
+  AudioRecordingState? _lastState;
 
   /// Takes the channel's incoming calls. Call once, before the first take.
   void attach() {
     if (!_isIOS) return;
     _channel.setMethodCallHandler((call) async {
-      if (call.method == 'recordingTogglePause') await onTogglePause();
+      if (call.method != 'recordingTogglePause') return null;
+      await onTogglePause();
+      // The microphone could not be reclaimed. From the background that is
+      // iOS refusing a session a call took ('!int'); the native side then
+      // asks to continue in the foreground, where resuming is allowed.
+      return {'needsForeground': _lastState?.microphoneUnavailable ?? false};
     });
   }
 
@@ -50,19 +59,27 @@ class RecordingLiveActivityService {
   /// elapsed time ticks natively, so only a status change reaches iOS.
   Future<void> sync(AudioRecordingState state) async {
     if (!_isIOS) return;
+    _lastState = state;
     final live = state.isRecording || state.isPaused;
 
     if (!live) {
       if (_active) await end();
       return;
     }
-    if (_active && _lastPaused == state.isPaused) return;
+    if (_active &&
+        _lastPaused == state.isPaused &&
+        _lastInterrupted == state.isInterrupted) {
+      return;
+    }
 
     final args = <String, dynamic>{
       'elapsedMillis': state.elapsed.inMilliseconds.toDouble(),
       'isPaused': state.isPaused,
+      // Paused by the audio system, most often a call, not by the participant.
+      'isInterrupted': state.isPaused && state.isInterrupted,
     };
     _lastPaused = state.isPaused;
+    _lastInterrupted = state.isInterrupted;
 
     if (_active) {
       await _invoke('recordingUpdate', args);
@@ -86,6 +103,7 @@ class RecordingLiveActivityService {
   Future<void> end() async {
     _active = false;
     _lastPaused = null;
+    _lastInterrupted = null;
     await _invoke('recordingEnd');
   }
 

@@ -31,6 +31,8 @@ struct DiaryRecordingActivityAttributes: ActivityAttributes {
         var startDate: Date?
         // Frozen elapsed time to display while paused.
         var pausedElapsed: TimeInterval?
+        // True when a call (or other audio interruption) paused the take.
+        var interrupted: Bool?
     }
 
     // "Q3 of 8"; both nil when the question's place isn't known.
@@ -42,9 +44,10 @@ struct DiaryRecordingActivityAttributes: ActivityAttributes {
 
 /// Bridges the Live Activity's button into the app process. AppDelegate sets
 /// [togglePause]; the extension never does, so the intent is a no-op there.
-@available(iOS 17.0, *)
+/// It throws when the toggle has to finish with the app in the foreground.
+@available(iOS 18.0, *)
 enum RecordingIntentBridge {
-    static var togglePause: (() async -> Void)?
+    static var togglePause: ((ToggleRecordingPauseIntent) async throws -> Void)?
 }
 
 /// Pause/resume from the Lock Screen or Dynamic Island, without opening Fabla.
@@ -54,11 +57,17 @@ enum RecordingIntentBridge {
 /// app holds no live audio, and iOS refuses to start the microphone again from
 /// the background for anything else, so the resumed half was never captured.
 @available(iOS 18.0, *)
+///
+/// Resuming after a call is the exception: the call took the audio session,
+/// and iOS will not let a background app take it back. Then the intent asks
+/// to continue in the foreground and resumes from there. That needs
+/// `ForegroundContinuableIntent`, which extensions can't use, so AppDelegate
+/// adds it and throws the request from the bridge.
 struct ToggleRecordingPauseIntent: LiveActivityIntent, AudioRecordingIntent {
     static var title: LocalizedStringResource = "Pause or resume recording"
 
     func perform() async throws -> some IntentResult {
-        await RecordingIntentBridge.togglePause?()
+        try await RecordingIntentBridge.togglePause?(self)
         return .result()
     }
 }

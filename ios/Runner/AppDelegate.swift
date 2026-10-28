@@ -7,6 +7,7 @@ import UserNotifications
 import alarm
 import flutter_foreground_task
 import ActivityKit
+import AppIntents
 import AVFoundation
 
 @main
@@ -52,18 +53,14 @@ import AVFoundation
     // The recording Live Activity's button runs ToggleRecordingPauseIntent in
     // this process; hand it to Dart, which owns the recorder, and wait for it
     // so the activity redraws with the new state rather than the old one.
-    if #available(iOS 17.0, *) {
-      RecordingIntentBridge.togglePause = { [weak self] in
-        await withCheckedContinuation { continuation in
-          DispatchQueue.main.async {
-            guard let channel = self?.liveActivityChannel else {
-              continuation.resume()
-              return
-            }
-            channel.invokeMethod("recordingTogglePause", arguments: nil) { _ in
-              continuation.resume()
-            }
-          }
+    if #available(iOS 18.0, *) {
+      RecordingIntentBridge.togglePause = { [weak self] intent in
+        let needsForeground = await self?.toggleRecordingPause() ?? false
+        guard needsForeground else { return }
+        // A call took the audio session and iOS won't hand it back to a
+        // background app. Ask to open Fabla, then resume from there.
+        throw intent.needsToContinueInForegroundError("Open Fabla to resume your recording.") {
+          _ = await self?.toggleRecordingPause()
         }
       }
     }
@@ -87,6 +84,23 @@ import AVFoundation
       Task {
         let reply = await AudioSegmentMerger.merge(segments, into: output)
         await MainActor.run { result(reply) }
+      }
+    }
+  }
+
+  /// Runs the Live Activity's pause/resume in Dart, answering whether it
+  /// needs the app in the foreground to finish.
+  private func toggleRecordingPause() async -> Bool {
+    await withCheckedContinuation { continuation in
+      DispatchQueue.main.async {
+        guard let channel = self.liveActivityChannel else {
+          continuation.resume(returning: false)
+          return
+        }
+        channel.invokeMethod("recordingTogglePause", arguments: nil) { reply in
+          let needsForeground = (reply as? [String: Any])?["needsForeground"] as? Bool ?? false
+          continuation.resume(returning: needsForeground)
+        }
       }
     }
   }
@@ -184,7 +198,7 @@ import AVFoundation
         do {
           AppDelegate.currentRecordingActivity = try Activity.request(
             attributes: attributes,
-            content: .init(state: state, staleDate: nil))
+            content: .init(state: state, staleDate: AppDelegate.lastMinuteDate(state, limit: limit)))
           result(nil)
         } catch {
           result(FlutterError(code: "START_FAILED", message: error.localizedDescription, details: nil))
@@ -193,7 +207,9 @@ import AVFoundation
 
     case "recordingUpdate":
       Task {
-        await AppDelegate.currentRecordingActivity?.update(.init(state: state, staleDate: nil))
+        guard let activity = AppDelegate.currentRecordingActivity else { return result(nil) }
+        let staleDate = AppDelegate.lastMinuteDate(state, limit: activity.attributes.limit)
+        await activity.update(.init(state: state, staleDate: staleDate))
         result(nil)
       }
 
@@ -206,6 +222,17 @@ import AVFoundation
     }
   }
 
+  /// When the take enters its last minute, which the Live Activity shows as
+  /// "One minute left" once the system marks it stale. Nil while paused, and
+  /// for limits of a minute or less, where the whole take would be that state.
+  @available(iOS 17.0, *)
+  private static func lastMinuteDate(
+    _ state: DiaryRecordingActivityAttributes.ContentState, limit: TimeInterval?
+  ) -> Date? {
+    guard let start = state.startDate, let limit, limit > 60 else { return nil }
+    return start.addingTimeInterval(limit - 60)
+  }
+
   /// Running: elapsed counts up from `startDate`. Paused: frozen at `elapsed`.
   @available(iOS 17.0, *)
   private static func recordingState(from args: [String: Any]?) -> DiaryRecordingActivityAttributes.ContentState {
@@ -213,7 +240,8 @@ import AVFoundation
     let isPaused = args?["isPaused"] as? Bool ?? false
     return DiaryRecordingActivityAttributes.ContentState(
       startDate: isPaused ? nil : Date().addingTimeInterval(-elapsed),
-      pausedElapsed: isPaused ? elapsed : nil)
+      pausedElapsed: isPaused ? elapsed : nil,
+      interrupted: isPaused && (args?["isInterrupted"] as? Bool ?? false))
   }
 
 
@@ -281,3 +309,8 @@ enum AudioSegmentMerger {
     return FlutterError(code: "EXPORT_FAILED", message: lastError, details: nil)
   }
 }
+
+/// Only the app can ask to continue in the foreground; the widget extension
+/// shares the intent but not this.
+@available(iOS 18.0, *)
+extension ToggleRecordingPauseIntent: ForegroundContinuableIntent {}

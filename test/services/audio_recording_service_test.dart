@@ -6,6 +6,7 @@ import 'package:audio_diaries_flutter/services/audio_recording_service.dart';
 import 'package:audio_diaries_flutter/services/audio_segment_merger.dart';
 import 'package:audio_diaries_flutter/services/recording_audio_session.dart';
 import 'package:audio_diaries_flutter/services/recording_foreground_service.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -626,6 +627,8 @@ void main() {
     /// goes. Captured through the injected factory, because the handler behind
     /// it is private and there is no live audio system here to trigger it.
     late Future<void> Function(CaptureLoss loss) captureCompromised;
+    late RecordingAudioSession audioSession;
+    var activations = 0;
 
     /// Whether the audio session agrees to be activated. `false` is a call or
     /// Siri still holding it: iOS throws, Android refuses audio focus.
@@ -647,6 +650,7 @@ void main() {
       startRecorderFails = false;
       platformCalls = [];
       activationSucceeds = true;
+      activations = 0;
       foregroundService = _FakeForegroundService(calls: platformCalls);
       segmentMerger = _FakeSegmentMerger(calls: platformCalls);
 
@@ -662,9 +666,12 @@ void main() {
           required onCaptureCompromised,
         }) {
           captureCompromised = onCaptureCompromised;
-          return _ControllableSession(
+          return audioSession = _ControllableSession(
             onCaptureCompromised: onCaptureCompromised,
-            activates: () => activationSucceeds,
+            activates: () {
+              activations++;
+              return activationSucceeds;
+            },
           );
         },
       );
@@ -1121,6 +1128,47 @@ void main() {
         File(next).writeAsBytesSync(bytes);
         return next;
       }
+
+      // iOS refuses a background app the session once the interruption is
+      // over, so a resume from the Live Activity, Fabla still backgrounded,
+      // has to find it already taken back.
+      test('an interruption ending takes the session back for the paused take',
+          () async {
+        await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        activations = 0;
+
+        await audioSession.handleInterruption(
+          AudioInterruptionEvent(false, AudioInterruptionType.pause),
+        );
+
+        expect(activations, 1);
+        expect(service.state.value.isPaused, isTrue,
+            reason: 'the participant still decides when to go back');
+        expect(service.state.value.isInterrupted, isTrue,
+            reason: 'the notice stays up until they do');
+
+        await resumeMarked([2, 2]);
+
+        expect(activations, 1, reason: 'the session is already ours');
+      });
+
+      test(
+          'a session refused at the interruption\'s end is tried again on resume',
+          () async {
+        await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        activationSucceeds = false;
+        await audioSession.handleInterruption(
+          AudioInterruptionEvent(false, AudioInterruptionType.pause),
+        );
+        activationSucceeds = true;
+        activations = 0;
+
+        await resumeMarked([2, 2]);
+
+        expect(activations, 1);
+      });
 
       test('an interruption keeps the segment and leaves the take paused',
           () async {

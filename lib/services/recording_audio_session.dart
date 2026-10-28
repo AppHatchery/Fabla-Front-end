@@ -35,12 +35,21 @@ class RecordingAudioSession {
 
   final Future<void> Function(CaptureLoss loss) onCaptureCompromised;
 
+  /// Called when an interruption ends. Set by the recorder, which decides
+  /// whether there is a take worth reclaiming the session for.
+  Future<void> Function()? onInterruptionEnded;
+
   StreamSubscription<AudioInterruptionEvent>? _interruptionSubscription;
   StreamSubscription<AudioDevicesChangedEvent>? _devicesChangedSubscription;
   StreamSubscription<void>? _becomingNoisySubscription;
 
   /// `'!pri'`, AVAudioSessionErrorCodeInsufficientPriority.
   static const _insufficientPriorityCode = '561017449';
+
+  /// `'!int'`, AVAudioSessionErrorCodeCannotInterruptOthers: iOS refusing a
+  /// background app the session, as after a call when the take is resumed
+  /// from its Live Activity. That resume then continues in the foreground.
+  static const _cannotInterruptOthersCode = '560557684';
 
   final Set<String> _inputDeviceIds = {};
 
@@ -104,6 +113,11 @@ class RecordingAudioSession {
         CrashlyticsService().log(
           'Audio session activation refused: another client holds the session',
         );
+      } else if (e is PlatformException &&
+          e.code == _cannotInterruptOthersCode) {
+        CrashlyticsService().log(
+          'Audio session activation refused: app is in the background',
+        );
       } else {
         CrashlyticsService().recordError(
           e,
@@ -164,12 +178,10 @@ class RecordingAudioSession {
 
   /// The `interruptionEventStream` subscription's target.
   ///
-  /// Only the beginning of an interruption is reported. The end of one needs
-  /// no response: by then the take is either paused, waiting for the
-  /// participant to resume it, or already finished. Siri finishing is not the
-  /// participant deciding to go back to their answer. Reclaiming the session
-  /// here instead reconfigured it under a paused recorder for nothing, and
-  /// took down the notice telling the participant what happened.
+  /// The beginning of an interruption compromises capture. The end is only
+  /// passed on to [onInterruptionEnded]: the take stays paused until the
+  /// participant resumes it, because Siri finishing is not them deciding to
+  /// go back to their answer.
   ///
   /// Not private so a test can drive it without a live audio session; nothing
   /// else should call it.
@@ -177,7 +189,11 @@ class RecordingAudioSession {
   Future<void> handleInterruption(AudioInterruptionEvent event) async {
     if (_stopped) return;
 
-    if (event.begin) await onCaptureCompromised(CaptureLoss.interruption);
+    if (event.begin) {
+      await onCaptureCompromised(CaptureLoss.interruption);
+    } else {
+      await onInterruptionEnded?.call();
+    }
   }
 
   /// Reports a take losing the input it started on.
