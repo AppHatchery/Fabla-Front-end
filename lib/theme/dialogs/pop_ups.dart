@@ -1,3 +1,6 @@
+
+import 'dart:io';
+
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
@@ -1947,60 +1950,108 @@ class MyUpgrader extends Upgrader {
 }
 
 class MyUpgradeAlert extends UpgradeAlert {
-  MyUpgradeAlert({super.key, super.upgrader, super.child});
+  MyUpgradeAlert({
+    super.key,
+    super.upgrader,
+    super.child,
+  });
 
-  /// Override the [createState] method to provide a custom class
-  /// with overridden methods.
   @override
   UpgradeAlertState createState() => MyUpgradeAlertState();
 }
 
 class MyUpgradeAlertState extends UpgradeAlertState {
-  /// Only the dialog widget is overridden; the base [showTheDialog] still
-  /// handles the mounted check, saving the last-alerted time and PopScope.
+  bool _doNotShow = false;
+
   @override
   Widget alertDialog(
-      Key? key,
-      String title,
-      String message,
-      String? releaseNotes,
-      BuildContext context,
-      bool cupertino,
-      UpgraderMessages messages) {
+    Key? key,
+    String title,
+    String message,
+    String? releaseNotes,
+    BuildContext context,
+    bool cupertino,
+    UpgraderMessages messages,
+  ) {
     final isBlocked = widget.upgrader.blocked();
+
+    return StatefulBuilder(
+      builder: (context, setDialogState) {
+        if (_doNotShow) {
+          return _buildUpdateInfoScreen(
+            key: key,
+            onBack: () {
+              setDialogState(() {
+                _doNotShow = false;
+              });
+            },
+            onUpdate: () => onUserUpdated(context, !isBlocked),
+          );
+        }
+
+        return _buildUpgradeDialog(
+          key: key,
+          context: context,
+          isBlocked: isBlocked,
+          setDialogState: setDialogState,
+        );
+      },
+    );
+  }
+
+  Widget _buildUpgradeDialog({
+    required Key? key,
+    required BuildContext context,
+    required bool isBlocked,
+    required StateSetter setDialogState,
+  }) {
     return SimpleDialog(
       key: key,
       backgroundColor: CustomColors.fillWhite,
       contentPadding: const EdgeInsets.all(16),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: Colors.grey, width: 2)),
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Colors.grey, width: 2),
+      ),
       surfaceTintColor: CustomColors.fillWhite,
       children: [
-        Container(
-          constraints: const BoxConstraints.tightFor(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 32,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(
-                "assets/images/logo_blue.png",
-                height: 80,
-                width: 80,
-              ),
-              const SizedBox(height: 12,),
-              Flexible(
-                child: Text(
-                  "There is a new Fabla version, Do you want to update?",
-                  style: CustomTypography().titleRegular().copyWith(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w500,
+              SizedBox(
+                height: 130,
+                width: 130,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 1, end: 0),
+                  duration: const Duration(milliseconds: 1000),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, t, child) => Transform.translate(
+                    offset: Offset(MediaQuery.of(context).size.width * t, 0),
+                    child: child,
+                  ),
+                  child: Image.asset(
+                    'assets/images/icons/FabioUpdate.png',
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
+              const SizedBox(height: 12),
+              Text(
+                'A new version of Fabla is available. '
+                'Would you like to update?',
+                textAlign: TextAlign.center,
+                style: CustomTypography().titleRegular().copyWith(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
               const SizedBox(height: 24),
-              //takes you to the app/play store
               CustomFlatButton(
                 onClick: () => onUserUpdated(context, !isBlocked),
                 text: 'Yes, Update Now',
@@ -2008,21 +2059,100 @@ class MyUpgradeAlertState extends UpgradeAlertState {
                 color: CustomColors.productNormal,
                 borderColor: CustomColors.productNormal,
               ),
-              //no does not show the update notice until another new version is out
-              if (!isBlocked && widget.showIgnore)
-                CustomFlatButton(
-                  onClick: () => onUserIgnored(context, true),
-                  text: 'No, Do Not Update',
-                  buttonFontSize: 15,
-                  textColor: CustomColors.warningActive,
-                  color: CustomColors.fillWhite,
-                  borderColor: CustomColors.warningActive,
-                ),
-              //later fires the update after 3 days by default
               if (!isBlocked && widget.showLater)
                 CustomTextButton(
-                    onClick: () => onUserLater(context, true),
-                    text: "Maybe later")
+                  onClick: () => onUserLater(context, true),
+                  text: 'Maybe later',
+                ),
+              if (!isBlocked && widget.showIgnore)
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Checkbox(
+                        value: _doNotShow,
+                        onChanged: (value) {
+                          setDialogState(() {
+                            _doNotShow = value ?? false;
+                          });
+                        },
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setDialogState(() {
+                            _doNotShow = !_doNotShow;
+                          });
+                        },
+                        child: const Text(
+                          'Do not show again',
+                          softWrap: false,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUpdateInfoScreen({
+    required Key? key,
+    required VoidCallback onBack,
+    required VoidCallback onUpdate,
+  }) {
+    final store = Platform.isIOS ? "App Store" : "Play Store";
+
+    return SimpleDialog(
+      key: key,
+      backgroundColor: CustomColors.fillWhite,
+      contentPadding: const EdgeInsets.all(16),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Colors.grey, width: 2),
+      ),
+      surfaceTintColor: CustomColors.fillWhite,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 32,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: GestureDetector(
+                  onTap: () => onUserIgnored(context, true),
+                  child: const Icon(Icons.close, size: 24),
+                ),
+              ),
+              Image.asset(
+                'assets/images/idea.png',
+                height: 80,
+                width: 80,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'You can still update Fabla',
+                textAlign: TextAlign.center,
+                style: CustomTypography().titleRegular().copyWith(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'You can update Fabla to the latest version anytime through the '
+                '$store ',
+                textAlign: TextAlign.center,
+                style: CustomTypography().bodyLarge(),
+              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
