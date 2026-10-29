@@ -766,6 +766,9 @@ class SetupRepository {
         return false;
       }
 
+      // Mark setup as incomplete before deleting required objectbox records so
+      // an interrupted cleanup can never route a later cold start into the hub.
+      await PreferenceService().setBoolPreference(key: 'setup', value: false);
       _participantDAO.remove();
       _experimentDAO.deleteExperiment();
       _protocolDAO.deleteProtocol();

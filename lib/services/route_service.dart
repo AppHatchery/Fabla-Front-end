@@ -157,6 +157,20 @@ class RouteService {
     final onboardingComplete = preferences[6] ?? false;
 
     final participant = _setupRepository.getParticipant();
+    final experiment = _setupRepository.getExperimentOrNull();
+
+    // Recover through login if completed setup is missing required local data.
+    if (setup && (participant == null || experiment == null)) {
+      await CrashlyticsService().setCustomKeys({
+        'route_setup_preference': setup,
+        'route_has_participant': participant != null,
+        'route_has_experiment': experiment != null,
+      });
+      await CrashlyticsService().log(
+        'Inconsistent completed setup state; returning to study login',
+      );
+      return const StudyLogin();
+    }
 
     // Priority cascade: each condition represents an incomplete onboarding step.
     // The order matches the _flow sequence — whichever step is not yet marked
@@ -165,7 +179,7 @@ class RouteService {
       await _prepareQuickstartForExistingParticipant();
       return const Hub();
     }
-    if (participant == null) {
+    if (participant == null || experiment == null) {
       return const StudyLogin();
     }
     if (participant.name.isEmpty) {

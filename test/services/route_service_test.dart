@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/main.dart';
+import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/active_dates.dart';
@@ -76,13 +77,29 @@ void main() {
         when(mockPreferenceService.getBoolPreference(
                 key: 'onboarding_complete'))
             .thenAnswer((_) async => onboardingComplete);
+        when(mockSetupRepository.getExperimentOrNull()).thenReturn(
+          ExperimentModel(
+            id: 1,
+            login: 'test-study',
+            researcher: 'Test Researcher',
+            organization: 'Test Organization',
+            name: 'Test Study',
+            duration: '7 days',
+            description: 'Test description',
+            version: '1',
+            ownerEmail: 'researcher@example.com',
+          ),
+        );
       }
 
       testWidgets('should return Hub when setup is true',
           (WidgetTester tester) async {
         setupAllPreferenceMocks(setup: true);
-        // Participant data is irrelevant if setup is true
-        when(mockSetupRepository.getParticipant()).thenReturn(null);
+        when(mockSetupRepository.getParticipant()).thenReturn(Participant(
+          id: 1,
+          studyCode: 'p1',
+          name: 'Test',
+        ));
         when(mockPreferenceService.getBoolPreference(
                 key: 'has_seen_quickstart'))
             .thenAnswer((_) async => true);
@@ -98,7 +115,11 @@ void main() {
           'should mark has_seen_quickstart as seen when setup is true and it was never recorded',
           (WidgetTester tester) async {
         setupAllPreferenceMocks(setup: true);
-        when(mockSetupRepository.getParticipant()).thenReturn(null);
+        when(mockSetupRepository.getParticipant()).thenReturn(Participant(
+          id: 1,
+          studyCode: 'p1',
+          name: 'Test',
+        ));
         when(mockPreferenceService.getBoolPreference(
                 key: 'has_seen_quickstart'))
             .thenAnswer((_) async => null);
@@ -122,7 +143,11 @@ void main() {
           'should not touch has_seen_quickstart when setup is true and it was already recorded',
           (WidgetTester tester) async {
         setupAllPreferenceMocks(setup: true);
-        when(mockSetupRepository.getParticipant()).thenReturn(null);
+        when(mockSetupRepository.getParticipant()).thenReturn(Participant(
+          id: 1,
+          studyCode: 'p1',
+          name: 'Test',
+        ));
         when(mockPreferenceService.getBoolPreference(
                 key: 'has_seen_quickstart'))
             .thenAnswer((_) async => true);
@@ -132,6 +157,37 @@ void main() {
         expect(widget, isA<Hub>());
         verifyNever(mockPreferenceService.setBoolPreference(
             key: 'has_seen_quickstart', value: true));
+      });
+
+      testWidgets(
+          'should recover to StudyLogin when setup is true but experiment is missing',
+          (WidgetTester tester) async {
+        setupAllPreferenceMocks(setup: true);
+        when(mockSetupRepository.getParticipant()).thenReturn(Participant(
+          id: 1,
+          studyCode: 'p1',
+          name: 'Test',
+        ));
+        when(mockSetupRepository.getExperimentOrNull()).thenReturn(null);
+
+        final widget = await routeService.getRoute();
+
+        expect(widget, isA<StudyLogin>());
+        verifyNever(mockPreferenceService.getBoolPreference(
+            key: 'has_seen_quickstart'));
+      });
+
+      testWidgets(
+          'should recover to StudyLogin when setup is true but participant is missing',
+          (WidgetTester tester) async {
+        setupAllPreferenceMocks(setup: true);
+        when(mockSetupRepository.getParticipant()).thenReturn(null);
+
+        final widget = await routeService.getRoute();
+
+        expect(widget, isA<StudyLogin>());
+        verifyNever(mockPreferenceService.getBoolPreference(
+            key: 'has_seen_quickstart'));
       });
 
       testWidgets(

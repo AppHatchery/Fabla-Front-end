@@ -385,9 +385,18 @@ class _HubState extends State<Hub>
   Future<void> startPendo() async {
     final repository = SetupRepository();
     final participant = repository.getParticipant();
-    final experiment = repository.getExperiment();
+    final experiment = repository.getExperimentOrNull();
+
+    // Skip optional Pendo analytics when required local data is missing
+    if (participant == null || experiment == null) {
+      await CrashlyticsService().log(
+        'Skipping Pendo start because participant or experiment is missing',
+      );
+      return;
+    }
+
     await PendoService.start(
-        participant!.studyCode.toString(), experiment.login);
+        participant.studyCode.toString(), experiment.login);
   }
 
   void _makeNavBars() async {
