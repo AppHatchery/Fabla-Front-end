@@ -19,6 +19,7 @@ class RecordingLiveActivityService {
   RecordingLiveActivityService({
     required this.onTogglePause,
     this.limit,
+    this.hardLimit,
     this.questionNumber,
     this.questionCount,
     bool? isIOS,
@@ -27,7 +28,12 @@ class RecordingLiveActivityService {
   /// Runs when the participant taps pause or resume on the Live Activity.
   final Future<void> Function() onTogglePause;
 
+  /// The length shown on the activity: the suggestion, else the limit.
   final Duration? limit;
+
+  /// The question's real limit, where the recorder stops. Only this turns on
+  /// the "One minute left" state; without one it never shows.
+  final Duration? hardLimit;
 
   /// The question's place in the diary, shown as "Q3 of 8". Both or neither.
   final int? questionNumber;
@@ -92,6 +98,8 @@ class RecordingLiveActivityService {
       // A zero limit means none, as it does to the recorder.
       if (limit != null && limit! > Duration.zero)
         'limitMillis': limit!.inMilliseconds.toDouble(),
+      if (hardLimit != null && hardLimit! > Duration.zero)
+        'hardLimitMillis': hardLimit!.inMilliseconds.toDouble(),
       if (questionNumber != null && questionCount != null) ...{
         'questionNumber': questionNumber,
         'questionCount': questionCount,

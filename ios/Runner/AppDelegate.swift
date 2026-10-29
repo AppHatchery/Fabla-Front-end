@@ -187,10 +187,12 @@ import AVFoundation
     case "recordingStart":
       // Zero or less is no limit; a zero-length timer range never ticks.
       let limit = (args?["limitMillis"] as? Double).map { $0 / 1000 }.flatMap { $0 > 0 ? $0 : nil }
+      let hardLimit = (args?["hardLimitMillis"] as? Double).map { $0 / 1000 }.flatMap { $0 > 0 ? $0 : nil }
       let attributes = DiaryRecordingActivityAttributes(
         questionNumber: args?["questionNumber"] as? Int,
         questionCount: args?["questionCount"] as? Int,
-        limit: limit)
+        limit: limit,
+        hardLimit: hardLimit)
       Task {
         if let existing = AppDelegate.currentRecordingActivity {
           await existing.end(nil, dismissalPolicy: .immediate)
@@ -198,7 +200,7 @@ import AVFoundation
         do {
           AppDelegate.currentRecordingActivity = try Activity.request(
             attributes: attributes,
-            content: .init(state: state, staleDate: AppDelegate.lastMinuteDate(state, limit: limit)))
+            content: .init(state: state, staleDate: AppDelegate.lastMinuteDate(state, limit: hardLimit)))
           result(nil)
         } catch {
           result(FlutterError(code: "START_FAILED", message: error.localizedDescription, details: nil))
@@ -208,7 +210,7 @@ import AVFoundation
     case "recordingUpdate":
       Task {
         guard let activity = AppDelegate.currentRecordingActivity else { return result(nil) }
-        let staleDate = AppDelegate.lastMinuteDate(state, limit: activity.attributes.limit)
+        let staleDate = AppDelegate.lastMinuteDate(state, limit: activity.attributes.hardLimit)
         await activity.update(.init(state: state, staleDate: staleDate))
         result(nil)
       }
@@ -223,8 +225,9 @@ import AVFoundation
   }
 
   /// When the take enters its last minute, which the Live Activity shows as
-  /// "One minute left" once the system marks it stale. Nil while paused, and
-  /// for limits of a minute or less, where the whole take would be that state.
+  /// "One minute left" once the system marks it stale. [limit] is the hard
+  /// limit, never a suggestion. Nil while paused, without a limit, and for
+  /// limits of a minute or less, where the whole take would be that state.
   @available(iOS 17.0, *)
   private static func lastMinuteDate(
     _ state: DiaryRecordingActivityAttributes.ContentState, limit: TimeInterval?

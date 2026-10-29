@@ -40,6 +40,9 @@ struct DiaryRecordingActivityAttributes: ActivityAttributes {
     var questionCount: Int?
     // The answer's length limit; nil when the question has none.
     var limit: TimeInterval?
+    // Where the recorder stops, which a suggestion is not; nil without one.
+    // "One minute left" counts down to this.
+    var hardLimit: TimeInterval?
 }
 
 /// Bridges the Live Activity's button into the app process. AppDelegate sets
@@ -48,6 +51,15 @@ struct DiaryRecordingActivityAttributes: ActivityAttributes {
 @available(iOS 18.0, *)
 enum RecordingIntentBridge {
     static var togglePause: ((ToggleRecordingPauseIntent) async throws -> Void)?
+}
+
+/// Brings Fabla to the front. After a call iOS won't let a background app
+/// take the microphone back, so the take is resumed from the app instead.
+@available(iOS 18.0, *)
+struct OpenRecordingIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Open Fabla to resume recording"
+    static var openAppWhenRun = true
+    func perform() async throws -> some IntentResult { .result() }
 }
 
 /// Pause/resume from the Lock Screen or Dynamic Island, without opening Fabla.

@@ -446,16 +446,30 @@ private struct PlayGlyph: Shape {
     }
 }
 
-/// The one button: pause while recording, resume while paused.
+/// The one button: pause while recording, resume while paused. Paused by a
+/// call it opens the app instead, where the take can be resumed.
 @available(iOS 17.0, *)
 private struct PauseButton: View {
     enum Style { case filled(Color, glyph: Color), outlined(Color) }
 
     let isPaused: Bool
+    var opensApp = false
     let style: Style
 
     var body: some View {
-        Button(intent: ToggleRecordingPauseIntent()) {
+        Group {
+            if opensApp {
+                Button(intent: OpenRecordingIntent()) { face }
+                    .accessibilityLabel("Open Fabla to resume recording")
+            } else {
+                Button(intent: ToggleRecordingPauseIntent()) { face }
+                    .accessibilityLabel(isPaused ? "Resume recording" : "Pause recording")
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var face: some View {
             ZStack {
                 switch style {
                 case let .filled(fill, _):
@@ -466,9 +480,6 @@ private struct PauseButton: View {
                 glyph
             }
             .frame(width: 40, height: 40)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(isPaused ? "Resume recording" : "Pause recording")
     }
 
     private var glyphColor: Color {
@@ -480,7 +491,11 @@ private struct PauseButton: View {
 
     @ViewBuilder
     private var glyph: some View {
-        if isPaused {
+        if opensApp {
+            Image(systemName: "arrow.up.right")
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(glyphColor)
+        } else if isPaused {
             PlayGlyph().fill(glyphColor)
         } else {
             HStack(spacing: 6) {
@@ -649,7 +664,7 @@ private struct RecordingLockScreenView: View {
                 .padding(.leading, -1)
 
                 HStack(spacing: 14) {
-                    PauseButton(isPaused: context.isPaused, style: buttonStyle)
+                    PauseButton(isPaused: context.isPaused, opensApp: phase == .call, style: buttonStyle)
                     // Nothing is filling while paused, so the paused frame drops it.
                     if !context.isPaused {
                         WaveformProgress(context: context, filled: waveInk, unfilled: waveInk.opacity(0.35))
@@ -746,6 +761,7 @@ struct DiaryRecordingLiveActivity: Widget {
                             .padding(.trailing, 84)
                             HStack(spacing: 14) {
                                 PauseButton(isPaused: context.isPaused,
+                                            opensApp: context.phase == .call,
                                             style: .filled(context.phase.accent, glyph: .white))
                                 if !context.isPaused {
                                     WaveformProgress(context: context,

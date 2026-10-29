@@ -124,6 +124,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     _liveActivity = RecordingLiveActivityService(
       // The same length the sheet's own timer and progress bar show.
       limit: _displayedDuration,
+      // A suggestion is only a guide; the last-minute warning needs the
+      // length the recorder actually stops at.
+      hardLimit: widget.limit,
       questionNumber: widget.questionNumber,
       questionCount: widget.questionCount,
       onTogglePause: _recordingService.record,
