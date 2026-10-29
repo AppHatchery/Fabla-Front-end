@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:developer' as dev;
 
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
@@ -43,7 +44,7 @@ class DiaryRepository {
   ///
   List<Diary> _getAllDiariesEntities() {
     final diaries = _diaryDAO.getAllDiaries();
-    final now = DateTime.now();
+    final now = AppClock.now();
     final due = DateTime(now.year, now.month, now.day, 4, 0, 0);
     final unSubmittedDiaries = diaries
         .where((diary) => diary.due.isBefore(due))
@@ -160,7 +161,7 @@ class DiaryRepository {
     final promptRepository = PromptRepository();
 
     // Prepare a list to store processed diaries
-    final now = DateTime.now();
+    final now = AppClock.now();
     final List<DiaryModel> diaries = [];
 
     // Process filtered diaries
@@ -270,7 +271,7 @@ class DiaryRepository {
   /// Returns:
   /// A list of DiaryModel objects representing diaries within the specified date range.
   List<DiaryModel> getRangeDiaries(DateTime start, DateTime end) {
-    final now = DateTime.now();
+    final now = AppClock.now();
 
     // Get all diaries that overlap with the specified time window
     final overlappingDiaries = _getOverlappingDiaries(start, end);

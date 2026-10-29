@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:developer' as dev;
@@ -688,7 +689,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     PendoService.track(
       "Failed to Save Audio",
       {
-        "study_date": "${DateTime.now()}",
+        "study_date": "${AppClock.now()}",
         "prompt_number": "${widget.promptId + 1}",
       },
     );
@@ -1312,7 +1313,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
 
   @override
   void initState() {
-    start = DateTime.now();
+    start = AppClock.now();
     super.initState();
     // Track when the webview modal is first opened.
     _track({'event': 'webview_opened'});
@@ -1322,7 +1323,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   // All three events fire under the single 'Webview Survey' event name;
   // the 'event' key in each call distinguishes them in Pendo queries.
   Map<String, dynamic> _baseProperties() => {
-        'datetime': DateTime.now().toIso8601String(),
+        'datetime': AppClock.now().toIso8601String(),
         'survey_url': widget.url,
         // True when a platform-specific JS detector is active (Qualtrics/REDCap).
         // False for the default passthrough, where detection is not meaningful.
@@ -1331,7 +1332,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
         'diary_id': widget.diaryId,
       };
 
-  int get _timeInSurveySeconds => DateTime.now().difference(start).inSeconds;
+  int get _timeInSurveySeconds => AppClock.now().difference(start).inSeconds;
 
   void _track(Map<String, dynamic> properties) {
     PendoService.track('Webview Survey', {..._baseProperties(), ...properties});
@@ -1516,7 +1517,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
   }
 
   save() {
-    end = DateTime.now();
+    end = AppClock.now();
     if (completed == null) {
       widget.respond("Item was skipped due to: $errorText");
     } else {
@@ -2097,7 +2098,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
     final dir = await Directory(
             p.join(directory.path, widget.isImage ? 'images' : 'videos'))
         .create(recursive: true);
-    final now = DateTime.now();
+    final now = AppClock.now();
     final fileName =
         '${widget.prompt.id + 1}_${formatDate(now)}${widget.isImage ? ".jpg" : ".mp4"}';
     final filePath = p.join(dir.path, fileName);

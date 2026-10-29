@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/usecases/experiment_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
@@ -31,7 +32,7 @@ class HubCubit extends Cubit<HubState> {
   /// pending submission (recorded but not yet uploaded). The study cannot be
   /// updated while either is true. O(n) over today's diaries.
   bool hasPendingOrSubmittedToday() {
-    final diaries = _diaryRepository.getDailyDiaries(DateTime.now());
+    final diaries = _diaryRepository.getDailyDiaries(AppClock.now());
     return diaries.any((diary) =>
         diary.status == DiaryStatus.submitted ||
         diary.status == DiaryStatus.complete);
@@ -40,7 +41,7 @@ class HubCubit extends Cubit<HubState> {
   /// Returns true if any of today's diaries are in-progress or have been
   /// recorded but not yet submitted. Used to defer a pending update by a day.
   bool hasOngoingOrCompleteToday() {
-    final diaries = _diaryRepository.getDailyDiaries(DateTime.now());
+    final diaries = _diaryRepository.getDailyDiaries(AppClock.now());
     return diaries.any((diary) =>
         diary.status == DiaryStatus.ongoing ||
         diary.status == DiaryStatus.complete ||
@@ -82,7 +83,7 @@ class HubCubit extends Cubit<HubState> {
 
     final notificationTime =
         earliest.start.subtract(const Duration(minutes: 15));
-    if (notificationTime.isBefore(DateTime.now())) return;
+    if (notificationTime.isBefore(AppClock.now())) return;
 
     await NotificationService.createNotification(
       id: _studyUpdateNotificationId,
@@ -108,7 +109,7 @@ class HubCubit extends Cubit<HubState> {
       emit(HubUpdateAvailable());
     } else if (status == UpdateStatus.pending) {
       final pendingDate = await _experimentManager.getPendingDate();
-      if (pendingDate == null || DateTime.now().isBefore(pendingDate)) return;
+      if (pendingDate == null || AppClock.now().isBefore(pendingDate)) return;
 
       // Scheduled date has arrived — check for blocking diaries.
       if (hasOngoingOrCompleteToday()) {

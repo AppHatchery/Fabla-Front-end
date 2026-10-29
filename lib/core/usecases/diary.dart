@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:convert';
 import 'dart:developer' as dev;
 
@@ -18,7 +19,7 @@ void diaryStart({required String diaryID}) async {
   final _starts = await preferences.getStringPreference(key: "diary_starts");
   final Map<String, String> starts =
       _starts != null ? jsonDecode(_starts).cast<String, String>() : {};
-  final now = DateTime.now().toIso8601String();
+  final now = AppClock.now().toIso8601String();
 
   // Making sure we don't override the already saved diary
   // If the diary already exists then skip
@@ -33,7 +34,7 @@ void diaryEnd({required String diaryID}) async {
   final _ends = await preferences.getStringPreference(key: "diary_ends");
   final Map<String, String> ends =
       _ends != null ? jsonDecode(_ends).cast<String, String>() : {};
-  final now = DateTime.now().toIso8601String();
+  final now = AppClock.now().toIso8601String();
 
   ends[diaryID] = now;
   await preferences.setStringPreference(

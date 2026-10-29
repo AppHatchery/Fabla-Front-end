@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:convert';
 import 'dart:math';
 
@@ -119,7 +120,7 @@ void scheduleContinueDiaryNotifications(int id) async {
   Map<int, List<int>> notifications;
   notifications = {};
   if (source == null) {
-    final now = DateTime.now();
+    final now = AppClock.now();
     final sevenPM = DateTime(now.year, now.month, now.day, 19);
 
     DateTime reminderTime;
@@ -170,7 +171,7 @@ void scheduleContinueDiaryNotifications(int id) async {
         }
         notificationsForId.clear();
 
-        final now = DateTime.now();
+        final now = AppClock.now();
         final sevenPM = DateTime(now.year, now.month, now.day, 19);
 
         DateTime reminderTime;
@@ -241,7 +242,7 @@ void scheduleSubmitDiaryNotification(int id) async {
 
   if (source == null) {
 
-    final now = DateTime.now();
+    final now = AppClock.now();
     final sevenPM = DateTime(now.year, now.month, now.day, 19);
     DateTime reminderTime;
 
@@ -291,7 +292,7 @@ void scheduleSubmitDiaryNotification(int id) async {
         }
         notificationsForId.clear();
 
-        final now = DateTime.now();
+        final now = AppClock.now();
         final sevenPM = DateTime(now.year, now.month, now.day, 19);
         DateTime reminderTime;
 
@@ -350,7 +351,7 @@ void dailyGoalNotification(int id) async {
 
   // If there are no reminder times, schedule a notification for 3 PM
   final value = source?.lastOrNull;
-  final last = DateTime.tryParse(value ?? DateTime.now().toString());
+  final last = DateTime.tryParse(value ?? AppClock.now().toString());
   final potential = retrieveNotificationDate(last);
 
   if (potential != null) {
@@ -399,10 +400,10 @@ DateTime? retrieveNotificationDate(DateTime? last) {
   if (last == null) {
     // If last is null, return 3 PM of the current day
     return DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day, 15);
+        AppClock.now().year, AppClock.now().month, AppClock.now().day, 15);
   } else {
     // Get the current date and time
-    final now = DateTime.now();
+    final now = AppClock.now();
     // Define 3 PM and 7 PM of the current day
     final threePM = DateTime(now.year, now.month, now.day, 15); // 3 PM today
     final sevenPM = DateTime(now.year, now.month, now.day, 19); // 7 PM today

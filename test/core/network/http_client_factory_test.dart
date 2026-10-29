@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
 import 'package:audio_diaries_flutter/core/network/http_client_factory.dart';
 import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -465,6 +466,45 @@ void main() {
 
     test('the notification image download fails faster than the default', () {
       expect(kImageDownloadTimeout, lessThan(kDefaultTimeout));
+    });
+  });
+
+  group('tracing', () {
+    test('each attempt and each retry is noted on the trace', () async {
+      final recorder = _RecordingClient((_, attempt) async {
+        if (attempt < 2) throw const SocketException('connection reset');
+        return http.Response('ok', 200);
+      });
+
+      final trace = DebugTrace('test');
+      final response = await trace.run(() => wrapClient(
+            recorder.client,
+            retries: kMaxRetries,
+            delay: _noDelay,
+          ).get(url));
+
+      expect(response.statusCode, 200);
+      final messages = trace.events.map((e) => e.message).toList();
+      expect(messages, [
+        matches(r'^GET .+ → SocketException'),
+        'Retrying GET ${url.host} (attempt 2 of ${kMaxRetries + 1})',
+        matches(r'^GET .+ → SocketException'),
+        'Retrying GET ${url.host} (attempt 3 of ${kMaxRetries + 1})',
+        matches(r'^GET .+ → 200'),
+      ]);
+    });
+
+    test('a timed-out attempt is noted as a timeout', () async {
+      final client =
+          wrapClient(_NativeLikeClient((_) => null), // never responds
+              timeout: shortTimeout,
+              retries: 0);
+
+      final trace = DebugTrace('test');
+      await expectLater(
+          trace.run(() => client.get(url)), throwsA(isA<TimeoutException>()));
+
+      expect(trace.events.single.message, contains('timed out'));
     });
   });
 }

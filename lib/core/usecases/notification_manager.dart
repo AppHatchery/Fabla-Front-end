@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:math';
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -33,7 +34,7 @@ class NotificationManager {
     if(!hasPermission) return;
 
     try {
-      final now = DateTime.now();
+      final now = AppClock.now();
 
       // Get the number of notifications scheduled
       final scheduledNotifications =
@@ -239,7 +240,7 @@ class NotificationManager {
 
         final diaries = diaryRepository
             .getAllDiaries()
-            .where((diary) => diary.due.isAfter(DateTime.now()))
+            .where((diary) => diary.due.isAfter(AppClock.now()))
             .toList();
         int scheduledCount = 0;
 
@@ -286,9 +287,9 @@ class NotificationManager {
                 );
                 // Skip if notification is not valid/able to fire
                 dev.log(
-                    'Checking if notification date $notificationDate for ${diary.name} is after now(${DateTime.now()}).');
+                    'Checking if notification date $notificationDate for ${diary.name} is after now(${AppClock.now()}).');
                 final isValidNotification =
-                notificationDate.isAfter(DateTime.now());
+                notificationDate.isAfter(AppClock.now());
                 if (!isValidNotification) continue;
 
                 final int id = Random().nextInt(100000);
@@ -328,8 +329,8 @@ class NotificationManager {
 
               // Skip if notification is not valid/able to fire
               dev.log(
-                  'Checking if notification date ${notification.date} for ${diary.name} is after now(${DateTime.now()}).');
-              final isValidNotification = notification.date.isAfter(DateTime.now());
+                  'Checking if notification date ${notification.date} for ${diary.name} is after now(${AppClock.now()}).');
+              final isValidNotification = notification.date.isAfter(AppClock.now());
               if (!isValidNotification) continue;
 
               final int id = Random().nextInt(100000);
@@ -404,7 +405,7 @@ class NotificationManager {
     }
 
     final limit = 7;
-    final now = DateTime.now();
+    final now = AppClock.now();
     final scheduledNotifications =
         (await NotificationService.getScheduledNotifications())
             .where((e) =>

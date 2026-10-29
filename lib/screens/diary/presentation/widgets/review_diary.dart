@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -82,7 +83,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                   flex: 3,
                   child: Text(
                     diary.status == DiaryStatus.missed ||
-                            diary.start.isBefore(DateTime.now())
+                            diary.start.isBefore(AppClock.now())
                         ? "Response of ${_formatDate(diary.start)}"
                         : "Upcoming Diary for ${_formatDate(diary.start)}",
                     style: CustomTypography().bodyLarge(),
@@ -111,7 +112,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               diary.status == DiaryStatus.missed ||
-                      diary.start.isBefore(DateTime.now())
+                      diary.start.isBefore(AppClock.now())
                   ? "Response Summary"
                   : "Prompts Preview",
               style: CustomTypography()

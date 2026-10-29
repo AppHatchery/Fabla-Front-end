@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSSupportsLiveActivities</key>
-	<true/>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.gdelataillade.fetch</string>
@@ -54,22 +52,14 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Recording videos and taking pictures as you answer the prompts of the study is a crucial part of the research. We ask that you enable the camera for this app.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Sharing your location as you participate in the study is a crucial part of the research. We ask that you enable location services for this app.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Sharing your location as you participate in the study is a crucial part of the research. We ask that you enable location services for this app.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Sharing your location as you participate in the study is a crucial part of the research. We ask that you enable location services for this app.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Recording your voice as you answer the prompts of the study is a crucial part of the research. We ask that you enable the microphone for this app</string>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<key>NSSupportsLiveActivities</key>
 	<true/>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-		<string>audio</string>
-		<string>fetch</string>
-	</array>
-	<key>UILaunchStoryboardName</key>
-	<string>$(LAUNCH_SCREEN_STORYBOARD)</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -81,16 +71,26 @@
 				<dict>
 					<key>UISceneClassName</key>
 					<string>UIWindowScene</string>
-					<key>UISceneDelegateClassName</key>
-					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
 					<key>UISceneConfigurationName</key>
 					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
 					<key>UISceneStoryboardFile</key>
 					<string>Main</string>
 				</dict>
 			</array>
 		</dict>
 	</dict>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>audio</string>
+		<string>fetch</string>
+	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>$(LAUNCH_SCREEN_STORYBOARD)</string>
 	<key>UIStatusBarHidden</key>
 	<false/>
 	<key>UISupportedInterfaceOrientations</key>

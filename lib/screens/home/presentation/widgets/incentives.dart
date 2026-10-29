@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -120,7 +121,7 @@ class _StudyIncentivesState extends State<StudyIncentives> {
   }
 
   track() async {
-    final now = DateTime.now();
+    final now = AppClock.now();
     await PendoService.track(
         "Incentives Earned", {"viewed_at": now.toIso8601String()});
   }

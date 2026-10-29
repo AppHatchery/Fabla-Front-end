@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/questions_entity.dart';
@@ -24,7 +25,7 @@ class SettingsCubit extends Cubit<SettingsState> {
           .getStringPreference(key: "onboardingSurveyCompletedDate");
       final date = completedDate != null
           ? DateTime.parse(completedDate)
-          : DateTime.now();
+          : AppClock.now();
       emit(SettingsLoaded(
           onboardingQuestion: questions, completedDate: formatDateOnly(date, format: DateFormat('dd/MM/yyyy'))));
     } catch (e, stackTrace) {
@@ -40,7 +41,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       _repository.saveOnBoardingAnswer(QuestionsEntity.fromModel(newQuestion));
       await PreferenceService().setStringPreference(
           key: "onboardingSurveyCompletedDate",
-          value: DateTime.now().toString());
+          value: AppClock.now().toString());
     } catch (e, stackTrace) {
       CrashlyticsService()
           .recordError(e, stackTrace, reason: "Error saving Onboarding Answer");

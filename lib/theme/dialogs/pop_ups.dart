@@ -1097,7 +1097,14 @@ class _RedoPopUpState extends State<RedoPopUp> {
 class DeletePopUp extends StatelessWidget {
   final String? title;
   final String? subheader;
-  const DeletePopUp({super.key, this.title, this.subheader});
+  final String confirmText;
+  final Key? confirmKey;
+  const DeletePopUp(
+      {super.key,
+      this.title,
+      this.subheader,
+      this.confirmText = "Delete",
+      this.confirmKey});
 
   @override
   Widget build(BuildContext context) {
@@ -1143,8 +1150,9 @@ class DeletePopUp extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomFlatButton(
+                      key: confirmKey,
                       onClick: () => Navigator.pop(context, true),
-                      text: "Delete",
+                      text: confirmText,
                       color: CustomColors.fillWhite,
                       borderColor: CustomColors.warningActive,
                       textColor: CustomColors.warningActive,

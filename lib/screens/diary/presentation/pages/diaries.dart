@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/diary_list.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:flutter/material.dart';
@@ -13,11 +14,11 @@ class DiariesPage extends StatefulWidget {
 }
 
 class _DiaryPageState extends State<DiariesPage> {
-  DateTime startDate = DateTime.now();
+  DateTime startDate = AppClock.now();
 
   @override
   void initState() {
-    PendoService.track("HistoryTab", {"study_day": "${DateTime.now()}"});
+    PendoService.track("HistoryTab", {"study_day": "${AppClock.now()}"});
     super.initState();
   }
 

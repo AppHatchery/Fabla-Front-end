@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
@@ -202,6 +203,6 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
         _participant.studyCode.toString(), experiment.login);
 
     await PendoService.track(
-        "StudyLogin", {"datetime": DateTime.now().toString()});
+        "StudyLogin", {"datetime": AppClock.now().toString()});
   }
 }

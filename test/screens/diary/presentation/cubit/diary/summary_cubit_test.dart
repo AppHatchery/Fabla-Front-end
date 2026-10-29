@@ -1,4 +1,6 @@
 import 'package:audio_diaries_flutter/core/database/object_box.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/trace_log.dart';
 import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/answer.dart'
     as entities;
@@ -313,6 +315,108 @@ void main() {
           const SubmitLoading(),
           const SubmitError(),
         ],
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'SubmitError carries the trace with the failure the upload reported',
+        setUp: () {
+          when(() => mockSummaryRepository.submitDiary(any()))
+              .thenAnswer((_) async {
+            DebugTrace.current
+                ?.fail('Rejected', step: 'upload_responses', statusCode: 500);
+            return false;
+          });
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary),
+        verify: (cubit) {
+          final trace = (cubit.state as SubmitError).trace!;
+          expect(trace.rootFailure!.step, 'upload_responses');
+          expect(trace.rootFailure!.data['status'], '500');
+          expect(trace.context['DiaryID'], testDiary.id.toString());
+        },
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'a failure with no recorded reason still explains itself',
+        setUp: () {
+          when(() => mockSummaryRepository.submitDiary(any()))
+              .thenAnswer((_) async => false);
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary),
+        verify: (cubit) {
+          final trace = (cubit.state as SubmitError).trace!;
+          expect(trace.rootFailure!.message,
+              'Submission returned false without a recorded reason');
+        },
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'an exception is recorded on the trace with its stack trace',
+        setUp: () {
+          when(() => mockSummaryRepository.submitDiary(any()))
+              .thenThrow(Exception('boom'));
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary),
+        verify: (cubit) {
+          final root = (cubit.state as SubmitError).trace!.rootFailure!;
+          expect(root.data['error'], contains('boom'));
+          expect(root.stackTrace, isNotNull);
+        },
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'failed submissions are kept in the trace log',
+        setUp: () {
+          when(() => mockSummaryRepository.submitDiary(any()))
+              .thenAnswer((_) async {
+            DebugTrace.current
+                ?.fail('Rejected', step: 'upload_responses', statusCode: 500);
+            return false;
+          });
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary),
+        verify: (_) async {
+          final record = (await TraceLog().load()).first;
+          expect(record.step, 'upload_responses');
+          expect(record.reason, 'Rejected');
+          expect(record.diary, testDiary.name);
+        },
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'successful submissions are not logged',
+        setUp: () {
+          when(() => mockSummaryRepository.submitDiary(any()))
+              .thenAnswer((_) async => true);
+          when(() => mockSummaryRepository.calculateEarnedIncentives(any()))
+              .thenAnswer((_) async {});
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary),
+        verify: (_) async => expect(await TraceLog().load(), isEmpty),
+      );
+
+      blocTest<SummaryCubit, SummaryState>(
+        'SubmitNoInternet carries the trace with the connectivity failure',
+        setUp: () {
+          when(() => mockSummaryRepository.submitDiary(any()))
+              .thenAnswer((_) async {
+            DebugTrace.current
+                ?.fail('No internet connection', step: 'connectivity');
+            return null;
+          });
+        },
+        build: () => SummaryCubit(summaryRepository: mockSummaryRepository),
+        act: (cubit) => cubit.submitDiary(testDiary),
+        verify: (cubit) {
+          final trace = (cubit.state as SubmitNoInternet).trace!;
+          expect(trace.rootFailure!.step, 'connectivity');
+          expect(trace.rootFailure!.message, 'No internet connection');
+        },
       );
     });
 

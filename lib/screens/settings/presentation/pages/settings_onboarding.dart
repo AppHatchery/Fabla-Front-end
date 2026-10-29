@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:convert';
 
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -375,7 +376,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
                       title: question.title,
                       subtitle: question.subtitle ?? "",
                       index: index + 1,
-                      date: date ?? DateTime.now()),
+                      date: date ?? AppClock.now()),
                 );
               }));
       if (result != null) {

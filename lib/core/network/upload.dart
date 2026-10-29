@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/network_diagnostics.dart';
+import 'package:audio_diaries_flutter/core/network/request.dart' show base;
 import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
     as http_client_factory;
 import 'package:audio_diaries_flutter/core/network/retry_policy.dart';
@@ -13,6 +16,7 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:audio_diaries_flutter/services/developer_mode_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
@@ -58,6 +62,7 @@ final Duration _slowS3Threshold = http_client_factory.kUploadTimeout;
 /// ```
 Future<bool> upload(String participantID, DiaryModel diary) async {
   try {
+    DebugTrace.current?.step('prepare_upload');
     final dir = await getApplicationDocumentsDirectory();
     final repository = SetupRepository();
     final diaryRepository = DiaryRepository();
@@ -135,6 +140,15 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
           reason: 'Skipped recordings with no file on disk in upload');
     }
 
+    DebugTrace.current
+        ?.step('prepare_upload', message: 'Upload prepared', data: {
+      'response_rows': promptEntryList.length.toString(),
+      'files': files.length.toString(),
+      'missing_files': missingFileCount.toString(),
+    });
+
+    DeveloperModeService().throwIfSimulated(SimulatedFailure.beforeUpload);
+
     await PendoService.track('Submission Started', {
       'Diary': diary.name.toString(),
       'DiaryID': diary.id.toString(),
@@ -155,6 +169,8 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
 
     return uploaded;
   } catch (e, stackTrace) {
+    DebugTrace.current?.fail('Unexpected exception during upload',
+        error: e, stackTrace: stackTrace);
     dev.log("Failed to upload data: $e", name: "Upload");
     dev.log(stackTrace.toString());
     CrashlyticsService().recordError(e, stackTrace,
@@ -283,17 +299,25 @@ String formatSubmissionDate(DateTime date) {
 /// Returns `null` if local data is unavailable or the request fails, so callers
 /// can treat a null return as a permanent failure rather than retrying.
 Future<CredentialsModel?> _refreshCredentials(SecureSave secureStorage) async {
+  DebugTrace.current?.step('refresh_credentials',
+      message: 'No stored credentials, refreshing');
   try {
     final setup = SetupRepository();
     final participant = setup.getParticipant();
     final experiment = setup.getExperiment();
-    if (participant == null) return null;
+    if (participant == null) {
+      DebugTrace.current
+          ?.fail('No participant on record to refresh credentials for');
+      return null;
+    }
     await secureStorage.getCredentials(
       study: experiment.login,
       participant: participant.studyCode,
     );
     return await secureStorage.read();
   } catch (e, stackTrace) {
+    DebugTrace.current?.fail('Credential refresh request failed',
+        error: e, stackTrace: stackTrace);
     CrashlyticsService().recordError(e, stackTrace,
         reason: 'Failed to refresh credentials in _refreshCredentials');
     await PendoService.track('Upload Error', {
@@ -325,6 +349,8 @@ Future<bool> uploadNonAudioData(
     }
 
     if (cred == null) {
+      DebugTrace.current?.fail('No credentials after refresh attempt',
+          step: 'upload_responses');
       CrashlyticsService()
           .log('Upload failed: credentials null after refresh attempt');
       return false;
@@ -343,12 +369,21 @@ Future<bool> uploadNonAudioData(
 
     final stopwatch = Stopwatch()..start();
     try {
+      DeveloperModeService().throwIfSimulated(SimulatedFailure.responseUpload);
       var response =
           await httpClient.post(url, headers: headers, body: jsonBody);
 
       if (response.statusCode == 200) {
+        DebugTrace.current?.step('upload_responses',
+            message: 'Responses saved',
+            data: {'duration_ms': stopwatch.elapsedMilliseconds.toString()});
         return true;
       } else {
+        DebugTrace.current?.fail('Response upload rejected by server',
+            step: 'upload_responses',
+            statusCode: response.statusCode,
+            responseBody: response.body,
+            data: {'duration_ms': stopwatch.elapsedMilliseconds.toString()});
         dev.log(
             'DynamoDB upload failed: status=${response.statusCode} body=${response.body}',
             name: 'Upload - Non-Audio Data');
@@ -365,6 +400,11 @@ Future<bool> uploadNonAudioData(
         return false;
       }
     } catch (e, stackTrace) {
+      DebugTrace.current?.fail('Response upload request failed',
+          step: 'upload_responses',
+          error: e,
+          stackTrace: stackTrace,
+          data: {'duration_ms': stopwatch.elapsedMilliseconds.toString()});
       dev.log('Error sending request: $e', name: 'Upload - Non-Audio Data');
       CrashlyticsService().recordError(e, stackTrace,
           reason: 'Error sending request in uploadNonAudioData');
@@ -437,11 +477,14 @@ Future<String?> getPresignedUrl(
     }
 
     if (cred == null) {
+      DebugTrace.current
+          ?.fail('No credentials after refresh attempt', step: 'presigned_url');
       CrashlyticsService()
           .log('Upload failed: credentials null after refresh attempt');
       return null;
     }
 
+    DeveloperModeService().throwIfSimulated(SimulatedFailure.presignedUrl);
     var requestBody = jsonEncode({'filename': filename});
 
     var response = await httpClient.post(
@@ -462,6 +505,10 @@ Future<String?> getPresignedUrl(
       var uploadUrl = body['uploadURL'];
       return uploadUrl;
     } else {
+      DebugTrace.current?.fail('Presigned URL request rejected by server',
+          step: 'presigned_url',
+          statusCode: response.statusCode,
+          responseBody: response.body);
       CrashlyticsService().recordApiError(
           'Failed to get presigned URL: ${response.body}', apiUrl,
           statusCode: response.statusCode,
@@ -475,6 +522,8 @@ Future<String?> getPresignedUrl(
       return null;
     }
   } catch (e, stackTrace) {
+    DebugTrace.current?.fail('Presigned URL request failed',
+        step: 'presigned_url', error: e, stackTrace: stackTrace);
     dev.log('Error getting presigned URL: $e',
         name: 'Upload - Get Presigned URL');
     CrashlyticsService().recordError(e, stackTrace,
@@ -520,6 +569,7 @@ Future<bool> uploadFileToS3(
           retryServerErrors: true,
         );
     try {
+      DeveloperModeService().throwIfSimulated(SimulatedFailure.s3Upload);
       final response = await s3Client.send(request);
       // Drain the response stream so the underlying native client considers
       // the request complete before we close it below.
@@ -527,6 +577,10 @@ Future<bool> uploadFileToS3(
       if (response.statusCode == 200) {
         return true;
       } else {
+        DebugTrace.current?.fail('File upload rejected by storage',
+            step: 's3_upload',
+            statusCode: response.statusCode,
+            responseBody: response.reasonPhrase);
         dev.log(
             'S3 upload failed: status=${response.statusCode} file=$filePath',
             name: 'Upload - S3 Storage');
@@ -546,6 +600,8 @@ Future<bool> uploadFileToS3(
       if (ownClient) s3Client.close();
     }
   } catch (e, stackTrace) {
+    DebugTrace.current?.fail('File upload failed',
+        step: 's3_upload', error: e, stackTrace: stackTrace);
     dev.log('S3 Storage: Error uploading file: $e',
         name: 'Upload - S3 Storage');
     CrashlyticsService().recordError(e, stackTrace,
@@ -554,6 +610,31 @@ Future<bool> uploadFileToS3(
     await PendoService.track(
         'Upload Error', {'event': 'Upload to S3', 'reason': e.toString()});
     return false; // Return false if an error occurred
+  }
+}
+
+/// The hosts a submission talks to before any file is uploaded: the backend
+/// and the endpoints from the stored credentials. Never refreshes credentials.
+Future<List<String?>> submissionHosts({SecureSave? secureSave}) async {
+  CredentialsModel? cred;
+  try {
+    cred = await (secureSave ?? SecureSave()).read();
+  } catch (_) {}
+  return [
+    base(),
+    Uri.tryParse(cred?.dynamoUrl ?? '')?.host,
+    Uri.tryParse(cred?.presignedUrl ?? '')?.host,
+  ];
+}
+
+/// Human-readable size of the file at [path], for debug traces.
+String _fileSize(String path) {
+  try {
+    final bytes = File(path).lengthSync();
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  } catch (_) {
+    return 'unknown';
   }
 }
 
@@ -579,6 +660,8 @@ Future<bool> uploadFiles(List<FileData> files) async {
   }
 
   if (cred == null) {
+    DebugTrace.current
+        ?.fail('No credentials after refresh attempt', step: 'upload_files');
     CrashlyticsService()
         .log('Upload failed: credentials null after refresh attempt');
     return false;
@@ -588,10 +671,25 @@ Future<bool> uploadFiles(List<FileData> files) async {
   // List to store the results of each file upload
   final results = <bool>[];
   dev.log('Starting Files Upload - ${DateTime.now()}');
-  for (var file in files) {
+  for (final (index, file) in files.indexed) {
+    // Identify files by position and type only: S3 keys contain the
+    // participant ID.
+    DebugTrace.current?.step('presigned_url', data: {
+      'file': '${index + 1}/${files.length}',
+      'type': p.extension(file.localDirectory),
+    });
     var presignedUrl = await getPresignedUrl(apiUrl, file.awsS3Directory,
         secureSave: secureStorage);
     if (presignedUrl != null) {
+      // The storage host is only known once the first URL is issued.
+      if (index == 0) {
+        await traceHostProbe(Uri.tryParse(presignedUrl)?.host ?? '',
+            step: 'network_storage');
+      }
+      DebugTrace.current?.step('s3_upload', data: {
+        'file': '${index + 1}/${files.length}',
+        'size': _fileSize(file.localDirectory),
+      });
       final stopwatch = Stopwatch()..start();
       final result = await uploadFileToS3(presignedUrl, file.localDirectory);
       stopwatch.stop();
@@ -701,7 +799,11 @@ class PromptEntry {
 Future<bool> awsUploadResponses(
     List<PromptEntry> promptEntryList, List<FileData> files) async {
   try {
+    DebugTrace.current
+        ?.step('upload_files', data: {'files': files.length.toString()});
     final filesResult = files.isNotEmpty ? await uploadFiles(files) : true;
+    DebugTrace.current?.step('upload_responses',
+        data: {'response_rows': promptEntryList.length.toString()});
     final dataSent = await uploadNonAudioData(promptEntryList);
 
     if (!filesResult || !dataSent) {
@@ -719,6 +821,8 @@ Future<bool> awsUploadResponses(
 
     return filesResult && dataSent;
   } catch (e, stackTrace) {
+    DebugTrace.current?.fail('Unexpected exception while uploading',
+        error: e, stackTrace: stackTrace);
     dev.log("EXCEPTION: $e", name: "Upload - AWS Upload Responses");
     CrashlyticsService()
         .recordError(e, stackTrace, reason: 'Exception in awsUploadResponses');

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -1036,7 +1037,7 @@ class _TimerWidgetState extends State<TimerWidget>
     final endTime = _expectedEndTime;
     if (endTime == null) return;
 
-    final now = DateTime.now();
+    final now = AppClock.now();
 
     if (now.isAfter(endTime)) {
       _timer?.cancel();
@@ -1133,7 +1134,7 @@ class _TimerWidgetState extends State<TimerWidget>
 
     setState(() => status = TimerStatus.running);
 
-    _expectedEndTime = DateTime.now().add(remaining);
+    _expectedEndTime = AppClock.now().add(remaining);
     setAlarm(remaining);
     _liveUpdate.updateRunning(_expectedEndTime!);
     _startTimer();
@@ -1164,7 +1165,7 @@ class _TimerWidgetState extends State<TimerWidget>
     await setAlarm(duration);
     if (!mounted) return;
 
-    _expectedEndTime = DateTime.now().add(duration);
+    _expectedEndTime = AppClock.now().add(duration);
     _liveUpdate.start(_expectedEndTime!, duration);
     _startTimer();
     _syncLiveUpdate();
@@ -1250,7 +1251,7 @@ class _TimerWidgetState extends State<TimerWidget>
     if (!startPaused) {
       await setAlarm(duration);
       if (!mounted) return;
-      _expectedEndTime = DateTime.now().add(duration);
+      _expectedEndTime = AppClock.now().add(duration);
       _liveUpdate.start(_expectedEndTime!, duration);
     }
 
@@ -1376,7 +1377,7 @@ class _TimerWidgetState extends State<TimerWidget>
     await Alarm.set(
       alarmSettings: AlarmSettings(
         id: currentAlarmId!,
-        dateTime: DateTime.now().add(time),
+        dateTime: AppClock.now().add(time),
         assetAudioPath: 'assets/audio/bowl.wav',
         loopAudio: false,
         vibrate: false,

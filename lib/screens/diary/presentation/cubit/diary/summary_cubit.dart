@@ -1,3 +1,10 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
+import 'dart:async';
+
+import 'package:audio_diaries_flutter/core/diagnostics/debug_trace.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/submission_trace.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/trace_log.dart';
+import 'package:audio_diaries_flutter/core/diagnostics/trace_watchers.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/summary_repository.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
@@ -131,14 +138,18 @@ class SummaryCubit extends Cubit<SummaryState> {
   // }
 
   void submitDiary(DiaryModel diary) async {
+    final trace = DebugTrace('diary_submission');
     try {
       emit(const SubmitLoading());
+      trace.context.addAll(await submissionTraceContext(diary));
       // Updated to use injected repository instance
-      final result = await _summaryRepository.submitDiary(diary);
+      final result = await trace.run(() => watchDuring(
+          trace, () => _summaryRepository.submitDiary(diary)));
       if (result == null) {
         // Save network error state
         saveNetworkError();
-        emit(const SubmitNoInternet());
+        unawaited(TraceLog().add(trace));
+        emit(SubmitNoInternet(trace: trace));
         return;
       }
 
@@ -148,13 +159,20 @@ class SummaryCubit extends Cubit<SummaryState> {
         resetNetworkError();
         emit(const SummarySubmitted());
       } else {
-        emit(const SubmitError());
+        if (!trace.hasFailed) {
+          trace.fail('Submission returned false without a recorded reason');
+        }
+        unawaited(TraceLog().add(trace));
+        emit(SubmitError(trace: trace));
       }
     } catch (e, stackTrace) {
       dev.log("Error submitting diary: $e", name: "SummaryCubit - submitDiary");
       CrashlyticsService().recordError(e, stackTrace,
           reason: 'Error submitting diary in submitDiary - SummaryCubit');
-      emit(const SubmitError());
+      trace.fail('Unexpected exception in SummaryCubit',
+          error: e, stackTrace: stackTrace);
+      unawaited(TraceLog().add(trace));
+      emit(SubmitError(trace: trace));
     }
   }
 
@@ -178,7 +196,7 @@ class SummaryCubit extends Cubit<SummaryState> {
     final isAlreadyAvailable =
         diary.completions?.elementAtOrNull(diary.currentEntry);
     if (isAlreadyAvailable == null) {
-      final now = DateTime.now();
+      final now = AppClock.now();
       final completions = List<DateTime>.from(diary.completions ?? []);
       completions.add(now);
       final newDiary = diary.copyWith(

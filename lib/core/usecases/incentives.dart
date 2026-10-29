@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/network/secrets_handler.dart';
 import 'package:audio_diaries_flutter/core/network/upload.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -106,7 +107,7 @@ Future<bool> calculateEarnedIncentivesForAWS({
       diaryName: '',
       study: '',
       response: formatMoney(earned, currency: currency),
-      respondedAt: DateTime.now().toIso8601String(),
+      respondedAt: AppClock.now().toIso8601String(),
       questionsType: "Incentives",
       required: true,
     ),
@@ -124,7 +125,7 @@ Future<bool> calculateEarnedIncentivesForAWS({
       diaryName: '',
       study: currentStudy.name,
       response: formatMoney(currentStudyEarned, currency: studyCurrency),
-      respondedAt: DateTime.now().toIso8601String(),
+      respondedAt: AppClock.now().toIso8601String(),
       questionsType: "StudyIncentive",
       required: true,
     ));
@@ -140,7 +141,7 @@ Future<bool> calculateEarnedIncentivesForAWS({
         study: currentStudy.name,
         response:
             formatMoney(currentStudy.incentive.bonus, currency: studyCurrency),
-        respondedAt: DateTime.now().toIso8601String(),
+        respondedAt: AppClock.now().toIso8601String(),
         questionsType: "BonusEarned",
         required: true,
       ));

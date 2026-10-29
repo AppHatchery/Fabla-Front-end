@@ -15,6 +15,8 @@ PODS:
     - Flutter
   - camera_avfoundation (0.0.1):
     - Flutter
+  - connectivity_plus (0.0.1):
+    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - Firebase/CoreOnly (12.12.0):
@@ -204,6 +206,8 @@ PODS:
     - PromisesObjC (= 2.4.1)
   - rive_native (0.0.1):
     - Flutter
+  - share_plus (0.0.1):
+    - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -228,6 +232,7 @@ DEPENDENCIES:
   - awesome_notifications (from `.symlinks/plugins/awesome_notifications/ios`)
   - battery_plus (from `.symlinks/plugins/battery_plus/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
+  - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
@@ -249,6 +254,7 @@ DEPENDENCIES:
   - pendo_sdk (from `.symlinks/plugins/pendo_sdk/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - rive_native (from `.symlinks/plugins/rive_native/ios`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - video_compress (from `.symlinks/plugins/video_compress/ios`)
@@ -295,6 +301,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/battery_plus/ios"
   camera_avfoundation:
     :path: ".symlinks/plugins/camera_avfoundation/ios"
+  connectivity_plus:
+    :path: ".symlinks/plugins/connectivity_plus/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   firebase_analytics:
@@ -337,6 +345,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   rive_native:
     :path: ".symlinks/plugins/rive_native/ios"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   url_launcher_ios:
@@ -358,6 +368,7 @@ SPEC CHECKSUMS:
   awesome_notifications: 8291dd4082db761556cd8bf7977567f5c960c87e
   battery_plus: b42253f6d2dde71712f8c36fef456d99121c5977
   camera_avfoundation: 968a9a5323c79a99c166ad9d7866bfd2047b5a9b
+  connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Firebase: aa154fee4e9b8eac17aa42344988865b3e857d33
   firebase_analytics: ce9d230ff321adb11a5d5cabdae99d4819832110
@@ -400,6 +411,7 @@ SPEC CHECKSUMS:
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b
   rive_native: c9ed76ccf380f38205edcb8f552121aac8ec39da
+  share_plus: eccd7beb7cea61271aeed1800e8ccb2b952c0c7f
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
   video_compress: f2133a07762889d67f0711ac831faa26f956980e
@@ -407,6 +419,6 @@ SPEC CHECKSUMS:
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
   webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
-PODFILE CHECKSUM: cff03a73953c5b9d07c2d057746601c1ef0682f4
+PODFILE CHECKSUM: 29d14e78760e75ec790e9dfa44f73dd9d9aa0156
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0

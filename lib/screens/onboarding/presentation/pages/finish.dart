@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/utils/app_clock.dart';
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -180,7 +181,7 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
         await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
 
     await PendoService.track("FinishOnBoarding",
-        {"datetime": DateTime.now().toString(), "startDate": start.toString()});
+        {"datetime": AppClock.now().toString(), "startDate": start.toString()});
 
     if (context.mounted) {
       track(timer.stop(), "Finished");
