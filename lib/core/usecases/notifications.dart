@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart';
-import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
+import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 
 import '../../services/notification_service.dart';
 import '../../services/pendo_service.dart';
@@ -240,7 +240,6 @@ void scheduleSubmitDiaryNotification(int id) async {
   notifications = {};
 
   if (source == null) {
-
     final now = DateTime.now();
     final sevenPM = DateTime(now.year, now.month, now.day, 19);
     DateTime reminderTime;
@@ -448,16 +447,14 @@ DateTime? retrieveNotificationDate(DateTime? last) {
 ///
 /// This function is responsible for re-scheduling all diary-related notifications. It first removes
 /// the existing diary notifications stored in the app's preferences. Then, it initializes a new
-/// [SetupRepository] and calls its `createNotifications` method to recreate and schedule the
-/// diary notifications.
+/// [NotificationManager] and asks it to recreate and schedule the diary
+/// notifications.
 ///
 /// Usage example:
 /// ```dart
 /// reScheduleAllNotifications();
 /// ```
-void reScheduleAllNotifications() async {
+Future<void> reScheduleAllNotifications() async {
   await PreferenceService().removePreference(key: 'diary_notifications');
-
-  final repository = SetupRepository();
-  repository.createNotifications(page: "settings");
+  await NotificationManager().scheduleDiaryNotifications(page: "settings");
 }
