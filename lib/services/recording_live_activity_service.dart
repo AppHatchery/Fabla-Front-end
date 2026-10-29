@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io' show Platform;
 
+import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/audio_recording_service.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:flutter/services.dart';
@@ -10,14 +11,16 @@ import 'package:flutter/services.dart';
 /// Screen + Dynamic Island), via ios/Runner/AppDelegate.swift.
 ///
 /// Follows [AudioRecordingState]: starts with the take, updates when it
-/// pauses or resumes, ends when the take stops. The activity's own button
-/// comes back as [onTogglePause]. A no-op off iOS, and best-effort like
+/// pauses or resumes, and stays up as "Ready to save" once it stops with a
+/// take to keep. It ends when the take is saved or dropped. The activity's
+/// own buttons come back as [onTogglePause] and [onSave]. A no-op off iOS, and best-effort like
 /// [TimerLiveUpdateService]: it must never block or crash the recorder.
 class RecordingLiveActivityService {
   static const _channel = MethodChannel('diary/live_activity');
 
   RecordingLiveActivityService({
     required this.onTogglePause,
+    required this.onSave,
     this.limit,
     this.hardLimit,
     this.questionNumber,
@@ -27,6 +30,9 @@ class RecordingLiveActivityService {
 
   /// Runs when the participant taps pause or resume on the Live Activity.
   final Future<void> Function() onTogglePause;
+
+  /// Runs when the participant taps save on a stopped take.
+  final Future<void> Function() onSave;
 
   /// The length shown on the activity: the suggestion, else the limit.
   final Duration? limit;
@@ -44,6 +50,17 @@ class RecordingLiveActivityService {
   bool _active = false;
   bool? _lastPaused;
   bool? _lastInterrupted;
+  bool? _lastReady;
+
+  /// While a save runs the take clears before the outcome is known, so the
+  /// activity holds on rather than ending; [saved] or [releaseHold] follows.
+  bool _holding = false;
+
+  /// Ended as "Saved": nothing after that may end it early.
+  bool _finished = false;
+
+  /// The take's length as last shown, for the "Saved" card.
+  Duration _lastElapsed = Duration.zero;
 
   /// The last state [sync] saw, read back after the activity's button runs.
   AudioRecordingState? _lastState;
@@ -52,6 +69,10 @@ class RecordingLiveActivityService {
   void attach() {
     if (!_isIOS) return;
     _channel.setMethodCallHandler((call) async {
+      if (call.method == 'recordingSave') {
+        await onSave();
+        return null;
+      }
       if (call.method != 'recordingTogglePause') return null;
       await onTogglePause();
       // The microphone could not be reclaimed. From the background that is
@@ -66,26 +87,33 @@ class RecordingLiveActivityService {
   Future<void> sync(AudioRecordingState state) async {
     if (!_isIOS) return;
     _lastState = state;
-    final live = state.isRecording || state.isPaused;
+    // Stopped with a take is waiting on the save button, so it stays up.
+    final ready = state.status == AudioRecordingStatus.stopped && state.hasTake;
+    final live = state.isRecording || state.isPaused || ready;
 
     if (!live) {
-      if (_active) await end();
+      if (_active && !_holding) await end();
       return;
     }
+    _lastElapsed = state.elapsed;
     if (_active &&
         _lastPaused == state.isPaused &&
-        _lastInterrupted == state.isInterrupted) {
+        _lastInterrupted == state.isInterrupted &&
+        _lastReady == ready) {
       return;
     }
 
     final args = <String, dynamic>{
       'elapsedMillis': state.elapsed.inMilliseconds.toDouble(),
-      'isPaused': state.isPaused,
+      // Ready shows frozen, like a pause.
+      'isPaused': state.isPaused || ready,
+      'isReady': ready,
       // Paused by the audio system, most often a call, not by the participant.
       'isInterrupted': state.isPaused && state.isInterrupted,
     };
     _lastPaused = state.isPaused;
     _lastInterrupted = state.isInterrupted;
+    _lastReady = ready;
 
     if (_active) {
       await _invoke('recordingUpdate', args);
@@ -107,11 +135,35 @@ class RecordingLiveActivityService {
     });
   }
 
+  /// Keeps the activity up through a save. See [_holding].
+  void holdForSave() => _holding = true;
+
+  /// The save didn't go through: back to following the take.
+  Future<void> releaseHold() async {
+    _holding = false;
+    final state = _lastState;
+    if (state != null) await sync(state);
+  }
+
+  /// Ends the activity on its "Saved" card, which the system leaves up a
+  /// few seconds before dismissing.
+  Future<void> saved() async {
+    _holding = false;
+    if (!_active) return;
+    _active = false;
+    _finished = true;
+    await _invoke('recordingSaved', {
+      'elapsedMillis': _lastElapsed.inMilliseconds.toDouble(),
+    });
+  }
+
   /// Ends the activity and stops taking the channel's calls.
   Future<void> end() async {
+    if (_finished) return;
     _active = false;
     _lastPaused = null;
     _lastInterrupted = null;
+    _lastReady = null;
     await _invoke('recordingEnd');
   }
 

@@ -33,6 +33,10 @@ struct DiaryRecordingActivityAttributes: ActivityAttributes {
         var pausedElapsed: TimeInterval?
         // True when a call (or other audio interruption) paused the take.
         var interrupted: Bool?
+        // True once the take has stopped and is waiting to be saved.
+        var ready: Bool?
+        // True on the final card once the answer is saved.
+        var saved: Bool?
     }
 
     // "Q3 of 8"; both nil when the question's place isn't known.
@@ -51,6 +55,18 @@ struct DiaryRecordingActivityAttributes: ActivityAttributes {
 @available(iOS 18.0, *)
 enum RecordingIntentBridge {
     static var togglePause: ((ToggleRecordingPauseIntent) async throws -> Void)?
+    static var save: (() async -> Void)?
+}
+
+/// Saves a stopped take from the Lock Screen or Dynamic Island, as the
+/// recording sheet's save button does. Runs in the app through the bridge.
+@available(iOS 18.0, *)
+struct SaveRecordingIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Save recording"
+    func perform() async throws -> some IntentResult {
+        await RecordingIntentBridge.save?()
+        return .result()
+    }
 }
 
 /// Brings Fabla to the front. After a call iOS won't let a background app

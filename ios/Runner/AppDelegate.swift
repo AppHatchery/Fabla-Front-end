@@ -63,6 +63,9 @@ import AVFoundation
           _ = await self?.toggleRecordingPause()
         }
       }
+      RecordingIntentBridge.save = { [weak self] in
+        await self?.invokeRecording("recordingSave")
+      }
     }
 
     // Joins the segments of a recording split by an interruption. See
@@ -101,6 +104,16 @@ import AVFoundation
           let needsForeground = (reply as? [String: Any])?["needsForeground"] as? Bool ?? false
           continuation.resume(returning: needsForeground)
         }
+      }
+    }
+  }
+
+  /// Runs a Live Activity button's action in Dart and waits for it.
+  private func invokeRecording(_ method: String) async {
+    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+      DispatchQueue.main.async {
+        guard let channel = self.liveActivityChannel else { return continuation.resume() }
+        channel.invokeMethod(method, arguments: nil) { _ in continuation.resume() }
       }
     }
   }
@@ -168,7 +181,7 @@ import AVFoundation
         result(nil)
       }
 
-    case "recordingStart", "recordingUpdate", "recordingEnd":
+    case "recordingStart", "recordingUpdate", "recordingEnd", "recordingSaved":
       guard #available(iOS 17.0, *) else {
         result(FlutterError(code: "UNAVAILABLE", message: "Recording Live Activity requires iOS 17+", details: nil))
         return
@@ -205,6 +218,30 @@ import AVFoundation
         } catch {
           result(FlutterError(code: "START_FAILED", message: error.localizedDescription, details: nil))
         }
+      }
+
+    case "recordingSaved":
+      // The "Saved" card, frozen at the take's length. It is shown as an
+      // update, not as the ending content: iOS drops an ended activity from
+      // the Dynamic Island at once, so ending straight away would close the
+      // island the moment its check was tapped. It ends 10 seconds later.
+      let elapsed = (args?["elapsedMillis"] as? Double ?? 0) / 1000
+      let saved = DiaryRecordingActivityAttributes.ContentState(
+        startDate: nil, pausedElapsed: elapsed, interrupted: false, ready: false, saved: true)
+      guard let activity = AppDelegate.currentRecordingActivity else { return result(nil) }
+      AppDelegate.currentRecordingActivity = nil
+      // The take is over, so nothing else keeps the app running in the
+      // background for those 10 seconds.
+      let application = UIApplication.shared
+      var backgroundTask = UIBackgroundTaskIdentifier.invalid
+      backgroundTask = application.beginBackgroundTask { application.endBackgroundTask(backgroundTask) }
+      Task {
+        let content = ActivityContent(state: saved, staleDate: nil)
+        await activity.update(content)
+        result(nil)
+        try? await Task.sleep(for: .seconds(10))
+        await activity.end(content, dismissalPolicy: .immediate)
+        application.endBackgroundTask(backgroundTask)
       }
 
     case "recordingUpdate":
@@ -244,7 +281,8 @@ import AVFoundation
     return DiaryRecordingActivityAttributes.ContentState(
       startDate: isPaused ? nil : Date().addingTimeInterval(-elapsed),
       pausedElapsed: isPaused ? elapsed : nil,
-      interrupted: isPaused && (args?["isInterrupted"] as? Bool ?? false))
+      interrupted: isPaused && (args?["isInterrupted"] as? Bool ?? false),
+      ready: args?["isReady"] as? Bool ?? false)
   }
 
 

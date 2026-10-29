@@ -22,6 +22,8 @@ private extension Color {
     static let callCard = Color(red: 0xFE / 255, green: 0x96 / 255, blue: 0x00 / 255) // #FE9600
     static let callInk = Color(red: 0x24 / 255, green: 0x24 / 255, blue: 0x24 / 255) // #242424
     static let lastMinuteCard = Color(red: 0xFE / 255, green: 0xB9 / 255, blue: 0x54 / 255) // #FEB954
+    static let savedCard = Color(red: 0x2E / 255, green: 0xA6 / 255, blue: 0x42 / 255) // #2EA642
+    static let avatarDark = Color(red: 0x1D / 255, green: 0x27 / 255, blue: 0x33 / 255) // #1D2733
     static let cueCardInk = Color(red: 0x2B / 255, green: 0x24 / 255, blue: 0x40 / 255) // #2B2440
 }
 
@@ -29,7 +31,7 @@ private extension Color {
 /// label and Fabio.
 @available(iOS 17.0, *)
 private enum Phase {
-    case recording, lastMinute, paused, call
+    case recording, lastMinute, paused, call, ready, saved
 
     /// The orange cards, which take dark ink.
     var isOrange: Bool { self == .call || self == .lastMinute }
@@ -37,10 +39,11 @@ private enum Phase {
     /// The Lock Screen card.
     var card: Color {
         switch self {
-        case .recording: return .recordingCard
+        case .recording, .ready: return .recordingCard
         case .paused: return .pausedCard
         case .call: return .callCard
         case .lastMinute: return .lastMinuteCard
+        case .saved: return .savedCard
         }
     }
 
@@ -50,7 +53,8 @@ private enum Phase {
     var lockDot: Color {
         switch self {
         case .recording: return .recordingDot
-        case .paused: return .pausedDot
+        case .paused, .ready: return .pausedDot
+        case .saved: return .white
         case .call, .lastMinute: return .callInk
         }
     }
@@ -60,7 +64,8 @@ private enum Phase {
         switch self {
         case .call: return .callCard
         case .lastMinute: return .lastMinuteCard
-        case .recording, .paused: return .recordingBrand
+        case .saved: return .savedCard
+        case .recording, .paused, .ready: return .recordingBrand
         }
     }
 
@@ -75,8 +80,16 @@ private enum Phase {
         case .paused: return "Paused"
         case .call: return "Paused by a call"
         case .lastMinute: return "One minute left"
+        case .ready: return "Ready to save"
+        case .saved: return "Saved"
         }
     }
+
+    /// The status dot's ring on the card; the dot itself is [lockDot].
+    var lockRing: Color { self == .ready ? .recordingBrand : lockDot }
+
+    /// Behind Fabio's face in the island circles.
+    var avatarBackground: Color { self == .ready ? .avatarDark : card }
 }
 
 @available(iOS 17.0, *)
@@ -103,6 +116,8 @@ private extension ActivityViewContext<DiaryRecordingActivityAttributes> {
     var isPaused: Bool { state.startDate == nil }
 
     var phase: Phase {
+        if state.saved == true { return .saved }
+        if state.ready == true { return .ready }
         // The app sets the stale date a minute before the limit, so the
         // system flips this over on time with no app process running.
         guard isPaused else { return isStale ? .lastMinute : .recording }
@@ -126,6 +141,7 @@ private extension ActivityViewContext<DiaryRecordingActivityAttributes> {
 
     /// The frozen fill while paused.
     var pausedFraction: Double {
+        if state.saved == true { return 1 }
         guard let limit = attributes.limit, limit > 0 else { return 1 }
         return min(1, (state.pausedElapsed ?? 0) / limit)
     }
@@ -272,6 +288,39 @@ private enum LockArt {
         ]
     }()
 
+    /// Saved: the doorman, happy, holding the delivered parcel in both paws.
+    static let savedParts: [Part] = {
+        let f = CGRect(x: 266.94, y: 41.93, width: 163.31, height: 179.862)
+        return [
+            part("RecV2Body", f, Insets.body, mirrored: true),
+            part("CallV2Coat", f, (48.1, 0.81, 0.99, 0.57), mirrored: true),
+            part("SavedV2Face", f, (33.9, 26.89, 54.6, 44.73), mirrored: true),
+            part("CallV2Cap", f, (8.77, 27.28, 66.94, 15.3), mirrored: true),
+            part("SavedV2Parcel", CGRect(x: 284.1, y: 121.88, width: 58.372, height: 43.145),
+                 (-8.82, -15.22, 2.94, 2.17), mirrored: true),
+            part("PausedV2PawFar", CGRect(x: 312.51, y: 121.74, width: 57.379, height: 57.379), Insets.holdingPaw),
+            part("SavedV2PawNear", CGRect(x: 256.68, y: 121.74, width: 57.379, height: 57.379),
+                 (22.64, 29.59, 15.11, 7.06)),
+        ]
+    }()
+
+    /// Ready to save: the postman, in his cap and satchel, holding the
+    /// take out as an envelope.
+    static let readyParts: [Part] = {
+        let f = CGRect(x: 266.94, y: 41.93, width: 163.31, height: 179.862)
+        // Each rotated part's own box, centred in the slot Figma rotates it in.
+        let paw = CGRect(x: 236.643, y: 121.323, width: 57.379, height: 57.379)
+        let envelope = CGRect(x: 240.289, y: 108.355, width: 53.297, height: 37.076)
+        return [
+            part("RecV2Body", f, Insets.body, mirrored: true),
+            part("OneMinV2Face", f, Insets.faceTalking, mirrored: true),
+            part("ReadyV2Satchel", f, (48.6, 4.73, 5.77, 16.29), mirrored: true),
+            part("ReadyV2Cap", f, (8.77, 27.46, 66.94, 15.3), mirrored: true),
+            part("OneMinV2Paw", paw, Insets.holdingPaw, rotation: 4),
+            part("ReadyV2Envelope", envelope, (6.25, 2.17, 1.25, 4.35), mirrored: true, rotation: 4),
+        ]
+    }()
+
     /// One minute left: in the coach's cap, holding up the "1 MIN" card.
     static let lastMinuteParts: [Part] = {
         let f = CGRect(x: 266.94, y: 41.93, width: 163.31, height: 179.862)
@@ -351,6 +400,37 @@ private enum IslandArt {
         ]
     }()
 
+    /// Saved: Fabio holding the parcel in both paws. The near paw starts
+    /// 2.02pt left of his frame.
+    static let savedSize = CGSize(width: 76.38, height: 81.897)
+    static let savedParts: [Part] = {
+        let f = CGRect(x: 2.02, y: 0, width: 74.36, height: 81.897)
+        return [
+            part("ReadyIslandBody", f, Insets.body, mirrored: true),
+            part("SavedIslandFace", f, (34.88, 34.25, 54.23, 51.75), mirrored: true),
+            part("SavedIslandParcel", CGRect(x: 8.13, y: 20.68, width: 25.423, height: 18.791),
+                 (-8.82, -15.22, 2.94, 2.17), mirrored: true),
+            part("ReadyIslandPaw", CGRect(x: 15.8, y: 20.27, width: 26.127, height: 26.127), Insets.holdingPaw),
+            part("SavedIslandPawNear", CGRect(x: 0, y: 20.27, width: 26.127, height: 26.127),
+                 (22.64, 29.59, 15.11, 7.06)),
+        ]
+    }()
+
+    /// Ready to save: Fabio holding up the kept tape. The paw starts 2.37pt
+    /// left of his frame.
+    static let readySize = CGSize(width: 76.73, height: 81.897)
+    static let readyParts: [Part] = {
+        let f = CGRect(x: 2.37, y: 0, width: 74.36, height: 81.897)
+        let paw = CGRect(x: 0.88, y: 19.56, width: 26.127, height: 26.127)
+        let tape = CGRect(x: 1.596, y: 15.326, width: 25.122, height: 17.083)
+        return [
+            part("ReadyIslandBody", f, Insets.body, mirrored: true),
+            part("ReadyIslandFace", f, Insets.faceTalking, mirrored: true),
+            part("ReadyIslandPaw", paw, Insets.holdingPaw, rotation: 4),
+            part("ReadyIslandTape", tape, (2.94, -1.2, -2.94, 2), mirrored: true, rotation: 4),
+        ]
+    }()
+
     static let pausedSize = CGSize(width: 74.646, height: 77.431)
     static let pausedParts: [Part] = {
         let f = CGRect(x: 4.34, y: 0, width: 70.306, height: 77.431)
@@ -376,7 +456,7 @@ private struct FabioAvatar: View {
     var body: some View {
         let d: CGFloat = minimal ? 20 : 18
         FabioArt(parts: parts, size: CGSize(width: d, height: d))
-            .background(phase.card)
+            .background(phase.avatarBackground)
             .clipShape(Circle())
     }
 
@@ -386,6 +466,17 @@ private struct FabioAvatar: View {
             ? CGRect(x: -26.52, y: -15.65, width: 64.348, height: 70.87)
             : CGRect(x: -23.87, y: -14.09, width: 57.913, height: 63.783)
         switch phase {
+        case .saved:
+            return [
+                part("\(prefix)Body", f, Insets.body),
+                part(minimal ? "SavedMinimalFace" : "SavedCompactFace", f, (34.88, 34.25, 54.23, 51.75)),
+            ]
+        case .ready:
+            // Headset off: the take is done.
+            return [
+                part("\(prefix)Body", f, Insets.body),
+                part(minimal ? "OneMinMinimalFace" : "OneMinCompactFace", f, Insets.faceTalking),
+            ]
         case .call:
             // The call frame takes the headset off.
             return [
@@ -416,10 +507,11 @@ private struct FabioAvatar: View {
 @available(iOS 17.0, *)
 private struct StatusDot: View {
     var color: Color = .recordingDot
+    var ring: Color?
 
     var body: some View {
         ZStack {
-            Circle().stroke(color, lineWidth: 2).frame(width: 14, height: 14)
+            Circle().stroke(ring ?? color, lineWidth: 2).frame(width: 14, height: 14)
             Circle().fill(color).frame(width: 8, height: 8)
         }
         .frame(width: 16, height: 16)
@@ -446,6 +538,19 @@ private struct PlayGlyph: Shape {
     }
 }
 
+/// The Figma save glyph: a check in the 40pt button.
+@available(iOS 17.0, *)
+private struct CheckGlyph: Shape {
+    func path(in rect: CGRect) -> Path {
+        let s = rect.width / 40
+        var p = Path()
+        p.move(to: CGPoint(x: 13 * s, y: 20.5 * s))
+        p.addLine(to: CGPoint(x: 17.8 * s, y: 25.2 * s))
+        p.addLine(to: CGPoint(x: 27.5 * s, y: 14.8 * s))
+        return p
+    }
+}
+
 /// The one button: pause while recording, resume while paused. Paused by a
 /// call it opens the app instead, where the take can be resumed.
 @available(iOS 17.0, *)
@@ -454,11 +559,20 @@ private struct PauseButton: View {
 
     let isPaused: Bool
     var opensApp = false
+    /// The take has stopped: the button saves it.
+    var saves = false
+    /// Saved: just the check, with nothing left to do.
+    var done = false
     let style: Style
 
     var body: some View {
         Group {
-            if opensApp {
+            if done {
+                face.accessibilityLabel("Saved")
+            } else if saves {
+                Button(intent: SaveRecordingIntent()) { face }
+                    .accessibilityLabel("Save recording")
+            } else if opensApp {
                 Button(intent: OpenRecordingIntent()) { face }
                     .accessibilityLabel("Open Fabla to resume recording")
             } else {
@@ -491,7 +605,10 @@ private struct PauseButton: View {
 
     @ViewBuilder
     private var glyph: some View {
-        if opensApp {
+        if saves || done {
+            CheckGlyph()
+                .stroke(glyphColor, style: StrokeStyle(lineWidth: 3.2, lineCap: .round, lineJoin: .round))
+        } else if opensApp {
             Image(systemName: "arrow.up.right")
                 .font(.system(size: 17, weight: .bold))
                 .foregroundStyle(glyphColor)
@@ -637,7 +754,8 @@ private struct RecordingLockScreenView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 6) {
-                    StatusDot(color: isAlwaysOn ? phase.darkDot : phase.lockDot)
+                    StatusDot(color: isAlwaysOn ? phase.darkDot : phase.lockDot,
+                              ring: isAlwaysOn ? nil : phase.lockRing)
                     StatusLabel(context: context, ink: ink)
                     if let q = context.questionLabel { DetailLabel(text: q, ink: ink) }
                     Spacer(minLength: 8)
@@ -664,7 +782,8 @@ private struct RecordingLockScreenView: View {
                 .padding(.leading, -1)
 
                 HStack(spacing: 14) {
-                    PauseButton(isPaused: context.isPaused, opensApp: phase == .call, style: buttonStyle)
+                    PauseButton(isPaused: context.isPaused, opensApp: phase == .call,
+                                saves: phase == .ready, done: phase == .saved, style: buttonStyle)
                     // Nothing is filling while paused, so the paused frame drops it.
                     if !context.isPaused {
                         WaveformProgress(context: context, filled: waveInk, unfilled: waveInk.opacity(0.35))
@@ -706,6 +825,8 @@ private struct RecordingLockScreenView: View {
         case .paused: return LockArt.pausedParts
         case .call: return LockArt.callParts
         case .lastMinute: return LockArt.lastMinuteParts
+        case .ready: return LockArt.readyParts
+        case .saved: return LockArt.savedParts
         }
     }
 }
@@ -752,7 +873,7 @@ struct DiaryRecordingLiveActivity: Widget {
                                 StatusDot(color: context.phase.darkDot)
                                 StatusLabel(context: context)
                                 if let q = context.questionLabel { DetailLabel(text: q) }
-                                if let limit = context.limitLabel { DetailLabel(text: "up to \(limit)") }
+                                if context.phase != .ready, context.phase != .saved, let limit = context.limitLabel { DetailLabel(text: "up to \(limit)") }
                             }
                             // Keep clear of Fabio in the corner: the longer labels
                             // ("Paused by a call") shrink to fit rather than run under him.
@@ -762,6 +883,8 @@ struct DiaryRecordingLiveActivity: Widget {
                             HStack(spacing: 14) {
                                 PauseButton(isPaused: context.isPaused,
                                             opensApp: context.phase == .call,
+                                            saves: context.phase == .ready,
+                                            done: context.phase == .saved,
                                             style: .filled(context.phase.accent, glyph: .white))
                                 if !context.isPaused {
                                     WaveformProgress(context: context,
@@ -781,6 +904,10 @@ struct DiaryRecordingLiveActivity: Widget {
                                 FabioArt(parts: IslandArt.parts, size: IslandArt.size)
                             case .lastMinute:
                                 FabioArt(parts: IslandArt.lastMinuteParts, size: IslandArt.size)
+                            case .ready:
+                                FabioArt(parts: IslandArt.readyParts, size: IslandArt.readySize)
+                            case .saved:
+                                FabioArt(parts: IslandArt.savedParts, size: IslandArt.savedSize)
                             case .paused:
                                 FabioArt(parts: IslandArt.pausedParts, size: IslandArt.pausedSize)
                             case .call:

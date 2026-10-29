@@ -130,6 +130,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       questionNumber: widget.questionNumber,
       questionCount: widget.questionCount,
       onTogglePause: _recordingService.record,
+      onSave: save,
     )..attach();
     _recordingService.state.addListener(_syncLiveActivity);
     WidgetsBinding.instance.addObserver(this);
@@ -676,6 +677,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Future<void> save() async {
     if (!mounted || _completingTake) return;
     _completingTake = true;
+    var saved = false;
+    _liveActivity.holdForSave();
 
     try {
       final result = await _recordingService.save();
@@ -685,6 +688,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       switch (result.outcome) {
         case RecordingSaveOutcome.saved:
           widget.onSave?.call(basePath(result.path!));
+          saved = true;
+          unawaited(_liveActivity.saved());
           if (mounted) Navigator.pop(context);
           break;
         case RecordingSaveOutcome.emptyFile:
@@ -709,6 +714,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       _trackFailedSave();
     } finally {
       _completingTake = false;
+      if (!saved) unawaited(_liveActivity.releaseHold());
     }
   }
 
