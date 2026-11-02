@@ -27,8 +27,11 @@ void main() {
     );
   }
 
-  String studyInfo(Object? ownerEmail) => jsonEncode({
-        'data': {if (ownerEmail != null) 'owner_email': ownerEmail},
+  String studyInfo(Object? ownerEmail, {String? loginCode}) => jsonEncode({
+        'data': {
+          if (ownerEmail != null) 'owner_email': ownerEmail,
+          if (loginCode != null) 'login_code': loginCode,
+        },
       });
 
   setUp(() {
@@ -37,7 +40,8 @@ void main() {
   });
 
   group('SetupRepository.updateExperimentOwnerEmail', () {
-    test('returns false without a request when no experiment is stored', () async {
+    test('returns false without a request when no experiment is stored',
+        () async {
       when(() => mockDao.getExperiment()).thenReturn(null);
 
       final result = await buildRepository().updateExperimentOwnerEmail();
@@ -46,7 +50,8 @@ void main() {
       expect(postedBodies, isEmpty);
     });
 
-    test('returns false without a request when the login code is empty', () async {
+    test('returns false without a request when the login code is empty',
+        () async {
       when(() => mockDao.getExperiment())
           .thenReturn(createTestExperiment(login: ''));
 
@@ -71,12 +76,15 @@ void main() {
     test('saves a new, trimmed owner email and returns true', () async {
       when(() => mockDao.getExperiment())
           .thenReturn(createTestExperiment(ownerEmail: 'old@test.com'));
+      when(() => mockDao.updateOwnerEmail(any(), any())).thenReturn(true);
 
-      final result = await buildRepository(response: studyInfo('  new@test.com '))
-          .updateExperimentOwnerEmail();
+      final result =
+          await buildRepository(response: studyInfo('  new@test.com '))
+              .updateExperimentOwnerEmail();
 
       expect(result, isTrue);
-      verify(() => mockDao.updateOwnerEmail('new@test.com')).called(1);
+      verify(() => mockDao.updateOwnerEmail('test_login', 'new@test.com'))
+          .called(1);
     });
 
     test('returns true without writing when the email is unchanged', () async {
@@ -87,10 +95,11 @@ void main() {
           .updateExperimentOwnerEmail();
 
       expect(result, isTrue);
-      verifyNever(() => mockDao.updateOwnerEmail(any()));
+      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
     });
 
-    test('never overwrites with a missing, null, blank or non-string email', () async {
+    test('never overwrites with a missing, null, blank or non-string email',
+        () async {
       when(() => mockDao.getExperiment()).thenReturn(createTestExperiment());
 
       for (final response in [
@@ -107,7 +116,7 @@ void main() {
             isFalse,
             reason: response);
       }
-      verifyNever(() => mockDao.updateOwnerEmail(any()));
+      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
     });
 
     test('returns false when the request fails (null response)', () async {
@@ -116,10 +125,11 @@ void main() {
       final result = await buildRepository().updateExperimentOwnerEmail();
 
       expect(result, isFalse);
-      verifyNever(() => mockDao.updateOwnerEmail(any()));
+      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
     });
 
-    test('returns false for malformed JSON or a non-object data field', () async {
+    test('returns false for malformed JSON or a non-object data field',
+        () async {
       when(() => mockDao.getExperiment()).thenReturn(createTestExperiment());
 
       for (final response in [
@@ -134,7 +144,57 @@ void main() {
             isFalse,
             reason: response);
       }
-      verifyNever(() => mockDao.updateOwnerEmail(any()));
+      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
+    });
+
+    test('accepts a response whose login code matches, ignoring case',
+        () async {
+      when(() => mockDao.getExperiment())
+          .thenReturn(createTestExperiment(login: 'ABC123'));
+      when(() => mockDao.updateOwnerEmail(any(), any())).thenReturn(true);
+
+      final result = await buildRepository(
+              response: studyInfo('new@test.com', loginCode: 'abc123'))
+          .updateExperimentOwnerEmail();
+
+      expect(result, isTrue);
+      verify(() => mockDao.updateOwnerEmail('ABC123', 'new@test.com'))
+          .called(1);
+    });
+
+    test('ignores a response for a different login code', () async {
+      when(() => mockDao.getExperiment())
+          .thenReturn(createTestExperiment(login: 'ABC123'));
+
+      final result = await buildRepository(
+              response: studyInfo('other@test.com', loginCode: 'OTHER'))
+          .updateExperimentOwnerEmail();
+
+      expect(result, isFalse);
+      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
+    });
+
+    test('returns false when the stored study changed during the request',
+        () async {
+      when(() => mockDao.getExperiment()).thenReturn(
+          createTestExperiment(login: 'OLD', ownerEmail: 'a@test.com'));
+      // The DAO re-checks the login and refuses to write.
+      when(() => mockDao.updateOwnerEmail(any(), any())).thenReturn(false);
+
+      final result = await buildRepository(response: studyInfo('new@test.com'))
+          .updateExperimentOwnerEmail();
+
+      expect(result, isFalse);
+    });
+
+    test('returns false instead of throwing when reading the experiment throws',
+        () async {
+      when(() => mockDao.getExperiment()).thenThrow(StateError('store closed'));
+
+      final result = await buildRepository().updateExperimentOwnerEmail();
+
+      expect(result, isFalse);
+      expect(postedBodies, isEmpty);
     });
 
     test('returns false instead of throwing when the request throws', () async {
@@ -144,7 +204,7 @@ void main() {
           .updateExperimentOwnerEmail();
 
       expect(result, isFalse);
-      verifyNever(() => mockDao.updateOwnerEmail(any()));
+      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
     });
   });
 }

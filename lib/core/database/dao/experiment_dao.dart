@@ -21,12 +21,20 @@ class ExperimentDAO {
   }
 
   /// Updates only the owner email of the stored experiment, keeping its id
-  /// and every other field intact. Does nothing if no experiment is stored.
-  void updateOwnerEmail(String ownerEmail) {
+  /// and every other field intact.
+  ///
+  /// The write is skipped unless the stored experiment still has [login]
+  /// (case-insensitive), so a slow request for one study can never write onto
+  /// a different study joined in the meantime. Returns whether it wrote.
+  bool updateOwnerEmail(String login, String ownerEmail) {
     final experiment = getExperiment();
-    if (experiment == null) return;
+    if (experiment == null ||
+        experiment.login.toLowerCase() != login.toLowerCase()) {
+      return false;
+    }
     experiment.ownerEmail = ownerEmail;
     box.put(experiment);
+    return true;
   }
 
   void deleteExperiment() {

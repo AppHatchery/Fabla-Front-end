@@ -61,20 +61,19 @@ void main() {
 
     group('updateOwnerEmail', () {
       test('changes only the owner email and keeps the same id', () {
-        // ───── Arrange ─────
         final stored = createTestExperiment(
           id: 7,
           name: 'Keep Me',
+          login: 'ABC123',
           version: '3',
           ownerEmail: 'old@test.com',
         );
         when(() => mockBox.getAll()).thenReturn([stored]);
         when(() => mockBox.put(any())).thenReturn(stored.id);
 
-        // ───── Act ─────
-        experimentDAO.updateOwnerEmail('new@test.com');
+        final wrote = experimentDAO.updateOwnerEmail('ABC123', 'new@test.com');
 
-        // ───── Assert ─────
+        expect(wrote, isTrue);
         final captured = verify(() => mockBox.put(captureAny())).captured.single
             as Experiment;
         expect(captured.id, 7);
@@ -84,14 +83,33 @@ void main() {
         verifyNever(() => mockBox.removeAll());
       });
 
+      test('matches the login case-insensitively', () {
+        final stored = createTestExperiment(login: 'ABC123');
+        when(() => mockBox.getAll()).thenReturn([stored]);
+        when(() => mockBox.put(any())).thenReturn(stored.id);
+
+        expect(
+            experimentDAO.updateOwnerEmail('abc123', 'new@test.com'), isTrue);
+      });
+
+      test('does not write onto a different study than the one requested', () {
+        final stored = createTestExperiment(
+            login: 'NEW_STUDY', ownerEmail: 'keep@test.com');
+        when(() => mockBox.getAll()).thenReturn([stored]);
+
+        final wrote =
+            experimentDAO.updateOwnerEmail('OLD_STUDY', 'new@test.com');
+
+        expect(wrote, isFalse);
+        expect(stored.ownerEmail, 'keep@test.com');
+        verifyNever(() => mockBox.put(any()));
+      });
+
       test('does nothing when no experiment is stored', () {
-        // ───── Arrange ─────
         when(() => mockBox.getAll()).thenReturn([]);
 
-        // ───── Act ─────
-        experimentDAO.updateOwnerEmail('new@test.com');
-
-        // ───── Assert ─────
+        expect(
+            experimentDAO.updateOwnerEmail('ABC123', 'new@test.com'), isFalse);
         verifyNever(() => mockBox.put(any()));
       });
     });

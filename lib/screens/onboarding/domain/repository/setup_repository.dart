@@ -844,10 +844,10 @@ class SetupRepository {
   /// Returns `true` if the stored email is now up to date, `false` if there is
   /// no stored experiment, the request failed, or the response was unusable.
   Future<bool> updateExperimentOwnerEmail() async {
-    final experiment = _experimentDAO.getExperiment();
-    if (experiment == null || experiment.login.isEmpty) return false;
-
     try {
+      final experiment = _experimentDAO.getExperiment();
+      if (experiment == null || experiment.login.isEmpty) return false;
+
       final response = await _post(
         path: "/fabla/getstudyinfo",
         body: {'login_code': experiment.login},
@@ -857,13 +857,21 @@ class SetupRepository {
       final data = json.decode(response)['data'];
       if (data is! Map<String, dynamic>) return false;
 
+      // Ignore a response that is explicitly for a different study.
+      final returnedLogin = data['login_code'];
+      if (returnedLogin is String &&
+          returnedLogin.toLowerCase() != experiment.login.toLowerCase()) {
+        return false;
+      }
+
       final ownerEmail = (data['owner_email'] as String?)?.trim();
       if (ownerEmail == null || ownerEmail.isEmpty) return false;
 
-      if (ownerEmail != experiment.ownerEmail) {
-        _experimentDAO.updateOwnerEmail(ownerEmail);
-      }
-      return true;
+      if (ownerEmail == experiment.ownerEmail) return true;
+
+      // The DAO re-checks the login, in case the stored study changed while
+      // the request was in flight.
+      return _experimentDAO.updateOwnerEmail(experiment.login, ownerEmail);
     } catch (e, stackTrace) {
       CrashlyticsService().recordError(e, stackTrace,
           reason: 'Error updating owner email in updateExperimentOwnerEmail');
