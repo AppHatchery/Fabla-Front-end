@@ -20,6 +20,15 @@ class ExperimentDAO {
     addExperiment(experiment);
   }
 
+  /// Updates only the owner email of the stored experiment, keeping its id
+  /// and every other field intact. Does nothing if no experiment is stored.
+  void updateOwnerEmail(String ownerEmail) {
+    final experiment = getExperiment();
+    if (experiment == null) return;
+    experiment.ownerEmail = ownerEmail;
+    box.put(experiment);
+  }
+
   void deleteExperiment() {
     box.removeAll();
   }

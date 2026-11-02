@@ -59,6 +59,43 @@ void main() {
       verify(() => mockBox.put(experiment)).called(1);
     });
 
+    group('updateOwnerEmail', () {
+      test('changes only the owner email and keeps the same id', () {
+        // ───── Arrange ─────
+        final stored = createTestExperiment(
+          id: 7,
+          name: 'Keep Me',
+          version: '3',
+          ownerEmail: 'old@test.com',
+        );
+        when(() => mockBox.getAll()).thenReturn([stored]);
+        when(() => mockBox.put(any())).thenReturn(stored.id);
+
+        // ───── Act ─────
+        experimentDAO.updateOwnerEmail('new@test.com');
+
+        // ───── Assert ─────
+        final captured = verify(() => mockBox.put(captureAny())).captured.single
+            as Experiment;
+        expect(captured.id, 7);
+        expect(captured.ownerEmail, 'new@test.com');
+        expect(captured.name, 'Keep Me');
+        expect(captured.version, '3');
+        verifyNever(() => mockBox.removeAll());
+      });
+
+      test('does nothing when no experiment is stored', () {
+        // ───── Arrange ─────
+        when(() => mockBox.getAll()).thenReturn([]);
+
+        // ───── Act ─────
+        experimentDAO.updateOwnerEmail('new@test.com');
+
+        // ───── Assert ─────
+        verifyNever(() => mockBox.put(any()));
+      });
+    });
+
     test('deleteExperiment removes all experiments from the database', () {
       // ───── Arrange ─────
       when(() => mockBox.removeAll()).thenReturn(0);

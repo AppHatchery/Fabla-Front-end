@@ -45,19 +45,33 @@ import '../../../diary/domain/entities/protocol_entity.dart';
 import '../entities/participant.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+/// Signature of the network call used to talk to the remote source.
+/// Matches [post] so tests can substitute a fake.
+typedef PostRequest = Future<String?> Function({
+  required String path,
+  required Map<String, dynamic> body,
+});
+
 class SetupRepository {
-  final ParticipantDAO _participantDAO =
+  // Everything except the experiment DAO is created lazily, so a repository
+  // built with an injected [ExperimentDAO] never touches the global objectbox.
+  late final ParticipantDAO _participantDAO =
       ParticipantDAO(box: Box<Participant>(objectbox.store));
-  final ProtocolDAO _protocolDAO =
+  late final ProtocolDAO _protocolDAO =
       ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
-  final StudyDAO _studyDAO = StudyDAO(box: Box<Study>(objectbox.store));
-  final QuestionsDAO _questionsDAO =
+  late final StudyDAO _studyDAO = StudyDAO(box: Box<Study>(objectbox.store));
+  late final QuestionsDAO _questionsDAO =
       QuestionsDAO(box: Box<QuestionsEntity>(objectbox.store));
-  final ExperimentDAO _experimentDAO =
-      ExperimentDAO(box: Box<Experiment>(objectbox.store));
-  final DiaryRepository diaryRepository = DiaryRepository();
-  final PromptRepository promptRepository = PromptRepository();
-  final AnswerRepository answerRepository = AnswerRepository();
+  final ExperimentDAO _experimentDAO;
+  final PostRequest _post;
+  late final DiaryRepository diaryRepository = DiaryRepository();
+  late final PromptRepository promptRepository = PromptRepository();
+  late final AnswerRepository answerRepository = AnswerRepository();
+
+  SetupRepository({ExperimentDAO? experimentDao, PostRequest? postRequest})
+      : _experimentDAO = experimentDao ??
+            ExperimentDAO(box: Box<Experiment>(objectbox.store)),
+        _post = postRequest ?? post;
 
   /// Retrieves the participant's information from the database.
   ///
@@ -817,6 +831,43 @@ class SetupRepository {
     } catch (e, stackTrace) {
       CrashlyticsService()
           .recordError(e, stackTrace, reason: "Leaving study failed");
+      return false;
+    }
+  }
+
+  /// Refreshes the stored experiment's owner email from the remote source.
+  ///
+  /// Only the owner email is changed; every other experiment field (including
+  /// `version`) is left untouched. An empty or missing email from the server
+  /// never overwrites the stored one.
+  ///
+  /// Returns `true` if the stored email is now up to date, `false` if there is
+  /// no stored experiment, the request failed, or the response was unusable.
+  Future<bool> updateExperimentOwnerEmail() async {
+    final experiment = _experimentDAO.getExperiment();
+    if (experiment == null || experiment.login.isEmpty) return false;
+
+    try {
+      final response = await _post(
+        path: "/fabla/getstudyinfo",
+        body: {'login_code': experiment.login},
+      );
+      if (response == null) return false;
+
+      final data = json.decode(response)['data'];
+      if (data is! Map<String, dynamic>) return false;
+
+      final ownerEmail = (data['owner_email'] as String?)?.trim();
+      if (ownerEmail == null || ownerEmail.isEmpty) return false;
+
+      if (ownerEmail != experiment.ownerEmail) {
+        _experimentDAO.updateOwnerEmail(ownerEmail);
+      }
+      return true;
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(e, stackTrace,
+          reason: 'Error updating owner email in updateExperimentOwnerEmail');
+      dev.log("Error updating owner email: $e", name: "Update Owner Email");
       return false;
     }
   }
