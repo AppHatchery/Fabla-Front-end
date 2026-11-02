@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/services/battery_service.dart';
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
@@ -311,6 +312,8 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
   void navigateToNextPage(BuildContext context) async {
     await _permissionGuard.run(() async {
       final results = await Permission.notification.request();
+      CrashlyticsService()
+          .log("Notification permission request result: ${results.name}");
       if (!mounted) return;
 
       await PendoService.track("NotificationAccess", {"state": results.name});
@@ -358,7 +361,9 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
       await AppSettings.openAppSettings(type: AppSettingsType.settings);
 
   checkForPermission() async {
-    final result = await Permission.notification.isGranted;
+    final status = await Permission.notification.status;
+    CrashlyticsService().log("Notification permission status: ${status.name}");
+    final result = status.isGranted;
     if (mounted) setState(() => granted = result);
   }
 
