@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audio_diaries_flutter/screens/settings/presentation/pages/quickstart.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/participant_details.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/settings_active_reminders.dart';
@@ -539,8 +541,8 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
     );
 
     if (results == true && mounted) {
-      final didLeaveStudy = await repository.leaveStudy();
-      if (didLeaveStudy && context.mounted) {
+      unawaited(repository.leaveStudy());
+      if (context.mounted) {
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(

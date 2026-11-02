@@ -117,6 +117,7 @@ class CrashlyticsService {
     return true;
   }
 
+
   /// Sets a custom key-value pair for enhanced crash report context.
   /// Custom keys provide additional debugging information that appears in crash reports,
   /// helping us understand the application state when errors occur.
@@ -179,7 +180,6 @@ class CrashlyticsService {
   /// The user identifier format:
   /// - If participant exists: `{experiment.login}-{participant.studyCode}`
   /// - If no participant: `{experiment.login}-anonymous-{timestamp}`
-  /// - If no experiment exists yet: `pre-login-anonymous-{timestamp}`
   ///
   /// Usage example:
   /// ```dart
@@ -202,20 +202,15 @@ class CrashlyticsService {
     try {
       final setupRepository = SetupRepository();
       final participant = setupRepository.getParticipant();
+      final experiment = setupRepository.getExperiment();
+      final anonymousID =
+          "${experiment.login}-anonymous-${DateTime.now().millisecondsSinceEpoch}";
 
-      final experiment = setupRepository.getExperimentOrNull();
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final userId = experiment == null
-          ? 'pre-login-anonymous-$timestamp'
-          : participant == null
-              ? '${experiment.login}-anonymous-$timestamp'
-              : '${experiment.login}-${participant.studyCode}';
+      final userId =
+          '${experiment.login}-${participant?.studyCode ?? anonymousID}';
 
       await _crashlytics!.setUserIdentifier(userId);
-      if (experiment == null) {
-        await log('No experiment stored while setting Crashlytics user ID');
-      }
-      await log('User identifier set: $userId');
+      log('User identifier set: $userId');
     } catch (e) {
       dev.log('Failed to set user identifier: $e',
           name: 'CrashlyticsService', error: e, level: 900);

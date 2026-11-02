@@ -732,6 +732,8 @@ class SetupRepository {
   /// - A `Future` that resolves to a `bool` value indicating the success of the operation.
   Future<bool> leaveStudy() async {
     final userclearextrasmap = <String, dynamic>{};
+    final crashlytics = CrashlyticsService();
+    var stage = 'reading_local_state';
 
     final participant = _participantDAO.get();
     final experiment = _experimentDAO.getExperiment();
@@ -744,6 +746,8 @@ class SetupRepository {
         },
       );
 
+      stage = 'requesting_server';
+      await crashlytics.log('Leave Study: requesting server confirmation');
       final leavestudymap =
           await post(path: "/fabla/leavestudy", body: userclearextrasmap)
               .then((value) {
@@ -763,12 +767,12 @@ class SetupRepository {
       });
 
       if (leavestudymap != 'success') {
+        await crashlytics.log('Leave Study: server confirmation failed');
         return false;
       }
 
-      // Mark setup as incomplete before deleting required objectbox records so
-      // an interrupted cleanup can never route a later cold start into the hub.
-      await PreferenceService().setBoolPreference(key: 'setup', value: false);
+      stage = 'deleting_objectbox_data';
+      await crashlytics.log('Leave Study: deleting local ObjectBox data');
       _participantDAO.remove();
       _experimentDAO.deleteExperiment();
       _protocolDAO.deleteProtocol();
@@ -778,8 +782,10 @@ class SetupRepository {
       promptRepository.removeAll();
       answerRepository.removeAllResponses();
       removeAllQuestions();
+      await crashlytics.log('Leave Study: local ObjectBox data deleted');
 
       // Clear all notifications
+      stage = 'cancelling_notifications';
       await NotificationService.cancelAllNotifications();
 
       // Clearing preferences below would also wipe 'has_seen_quickstart',
@@ -790,6 +796,8 @@ class SetupRepository {
           false;
 
       // Clear all preferences
+      stage = 'clearing_preferences';
+      await crashlytics.log('Leave Study: clearing local preferences');
       await PreferenceService().clearPreferences();
 
       if (hasSeenQuickstart) {
@@ -797,9 +805,11 @@ class SetupRepository {
             .setBoolPreference(key: 'has_seen_quickstart', value: true);
       }
       // Clear home progress tracking
+      stage = 'clearing_home_progress';
       await clearAllHomeProgressTracking();
 
       // Clear all saved recordings
+      stage = 'deleting_media_files';
       final dir = await getApplicationDocumentsDirectory();
       final paths = ['recordings', 'images', 'videos']
           .map((folder) => p.join(dir.path, folder))
@@ -813,13 +823,24 @@ class SetupRepository {
       }));
 
       // Clear Credentials
+      stage = 'clearing_credentials';
       final storage = const FlutterSecureStorage();
       await storage.deleteAll();
 
+      stage = 'completed';
+      await crashlytics.log('Leave Study: cleanup completed');
       return true;
     } catch (e, stackTrace) {
-      CrashlyticsService()
-          .recordError(e, stackTrace, reason: "Leaving study failed");
+      await crashlytics.recordError(
+        e,
+        stackTrace,
+        reason: "Leaving study failed",
+        context: {
+          'leave_study_stage': stage,
+          'leave_study_participant_existed': participant != null,
+          'leave_study_experiment_existed': experiment != null,
+        },
+      );
       return false;
     }
   }

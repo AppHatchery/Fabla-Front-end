@@ -58,6 +58,7 @@ class ExperimentManager {
 
   /// Check for updates
   Future<UpdateStatus> checkForUpdates() async {
+    var stage = 'reading_update_status';
     try {
       final stored =
           await _preferenceService.getStringPreference(key: updateKey);
@@ -65,14 +66,17 @@ class ExperimentManager {
       if (stored == UpdateStatus.available.name) return UpdateStatus.available;
       if (stored == UpdateStatus.pending.name) return UpdateStatus.pending;
 
+      stage = 'reading_local_study_data';
       final code = _setupRepository.getExperiment();
       final participant = _setupRepository.getParticipant();
 
+      stage = 'requesting_user_extras';
       final getdbextras = await post(path: "/fabla/getuserextras", body: {
         'participant_id': participant?.studyCode,
         'login_code': code.login,
       });
 
+      stage = 'decoding_user_extras';
       final Map<String, dynamic> json = jsonDecode(getdbextras ?? '{}');
       final List<dynamic>? data = json['data'] as List<dynamic>?;
 
@@ -94,6 +98,7 @@ class ExperimentManager {
     } catch (e, stackTrace) {
       dev.log(e.toString(), name: 'Experiment Manager CheckForUpdates');
       CrashlyticsService().recordError(e, stackTrace,
+          context: {'experiment_update_stage': stage},
           reason:
               'Error checking for updates in ExperimentManager.checkForUpdates');
       return UpdateStatus.none;
