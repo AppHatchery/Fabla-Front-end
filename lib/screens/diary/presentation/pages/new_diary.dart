@@ -835,8 +835,9 @@ class _QuestionPageState extends State<QuestionPage>
                     hint: hint,
                     limit: prompt.option?.maxLength,
                     suggested: prompt.option?.suggestedLength,
-                    onSave: (value) {
-                      save(prompt, value.toString(), "audio", null);
+                    onSave: (path, durationMs, peakLevel) {
+                      save(prompt, path, "audio", null,
+                          durationMs: durationMs, peakLevel: peakLevel);
                     },
                   );
                 },
@@ -881,7 +882,8 @@ class _QuestionPageState extends State<QuestionPage>
     });
   }
 
-  void save(PromptModel prompt, dynamic response, String type, int? index) {
+  void save(PromptModel prompt, dynamic response, String type, int? index,
+      {int? durationMs, double? peakLevel}) {
     // Change diary status
     if (widget.diary.status == DiaryStatus.idle) {
       widget.diary.status = DiaryStatus.ongoing;
@@ -893,7 +895,9 @@ class _QuestionPageState extends State<QuestionPage>
         prompt: prompt,
         response: response,
         type: type,
-        index: index);
+        index: index,
+        durationMs: durationMs,
+        peakLevel: peakLevel);
     cancelContinueNotifications(widget.diary.id);
     if (!isClicked && mounted) {
       setState(() {

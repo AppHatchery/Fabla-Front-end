@@ -78,14 +78,18 @@ class PromptCubit extends Cubit<PromptState> {
       required PromptModel prompt,
       required dynamic response,
       required String type,
-      int? index}) async {
+      int? index,
+      int? durationMs,
+      double? peakLevel}) async {
     try {
       final saved = _repository.saveResponse(
           diary: Diary.fromModel(diary),
           prompt: prompt,
           response: response,
           type: type,
-          index: index);
+          index: index,
+          durationMs: durationMs,
+          peakLevel: peakLevel);
       if (saved) {
         if (prompt.responseType == ResponseType.audio ||
             prompt.responseType == ResponseType.textAudio ||

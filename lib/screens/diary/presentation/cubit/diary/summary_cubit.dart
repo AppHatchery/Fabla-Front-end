@@ -65,10 +65,12 @@ class SummaryCubit extends Cubit<SummaryState> {
   /// Any exceptions that occur during the saving process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
   void saveResponse(
-      DiaryModel diary, PromptModel prompt, String path, String type) {
+      DiaryModel diary, PromptModel prompt, String path, String type,
+      {int? durationMs, double? peakLevel}) {
     try {
       // Updated to use injected repository instance
-      _summaryRepository.saveResponse(prompt, path, type);
+      _summaryRepository.saveResponse(prompt, path, type,
+          durationMs: durationMs, peakLevel: peakLevel);
     } catch (e, stackTrace) {
       CrashlyticsService().recordError(e, stackTrace,
           reason: 'Error saving response in saveResponse - SummaryCubit');

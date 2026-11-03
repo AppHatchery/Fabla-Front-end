@@ -71,7 +71,9 @@ class PromptRepository {
       required PromptModel prompt,
       required dynamic response,
       required String type,
-      int? index}) {
+      int? index,
+      int? durationMs,
+      double? peakLevel}) {
     // Determine if the response is for media (audio, image, video)
     final isMediaResponse = ['audio', 'image', 'video'].contains(type);
     // Retrieve the current answer
@@ -100,7 +102,8 @@ class PromptRepository {
     // Create a recording for media responses
     Recording? createRecording() {
       return isMediaResponse
-          ? Recording(prompt.question, response, type, null, DateTime.now())
+          ? Recording(prompt.question, response, type, null, DateTime.now(),
+              durationMs: durationMs, peakLevel: peakLevel)
           : null;
     }
 

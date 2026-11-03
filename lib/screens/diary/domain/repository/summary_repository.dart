@@ -96,9 +96,15 @@ class SummaryRepository {
   /// Note:
   /// Any exceptions that occur during the saving process are caught and logged, allowing the application to handle potential errors gracefully.
   ///
-  void saveResponse(PromptModel prompt, String path, String type) {
+  void saveResponse(PromptModel prompt, String path, String type,
+      {int? durationMs, double? peakLevel}) {
     try {
-      answerRepository.saveResponse(prompt: prompt, response: path, type: type);
+      answerRepository.saveResponse(
+          prompt: prompt,
+          response: path,
+          type: type,
+          durationMs: durationMs,
+          peakLevel: peakLevel);
     } catch (e) {
       dev.log("Error saving response: $e",
           name: "SummaryRepository - saveResponse");

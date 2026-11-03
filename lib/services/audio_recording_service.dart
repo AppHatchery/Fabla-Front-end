@@ -8,6 +8,7 @@ import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/audio_segment_merger.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/recording_audio_session.dart';
+import 'package:audio_diaries_flutter/services/recorder_settings.dart';
 import 'package:audio_diaries_flutter/services/recording_foreground_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -119,13 +120,24 @@ class AudioRecordingState {
 /// The outcome of a save attempt, plus the file it produced.
 @immutable
 class RecordingSaveResult {
-  const RecordingSaveResult(this.outcome, [this.path]);
+  const RecordingSaveResult(this.outcome,
+      [this.path, this.durationMs, this.peakLevel]);
 
   final RecordingSaveOutcome outcome;
 
   /// Absolute path of the captured audio. Non-null only when [outcome] is
   /// [RecordingSaveOutcome.saved].
   final String? path;
+
+  /// How long the take captured audio for, pauses left out. Non-null only
+  /// when [outcome] is [RecordingSaveOutcome.saved].
+  final int? durationMs;
+
+  /// The loudest level the take reached, on flutter_sound's 0–120 scale.
+  /// Relative, not dBFS, and computed differently on iOS and Android, so good
+  /// for spotting a near-silent or clipped take but not for comparing devices.
+  /// Null when no level was reported.
+  final double? peakLevel;
 }
 
 typedef RecordingAudioSessionFactory = RecordingAudioSession Function({
@@ -234,6 +246,16 @@ class AudioRecordingService {
 
   DateTime? _recordingStartedAt;
 
+  /// Runs only while the recorder is capturing, so a take's duration leaves
+  /// out its pauses. Not [AudioRecordingState.elapsed], which ticks in whole
+  /// seconds.
+  final Stopwatch _captureClock = Stopwatch();
+
+  /// The loudest level reported while [_captureClock] was running.
+  double? _peakLevel;
+
+  StreamSubscription<RecordingDisposition>? _levelSubscription;
+
   static const _minimumRecordingStartDelay = Duration(milliseconds: 400);
 
   static const _lockPollInterval = Duration(milliseconds: 25);
@@ -252,6 +274,10 @@ class AudioRecordingService {
       _foregroundService.configure();
 
       await _recorder.openRecorder();
+
+      // The stream exists only once the recorder is open. It is broadcast, so
+      // the waveform listening as well is unaffected.
+      _levelSubscription = _recorder.onProgress?.listen(_trackPeakLevel);
 
       await _recorder.setSubscriptionDuration(
         const Duration(milliseconds: 60),
@@ -330,7 +356,11 @@ class AudioRecordingService {
 
       await _audioSession.captureInputDevices();
       await _foregroundService.start();
-      await _recorder.startRecorder(codec: Codec.aacMP4, toFile: path);
+      await _startRecorder(path);
+      _captureClock
+        ..reset()
+        ..start();
+      _peakLevel = null;
       _requestedTakePath = path;
       _takeBasePath = path;
       _segments.clear();
@@ -383,6 +413,7 @@ class AudioRecordingService {
     _setWakelock(enable: false);
 
     _timer?.cancel();
+    _captureClock.stop();
 
     try {
       await _recorder.pauseRecorder();
@@ -445,6 +476,8 @@ class AudioRecordingService {
       return;
     }
 
+    _captureClock.start();
+
     _emit(
       status: AudioRecordingStatus.recording,
       isInterrupted: false,
@@ -467,7 +500,7 @@ class AudioRecordingService {
     await _foregroundService.start();
 
     try {
-      await _recorder.startRecorder(codec: Codec.aacMP4, toFile: path);
+      await _startRecorder(path);
     } catch (e, s) {
       CrashlyticsService().recordError(
         e,
@@ -483,6 +516,7 @@ class AudioRecordingService {
       return;
     }
 
+    _captureClock.start();
     _segmentCount++;
     _requestedTakePath = path;
     _segmentSealed = false;
@@ -518,6 +552,7 @@ class AudioRecordingService {
     if (startedAt == null) return false;
 
     _timer?.cancel();
+    _captureClock.stop();
     _recordingStartedAt = null;
 
     _setWakelock(enable: false);
@@ -611,6 +646,7 @@ class AudioRecordingService {
     if (_recordingStartedAt == null || _segmentSealed) return;
 
     _timer?.cancel();
+    _captureClock.stop();
 
     _setWakelock(enable: false);
     await _foregroundService.stop();
@@ -792,6 +828,10 @@ class AudioRecordingService {
   /// later [save] cannot persist a path that no longer exists.
   Future<void> discardTake() async {
     _timer?.cancel();
+    _captureClock
+      ..stop()
+      ..reset();
+    _peakLevel = null;
 
     _emit(
       elapsed: Duration.zero,
@@ -852,7 +892,8 @@ class AudioRecordingService {
         return const RecordingSaveResult(RecordingSaveOutcome.emptyFile);
       }
 
-      return RecordingSaveResult(RecordingSaveOutcome.saved, path);
+      return RecordingSaveResult(RecordingSaveOutcome.saved, path,
+          _captureClock.elapsedMilliseconds, _peakLevel);
     } catch (e, s) {
       CrashlyticsService().recordError(
         e,
@@ -910,6 +951,7 @@ class AudioRecordingService {
 
     _timer?.cancel();
     _audioSession.stopListening();
+    await _levelSubscription?.cancel();
 
     // Let an in-flight move finish before teardown touches the audio stack.
     // `_disposed` is already set, so nothing new can claim the recorder. Tearing
@@ -1112,6 +1154,26 @@ class AudioRecordingService {
       _recorderBusy = false;
     }
   }
+
+  /// Levels that arrive while the take is paused are ignored, so a stray
+  /// report after a pause cannot raise the peak.
+  void _trackPeakLevel(RecordingDisposition progress) {
+    final level = progress.decibels;
+    if (level == null || !_captureClock.isRunning) return;
+
+    final peak = _peakLevel;
+    if (peak == null || level > peak) _peakLevel = level;
+  }
+
+  /// Every segment starts with the same [RecorderSettings], or an iOS take
+  /// split by an interruption could not be joined without re-encoding.
+  Future<void> _startRecorder(String path) => _recorder.startRecorder(
+        codec: RecorderSettings.codec,
+        toFile: path,
+        sampleRate: RecorderSettings.sampleRate,
+        numChannels: RecorderSettings.numChannels,
+        bitRate: RecorderSettings.bitRate,
+      );
 
   Future<String> _filePath() async {
     final directory = await getApplicationDocumentsDirectory();

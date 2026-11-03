@@ -667,9 +667,9 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                 limit: prompt.option?.maxLength,
                 suggested: prompt.option?.suggestedLength,
                 hint: hint,
-                onSave: (value) {
-                  summaryCubit.saveResponse(
-                      widget.diary, prompt, value.toString(), 'audio');
+                onSave: (path, durationMs, peakLevel) {
+                  summaryCubit.saveResponse(widget.diary, prompt, path, 'audio',
+                      durationMs: durationMs, peakLevel: peakLevel);
                 },
               );
             }));

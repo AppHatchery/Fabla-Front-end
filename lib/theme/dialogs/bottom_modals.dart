@@ -41,7 +41,9 @@ class BottomRecordingModal extends StatefulWidget {
   final String? hint;
   final Duration? suggested;
   final Duration? limit;
-  final ValueChanged<String?>? onSave;
+  /// Called with the saved take's path, how long it captured for and the
+  /// loudest level it reached.
+  final void Function(String path, int? durationMs, double? peakLevel)? onSave;
   final String? subtitle;
 
   const BottomRecordingModal(
@@ -654,7 +656,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
       switch (result.outcome) {
         case RecordingSaveOutcome.saved:
-          widget.onSave?.call(basePath(result.path!));
+          widget.onSave?.call(
+              basePath(result.path!), result.durationMs, result.peakLevel);
           if (mounted) Navigator.pop(context);
           break;
         case RecordingSaveOutcome.emptyFile:

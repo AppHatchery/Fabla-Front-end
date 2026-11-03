@@ -63,7 +63,9 @@ class AnswerRepository {
   Future<bool> saveResponse(
       {required PromptModel prompt,
       required dynamic response,
-      required String type}) async {
+      required String type,
+      int? durationMs,
+      double? peakLevel}) async {
     final isUpdating = prompt.answer != null;
     late Answer answer;
 
@@ -72,8 +74,9 @@ class AnswerRepository {
           ? prompt.answer! // Use the existing answer for updating
           : Answer(id: 0, date: DateTime.now()); // Create a new answer
       // Create a new recording and associate it with the answer
-      final recording =
-          Recording(prompt.question, response, type, null, DateTime.now());
+      final recording = Recording(
+          prompt.question, response, type, null, DateTime.now(),
+          durationMs: durationMs, peakLevel: peakLevel);
       recording.answer.target = answer;
       answer.recordings.add(recording);
     } else {

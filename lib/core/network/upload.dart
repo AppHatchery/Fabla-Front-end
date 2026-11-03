@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:audio_diaries_flutter/core/network/build_submission_payload.dart';
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
 import 'package:audio_diaries_flutter/core/usecases/location.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -52,8 +54,6 @@ export 'submission_models.dart';
 /// ```
 Future<bool> upload(String participantID, DiaryModel diary) async {
   try {
-    final submittedAt = DateTime.now().toIso8601String(); // Still yet to decide if UTC or Local
-
     final dir = await getApplicationDocumentsDirectory();
     final repository = SetupRepository();
     final diaryRepository = DiaryRepository();
@@ -106,6 +106,19 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
         diary: diary,
         study: study);
     promptEntryList.addAll(completionTime);
+
+    // Not sent yet: logged so the nested shape can be checked on a device
+    // until the Lambda accepts it.
+    if (kDebugMode) {
+      await _logSubmissionPayload(
+          diary: diary,
+          study: study,
+          participantID: participantID,
+          experimentCode: experiment.login,
+          completionTime: completionTime,
+          files: files,
+          dir: dir);
+    }
 
     promptEntryList.addAll(
         references); // Adding the references to the list going to Dynamo
@@ -265,6 +278,39 @@ void _addPromptEntry(
       required: prompt.required,
     ),
   );
+}
+
+/// Builds the nested submission and logs it. A failure here is only logged,
+/// so it can never fail the flat upload.
+Future<void> _logSubmissionPayload(
+    {required DiaryModel diary,
+    required StudyModel? study,
+    required String participantID,
+    required String experimentCode,
+    required List<PromptEntry> completionTime,
+    required List<FileData> files,
+    required Directory dir}) async {
+  try {
+    String? sessionTime(String type) => completionTime
+        .where((e) => e.questionsType == type)
+        .firstOrNull
+        ?.response;
+
+    final payload = await buildSubmissionPayload(
+        diary: diary,
+        study: study,
+        participantID: participantID,
+        experimentCode: experimentCode,
+        sessionStartedAt: sessionTime('start_time'),
+        sessionCompletedAt: sessionTime('end_time'),
+        responses: await buildResponses(
+            prompts: diary.prompts, files: files, dir: dir));
+
+    dev.log(jsonEncode(payload.toJson()), name: 'Upload - Submission Payload');
+  } catch (e) {
+    dev.log('Failed to build submission payload: $e',
+        name: 'Upload - Submission Payload');
+  }
 }
 
 String formatSubmissionDate(DateTime date) {

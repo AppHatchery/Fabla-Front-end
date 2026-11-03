@@ -95,6 +95,8 @@ Recording createTestRecording({
   String path = 'audios/test.aac',
   String type = 'audio',
   DateTime? date,
+  int? durationMs,
+  double? peakLevel,
 }) {
   return Recording(
     'Test Recording',
@@ -103,6 +105,8 @@ Recording createTestRecording({
     null,
     date ?? DateTime(2026, 9, 1, 10),
     id: id,
+    durationMs: durationMs,
+    peakLevel: peakLevel,
   );
 }
 

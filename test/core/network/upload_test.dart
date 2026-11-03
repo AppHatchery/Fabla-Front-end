@@ -514,9 +514,9 @@ void main() {
 
       expect(files, hasLength(1));
       expect(files.single.localDirectory, '/docs/audios/a.aac');
-      expect(
-          files.single.awsS3Directory, startsWith('exp/Audios/p1_2026-09-01_'));
-      expect(files.single.awsS3Directory, endsWith('_7.aac'));
+      // <exp>_<pid>_<diary start>_<HH-mm-ss of the recording>_<recording id>
+      expect(files.single.awsS3Directory,
+          'exp/Audios/exp_p1_2026-09-01_10-00-00_7.aac');
       expect(references.single.reference, stem(files.single));
     });
 

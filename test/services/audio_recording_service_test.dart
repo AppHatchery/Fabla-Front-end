@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/audio_recording_service.dart';
+import 'package:audio_diaries_flutter/services/recorder_settings.dart';
 import 'package:audio_diaries_flutter/services/audio_segment_merger.dart';
 import 'package:audio_diaries_flutter/services/recording_audio_session.dart';
 import 'package:audio_diaries_flutter/services/recording_foreground_service.dart';
@@ -575,6 +576,9 @@ void main() {
     /// The path `startRecorder` was asked to write.
     String? startedPath;
 
+    /// The arguments of every `startRecorder` call, oldest first.
+    late List<Map<dynamic, dynamic>> startArguments;
+
     /// Whether the stubbed encoder writes anything. flutter_sound creates the
     /// file lazily on the first audio write, so `false` reproduces the take
     /// that leaves a valid-looking path pointing at nothing.
@@ -639,6 +643,7 @@ void main() {
 
       documents = Directory.systemTemp.createTempSync('take');
       startedPath = null;
+      startArguments = [];
       encoderWritesFile = true;
       encoderLeavesEmptyFile = false;
       reportedStopPath = (requested) => requested;
@@ -716,6 +721,7 @@ void main() {
 
             final path = (call.arguments as Map)['path'] as String;
             startedPath = path;
+            startArguments.add(call.arguments as Map);
             if (encoderWritesFile) {
               File(path).writeAsBytesSync([1, 2, 3, 4]);
             } else if (encoderLeavesEmptyFile) {
@@ -854,6 +860,109 @@ void main() {
     // down once nothing is. Both halves are pure ordering, invisible from the
     // outside until the service could be injected.
     // ----------------------------------------------------------------
+
+    test('a take is recorded with the stated settings, not the device\'s',
+        () async {
+      await startTake();
+
+      final arguments = startArguments.single;
+      expect(arguments['codec'], RecorderSettings.codec.index);
+      expect(arguments['sampleRate'], RecorderSettings.sampleRate);
+      expect(arguments['numChannels'], RecorderSettings.numChannels);
+      expect(arguments['bitRate'], RecorderSettings.bitRate);
+    });
+
+    test('a saved take reports how long it captured for', () async {
+      // record() holds the start for _minimumRecordingStartDelay (400ms)
+      // with the recorder already capturing, so that much is a floor.
+      await startTake();
+      await service.stop();
+
+      final result = await service.save();
+
+      expect(result.outcome, RecordingSaveOutcome.saved);
+      expect(result.durationMs, greaterThanOrEqualTo(400));
+    });
+
+    test('time spent paused is not counted in the duration', () async {
+      await startTake();
+      await service.record(); // pause
+      expect(service.state.value.isPaused, isTrue);
+
+      await Future<void>.delayed(const Duration(milliseconds: 1500));
+
+      await service.record(); // resume
+      await service.stop();
+
+      final result = await service.save();
+
+      // About 400ms captured either side of a 1.5s pause.
+      expect(result.durationMs, lessThan(1500));
+    });
+
+    test('a redo starts the duration again', () async {
+      await startTake();
+      await service.record(); // pause
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await service.record(); // resume
+      await Future<void>.delayed(const Duration(milliseconds: 1500));
+      await service.stop();
+      await service.discardTake();
+
+      await service.record();
+      await service.stop();
+
+      final result = await service.save();
+      expect(result.durationMs, lessThan(1500),
+          reason: 'the discarded take\'s time must not carry over');
+    });
+
+    /// What the native side posts every subscription tick while capturing.
+    Future<void> reportLevel(double level) async {
+      service.recorder.updateRecorderProgress(duration: 0, dbPeakLevel: level);
+      // The broadcast stream delivers on a later microtask.
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    test('a saved take reports the loudest level it reached', () async {
+      await startTake();
+      await reportLevel(40);
+      await reportLevel(85.5);
+      await reportLevel(60);
+      await service.stop();
+
+      expect((await service.save()).peakLevel, 85.5);
+    });
+
+    test('a level reported while paused does not raise the peak', () async {
+      await startTake();
+      await reportLevel(40);
+      await service.record(); // pause
+      await reportLevel(110);
+      await service.stop();
+
+      expect((await service.save()).peakLevel, 40);
+    });
+
+    test('a redo does not keep the discarded take\'s peak', () async {
+      await startTake();
+      await reportLevel(110);
+      await service.stop();
+      await service.discardTake();
+
+      await service.record();
+      await reportLevel(30);
+      await service.stop();
+
+      expect((await service.save()).peakLevel, 30);
+    });
+
+    test('a take with no reported level has no peak', () async {
+      await startTake();
+      await service.stop();
+
+      expect((await service.save()).peakLevel, isNull);
+    });
 
     test('the microphone is protected before the encoder writes', () async {
       await startTake();

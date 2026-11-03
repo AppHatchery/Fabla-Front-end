@@ -261,7 +261,7 @@
     },
     {
       "id": "8:6563800693063139779",
-      "lastPropertyId": "7:2805220565069682009",
+      "lastPropertyId": "9:1247519410385132364",
       "name": "Recording",
       "properties": [
         {
@@ -302,6 +302,16 @@
           "id": "7:2805220565069682009",
           "name": "type",
           "type": 9
+        },
+        {
+          "id": "8:507348995006062542",
+          "name": "durationMs",
+          "type": 6
+        },
+        {
+          "id": "9:1247519410385132364",
+          "name": "peakLevel",
+          "type": 8
         }
       ],
       "relations": []

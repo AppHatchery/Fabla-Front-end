@@ -120,6 +120,8 @@ void main() {
           .thenReturn(createTestParticipant());
       when(() => diaryRepository.getDiaryByID(any()))
           .thenReturn(createTestDiaryModel(currentEntry: 0));
+      // Stores the submission ID and attempt count before the upload starts.
+      when(() => diaryRepository.updateDiary(any())).thenAnswer((_) async {});
     });
 
     // Each test uses its own diary id: a test that fails before completing
