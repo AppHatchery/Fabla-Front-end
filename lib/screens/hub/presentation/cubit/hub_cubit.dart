@@ -1,7 +1,6 @@
 import 'package:audio_diaries_flutter/core/usecases/experiment_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repository.dart';
-import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/services/notification_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -100,7 +99,6 @@ class HubCubit extends Cubit<HubState> {
   }
 
   Future<void> checkForUpdates() async {
-    await CrashlyticsService().log('Hub: checking for experiment updates');
     final status = await _experimentManager.checkForUpdates();
     if (status == UpdateStatus.available) {
       if (hasOngoingOrCompleteToday()) {

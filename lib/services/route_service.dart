@@ -156,22 +156,20 @@ class RouteService {
         extraPermissions.contains('camera') ? (preferences[5] ?? false) : true;
     final onboardingComplete = preferences[6] ?? false;
 
-    final participant = _setupRepository.getParticipant();
-    final experiment = _setupRepository.getExperimentOrNull();
-
-    // Capture the independent preference/database state without changing the
-    // existing routing decision. This lets a future report show whether Hub
-    // was selected with required ObjectBox records missing.
-    await CrashlyticsService().setCustomKeys({
-      'route_setup_preference': setup,
-      'route_has_participant': participant != null,
-      'route_has_experiment': experiment != null,
-    });
-    await CrashlyticsService().log(
-      'Startup persistence checked: setup=$setup, '
-      'participantExists=${participant != null}, '
-      'experimentExists=${experiment != null}',
+    final lastExperimentAction = await _preferenceService.getStringPreference(
+      key: SetupRepository.experimentLastActionKey,
     );
+    if (lastExperimentAction != null) {
+      await CrashlyticsService().setCustomKey(
+        SetupRepository.experimentLastActionKey,
+        lastExperimentAction,
+      );
+      await CrashlyticsService().log(
+        'Recovered incomplete experiment action: $lastExperimentAction',
+      );
+    }
+
+    final participant = _setupRepository.getParticipant();
 
     // Priority cascade: each condition represents an incomplete onboarding step.
     // The order matches the _flow sequence — whichever step is not yet marked

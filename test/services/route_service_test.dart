@@ -60,6 +60,9 @@ void main() {
         when(mockPreferenceService.getStringListPreference(
                 key: 'extra_permissions'))
             .thenAnswer((_) async => extraPermissions ?? []);
+        when(mockPreferenceService.getStringPreference(
+                key: SetupRepository.experimentLastActionKey))
+            .thenAnswer((_) async => null);
         when(mockPreferenceService.getBoolPreference(key: 'setup'))
             .thenAnswer((_) async => setup);
         when(mockPreferenceService.getBoolPreference(
@@ -76,7 +79,6 @@ void main() {
         when(mockPreferenceService.getBoolPreference(
                 key: 'onboarding_complete'))
             .thenAnswer((_) async => onboardingComplete);
-        when(mockSetupRepository.getExperimentOrNull()).thenReturn(null);
       }
 
       testWidgets('should return Hub when setup is true',

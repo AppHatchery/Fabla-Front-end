@@ -148,7 +148,8 @@ class LoginRepository {
       final exists = data['exists'];
       if (exists == true) {
         await SecureSave().save(
-          CredentialsModel.fromBackendMessage(data['message'] as Map<String, dynamic>),
+          CredentialsModel.fromBackendMessage(
+              data['message'] as Map<String, dynamic>),
         );
 
         //Add Participant to DB
@@ -189,7 +190,6 @@ class LoginRepository {
   /// }
   /// ```
   Future<ExperimentModel?> studyVerification(String code) async {
-    var stage = 'requesting_study';
     // Get the experiment information from the remote source
     try {
       final response = await post(path: "/fabla/getstudyinfo", body: {
@@ -203,15 +203,7 @@ class LoginRepository {
 
         // Verify the code and save the experiment data to the database
         if (code.toLowerCase() == experiment.login.toLowerCase()) {
-          stage = 'replacing_experiment';
-          await CrashlyticsService().log(
-            'Study login: replacing local experiment',
-          );
           _experimentDAO.replaceExperiment(Experiment.fromModel(experiment));
-          stage = 'experiment_replaced';
-          await CrashlyticsService().log(
-            'Study login: local experiment replaced',
-          );
           final setup = SetupRepository();
           final questions = data['onboarding_questions'] as List;
 
@@ -240,7 +232,7 @@ class LoginRepository {
     } catch (e, stackTrace) {
       // Log the error if something goes wrong
       CrashlyticsService().recordError(e, stackTrace,
-          context: {'study_login_stage': stage},
+          context: {'code': code},
           reason: 'Error during study verification in studyVerification');
       dev.log(e.toString(), name: "Study Verification");
       return null;

@@ -9,7 +9,8 @@ import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart'
     show checkForInternet;
-import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart' show clearAllHomeProgressTracking;
+import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart'
+    show clearAllHomeProgressTracking;
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -46,6 +47,9 @@ import '../entities/participant.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class SetupRepository {
+  static const experimentLastActionKey = 'experiment_last_action';
+  static const leaveStudyConfirmedAction = 'leave_study_confirmed_by_user';
+
   final ParticipantDAO _participantDAO =
       ParticipantDAO(box: Box<Participant>(objectbox.store));
   final ProtocolDAO _protocolDAO =
@@ -292,8 +296,26 @@ class SetupRepository {
   }
 
   ExperimentModel getExperiment() {
-    final entity = _experimentDAO.getExperiment();
-    return ExperimentModel.fromEntity(entity!);
+    try {
+      final entity = _experimentDAO.getExperiment();
+      if (entity == null) {
+        throw StateError('Experiment not found in local database');
+      }
+      return ExperimentModel.fromEntity(entity);
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(
+        e,
+        stackTrace,
+        reason: 'Error getting experiment in SetupRepository.getExperiment',
+      );
+      dev.log(
+        e.toString(),
+        name: 'SetupRepository.getExperiment',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   /// Null-safe variant for flows (e.g. login screens) that run before an
@@ -732,13 +754,17 @@ class SetupRepository {
   /// - A `Future` that resolves to a `bool` value indicating the success of the operation.
   Future<bool> leaveStudy() async {
     final userclearextrasmap = <String, dynamic>{};
+    final preferences = PreferenceService();
     final crashlytics = CrashlyticsService();
-    var stage = 'reading_local_state';
 
     final participant = _participantDAO.get();
     final experiment = _experimentDAO.getExperiment();
 
     try {
+      await crashlytics.log(
+        'User confirmed Leave Study; local experiment is still present',
+      );
+
       userclearextrasmap.addAll(
         {
           'participant_id': participant!.studyCode.toString(),
@@ -746,8 +772,6 @@ class SetupRepository {
         },
       );
 
-      stage = 'requesting_server';
-      await crashlytics.log('Leave Study: requesting server confirmation');
       final leavestudymap =
           await post(path: "/fabla/leavestudy", body: userclearextrasmap)
               .then((value) {
@@ -767,14 +791,28 @@ class SetupRepository {
       });
 
       if (leavestudymap != 'success') {
-        await crashlytics.log('Leave Study: server confirmation failed');
+        await crashlytics.log(
+          'Leave Study stopped before local deletion because server confirmation failed',
+        );
         return false;
       }
 
-      stage = 'deleting_objectbox_data';
-      await crashlytics.log('Leave Study: deleting local ObjectBox data');
+      await preferences.setStringPreference(
+        key: experimentLastActionKey,
+        value: leaveStudyConfirmedAction,
+      );
+      await crashlytics.setCustomKey(
+        experimentLastActionKey,
+        leaveStudyConfirmedAction,
+      );
+      await crashlytics.log(
+        'Leave Study server confirmation succeeded; deleting local experiment',
+      );
       _participantDAO.remove();
       _experimentDAO.deleteExperiment();
+      await crashlytics.log(
+        'Leave Study local experiment deletion completed',
+      );
       _protocolDAO.deleteProtocol();
       _studyDAO.deleteAllStudies();
       _questionsDAO.removeAllQuestions();
@@ -782,10 +820,8 @@ class SetupRepository {
       promptRepository.removeAll();
       answerRepository.removeAllResponses();
       removeAllQuestions();
-      await crashlytics.log('Leave Study: local ObjectBox data deleted');
 
       // Clear all notifications
-      stage = 'cancelling_notifications';
       await NotificationService.cancelAllNotifications();
 
       // Clearing preferences below would also wipe 'has_seen_quickstart',
@@ -796,20 +832,16 @@ class SetupRepository {
           false;
 
       // Clear all preferences
-      stage = 'clearing_preferences';
-      await crashlytics.log('Leave Study: clearing local preferences');
-      await PreferenceService().clearPreferences();
+      await preferences.clearPreferences();
 
       if (hasSeenQuickstart) {
         await PreferenceService()
             .setBoolPreference(key: 'has_seen_quickstart', value: true);
       }
       // Clear home progress tracking
-      stage = 'clearing_home_progress';
       await clearAllHomeProgressTracking();
 
       // Clear all saved recordings
-      stage = 'deleting_media_files';
       final dir = await getApplicationDocumentsDirectory();
       final paths = ['recordings', 'images', 'videos']
           .map((folder) => p.join(dir.path, folder))
@@ -823,24 +855,16 @@ class SetupRepository {
       }));
 
       // Clear Credentials
-      stage = 'clearing_credentials';
       final storage = const FlutterSecureStorage();
       await storage.deleteAll();
 
-      stage = 'completed';
-      await crashlytics.log('Leave Study: cleanup completed');
       return true;
     } catch (e, stackTrace) {
-      await crashlytics.recordError(
-        e,
-        stackTrace,
-        reason: "Leaving study failed",
-        context: {
-          'leave_study_stage': stage,
-          'leave_study_participant_existed': participant != null,
-          'leave_study_experiment_existed': experiment != null,
-        },
-      );
+      if (_experimentDAO.getExperiment() != null) {
+        await preferences.removePreference(key: experimentLastActionKey);
+      }
+      CrashlyticsService()
+          .recordError(e, stackTrace, reason: "Leaving study failed");
       return false;
     }
   }
