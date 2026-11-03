@@ -20,6 +20,11 @@ struct DiaryTimerActivityAttributes: ActivityAttributes {
     // Fixed for the activity's lifetime — used by the expanded (long-press)
     // Dynamic Island view to render session length and overall progress.
     var totalDuration: TimeInterval
+    // "Q5 of 8"; both nil when the question's place isn't known.
+    var questionNumber: Int?
+    var questionCount: Int?
+    // Whether the timer has playback controls, and so a pause button.
+    var canPause: Bool?
 }
 
 /// The diary recording Live Activity: one take of one audio answer.
@@ -56,6 +61,18 @@ struct DiaryRecordingActivityAttributes: ActivityAttributes {
 enum RecordingIntentBridge {
     static var togglePause: ((ToggleRecordingPauseIntent) async throws -> Void)?
     static var save: (() async -> Void)?
+    static var toggleTimer: (() async -> Void)?
+}
+
+/// Pause/resume the meditation timer from the Lock Screen or Dynamic Island.
+/// Runs in the app through the bridge, as the recording's button does.
+@available(iOS 18.0, *)
+struct ToggleTimerPauseIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Pause or resume timer"
+    func perform() async throws -> some IntentResult {
+        await RecordingIntentBridge.toggleTimer?()
+        return .result()
+    }
 }
 
 /// Saves a stopped take from the Lock Screen or Dynamic Island, as the

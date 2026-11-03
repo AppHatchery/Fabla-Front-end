@@ -317,6 +317,8 @@ class _EditDiaryPageState extends State<EditDiaryPage>
           time: prompt.option?.timerLength ?? Duration(seconds: 30),
           userInteraction: prompt.option?.userInteraction ?? false,
           playbackControls: prompt.option?.playbackControl ?? false,
+          questionNumber: widget.index,
+          questionCount: widget.diary.prompts.length,
           respond: (answer) {
             final completed = completedTimes ?? [];
             completed.add(answer);

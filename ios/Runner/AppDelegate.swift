@@ -66,6 +66,9 @@ import AVFoundation
       RecordingIntentBridge.save = { [weak self] in
         await self?.invokeRecording("recordingSave")
       }
+      RecordingIntentBridge.toggleTimer = { [weak self] in
+        await self?.invokeRecording("timerTogglePause")
+      }
     }
 
     // Joins the segments of a recording split by an interruption. See
@@ -140,7 +143,12 @@ import AVFoundation
       let endDate = Date(timeIntervalSince1970: endDateMillis / 1000)
       let totalDurationMillis = args?["totalDurationMillis"] as? Double
       let totalDuration = totalDurationMillis.map { $0 / 1000 } ?? endDate.timeIntervalSinceNow
-      let attributes = DiaryTimerActivityAttributes(title: "Diary Timer", totalDuration: totalDuration)
+      let attributes = DiaryTimerActivityAttributes(
+        title: "Meditation timer",
+        totalDuration: totalDuration,
+        questionNumber: args?["questionNumber"] as? Int,
+        questionCount: args?["questionCount"] as? Int,
+        canPause: args?["canPause"] as? Bool ?? false)
       let state = DiaryTimerActivityAttributes.ContentState(endDate: endDate, pausedRemaining: nil)
       Task {
         if let existing = AppDelegate.currentTimerActivity {

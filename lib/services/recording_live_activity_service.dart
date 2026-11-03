@@ -5,7 +5,7 @@ import 'dart:io' show Platform;
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/services/audio_recording_service.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
-import 'package:flutter/services.dart';
+import 'package:audio_diaries_flutter/services/live_activity_channel.dart';
 
 /// Mirrors one diary answer's take onto the iOS recording Live Activity (Lock
 /// Screen + Dynamic Island), via ios/Runner/AppDelegate.swift.
@@ -16,7 +16,7 @@ import 'package:flutter/services.dart';
 /// own buttons come back as [onTogglePause] and [onSave]. A no-op off iOS, and best-effort like
 /// [TimerLiveUpdateService]: it must never block or crash the recorder.
 class RecordingLiveActivityService {
-  static const _channel = MethodChannel('diary/live_activity');
+  static const _channel = LiveActivityChannel.channel;
 
   RecordingLiveActivityService({
     required this.onTogglePause,
@@ -68,18 +68,21 @@ class RecordingLiveActivityService {
   /// Takes the channel's incoming calls. Call once, before the first take.
   void attach() {
     if (!_isIOS) return;
-    _channel.setMethodCallHandler((call) async {
-      if (call.method == 'recordingSave') {
-        await onSave();
-        return null;
-      }
-      if (call.method != 'recordingTogglePause') return null;
-      await onTogglePause();
-      // The microphone could not be reclaimed. From the background that is
-      // iOS refusing a session a call took ('!int'); the native side then
-      // asks to continue in the foreground, where resuming is allowed.
-      return {'needsForeground': _lastState?.microphoneUnavailable ?? false};
-    });
+    LiveActivityChannel.on('recordingSave', _handleSave);
+    LiveActivityChannel.on('recordingTogglePause', _handleTogglePause);
+  }
+
+  Future<dynamic> _handleSave() async {
+    await onSave();
+    return null;
+  }
+
+  Future<dynamic> _handleTogglePause() async {
+    await onTogglePause();
+    // The microphone could not be reclaimed. From the background that is
+    // iOS refusing a session a call took ('!int'); the native side then
+    // asks to continue in the foreground, where resuming is allowed.
+    return {'needsForeground': _lastState?.microphoneUnavailable ?? false};
   }
 
   /// Brings the activity in line with [state]. Safe to call on every change:
@@ -169,7 +172,8 @@ class RecordingLiveActivityService {
 
   void detach() {
     if (!_isIOS) return;
-    _channel.setMethodCallHandler(null);
+    LiveActivityChannel.off('recordingSave', _handleSave);
+    LiveActivityChannel.off('recordingTogglePause', _handleTogglePause);
   }
 
   Future<bool> _isEnabled() async {

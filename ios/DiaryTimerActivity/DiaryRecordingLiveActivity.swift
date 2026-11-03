@@ -155,7 +155,7 @@ private extension ActivityViewContext<DiaryRecordingActivityAttributes> {
 /// [mirrored] flips the part across its frame, as the paused frames' Figma
 /// instances do, and [rotation] turns it about its own centre.
 @available(iOS 17.0, *)
-private struct Part {
+struct Part {
     let image: String
     let frame: CGRect
     let inset: (t: CGFloat, r: CGFloat, b: CGFloat, l: CGFloat)
@@ -182,7 +182,7 @@ private struct Part {
 }
 
 @available(iOS 17.0, *)
-private struct FabioArt: View {
+struct FabioArt: View {
     let parts: [Part]
     let size: CGSize
 
@@ -228,7 +228,7 @@ private struct FabioArt: View {
 }
 
 @available(iOS 17.0, *)
-private enum Insets {
+enum Insets {
     static let headsetFar: (CGFloat, CGFloat, CGFloat, CGFloat) = (8.62, 29.93, 65.95, 15.61)
     static let body: (CGFloat, CGFloat, CGFloat, CGFloat) = (13.5, 1.92, 1.98, 1.72)
     static let face: (CGFloat, CGFloat, CGFloat, CGFloat) = (35.2, 34.38, 56.67, 51.88)
@@ -243,7 +243,7 @@ private enum Insets {
 }
 
 @available(iOS 17.0, *)
-private func part(_ image: String, _ frame: CGRect, _ inset: (CGFloat, CGFloat, CGFloat, CGFloat),
+func part(_ image: String, _ frame: CGRect, _ inset: (CGFloat, CGFloat, CGFloat, CGFloat),
                   mirrored: Bool = false, rotation: Double = 0) -> Part {
     Part(image: image, frame: frame, inset: (inset.0, inset.1, inset.2, inset.3),
          mirrored: mirrored, rotation: rotation)
@@ -505,8 +505,8 @@ private struct FabioAvatar: View {
 /// The status dot: a 2pt ring around an 8pt dot, 16pt overall, coloured by
 /// [Phase].
 @available(iOS 17.0, *)
-private struct StatusDot: View {
-    var color: Color = .recordingDot
+struct StatusDot: View {
+    var color: Color
     var ring: Color?
 
     var body: some View {
@@ -520,7 +520,7 @@ private struct StatusDot: View {
 
 /// The Figma resume glyph: a rounded play triangle in the 40pt button.
 @available(iOS 17.0, *)
-private struct PlayGlyph: Shape {
+struct PlayGlyph: Shape {
     func path(in rect: CGRect) -> Path {
         let s = rect.width / 40
         var p = Path()
@@ -540,7 +540,7 @@ private struct PlayGlyph: Shape {
 
 /// The Figma save glyph: a check in the 40pt button.
 @available(iOS 17.0, *)
-private struct CheckGlyph: Shape {
+struct CheckGlyph: Shape {
     func path(in rect: CGRect) -> Path {
         let s = rect.width / 40
         var p = Path()
@@ -834,7 +834,7 @@ private struct RecordingLockScreenView: View {
 // MARK: - Dynamic Island
 
 @available(iOS 17.0, *)
-private struct FablaMark: View {
+struct FablaMark: View {
     var body: some View {
         // The app's own mark, as the meditation timer's activity uses it.
         Image("AppMark")

@@ -624,6 +624,10 @@ class _QuestionPageState extends State<QuestionPage>
         time: prompt.option?.timerLength ?? Duration(seconds: 30),
         userInteraction: prompt.option?.userInteraction ?? false,
         playbackControls: prompt.option?.playbackControl ?? false,
+        // This page's own place, not the pager's current page: the pager
+        // builds the next page while the previous one is still showing.
+        questionNumber: widget.diary.prompts.indexOf(widget.prompt) + 1,
+        questionCount: widget.diary.prompts.length,
         respond: (answer) {
           final completed = completedTimes ?? [];
           completed.add(answer);
@@ -832,7 +836,7 @@ class _QuestionPageState extends State<QuestionPage>
                     promptId: prompt.id,
                     question: prompt.question,
                     subtitle: prompt.subtitle,
-                    questionNumber: widget.currentPage + 1,
+                    questionNumber: widget.diary.prompts.indexOf(widget.prompt) + 1,
                     questionCount: widget.diary.prompts.length,
                     hint: hint,
                     limit: prompt.option?.maxLength,
