@@ -296,26 +296,11 @@ class SetupRepository {
   }
 
   ExperimentModel getExperiment() {
-    try {
-      final entity = _experimentDAO.getExperiment();
-      if (entity == null) {
-        throw StateError('Experiment not found in local database');
-      }
-      return ExperimentModel.fromEntity(entity);
-    } catch (e, stackTrace) {
-      CrashlyticsService().recordError(
-        e,
-        stackTrace,
-        reason: 'Error getting experiment in SetupRepository.getExperiment',
-      );
-      dev.log(
-        e.toString(),
-        name: 'SetupRepository.getExperiment',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
+    final entity = _experimentDAO.getExperiment();
+    if (entity == null) {
+      throw StateError('Experiment not found in local database');
     }
+    return ExperimentModel.fromEntity(entity);
   }
 
   /// Null-safe variant for flows (e.g. login screens) that run before an

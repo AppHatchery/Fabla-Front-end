@@ -167,6 +167,9 @@ class RouteService {
       await CrashlyticsService().log(
         'Recovered incomplete experiment action: $lastExperimentAction',
       );
+      await _preferenceService.removePreference(
+        key: SetupRepository.experimentLastActionKey,
+      );
     }
 
     final participant = _setupRepository.getParticipant();
