@@ -90,13 +90,16 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
     }
 
     //Add Location if Experiment has location
-    final location = await appendLocation(
-        experimentCode: experiment.login,
-        participantID: participantID,
-        promptLength: diary.prompts.length,
-        diary: diary,
-        study: study);
-    if (location != null) promptEntryList.add(location);
+    final location =
+        await captureLocation(diary: diary, participantID: participantID);
+    if (location != null) {
+      promptEntryList.add(locationEntry(location,
+          experimentCode: experiment.login,
+          participantID: participantID,
+          promptLength: diary.prompts.length,
+          diary: diary,
+          study: study));
+    }
 
     // Submitting the completion time for this diary
     final completionTime = await submitDiaryCompletionTime(
@@ -116,6 +119,7 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
           participantID: participantID,
           experimentCode: experiment.login,
           completionTime: completionTime,
+          location: location,
           files: files,
           dir: dir);
     }
@@ -293,6 +297,7 @@ Future<void> _logSubmissionPayload(
     required String participantID,
     required String experimentCode,
     required List<PromptEntry> completionTime,
+    required LocationSnapshot? location,
     required List<FileData> files,
     required Directory dir}) async {
   try {
@@ -308,8 +313,13 @@ Future<void> _logSubmissionPayload(
         experimentCode: experimentCode,
         sessionStartedAt: sessionTime('start_time'),
         sessionCompletedAt: sessionTime('end_time'),
-        responses: await buildResponses(
-            prompts: diary.prompts, files: files, dir: dir));
+        responses: [
+          ...await buildResponses(
+              prompts: diary.prompts, files: files, dir: dir),
+          // The same reading as the flat location row.
+          if (location != null)
+            locationResponse(location, promptLength: diary.prompts.length),
+        ]);
 
     dev.log(jsonEncode(payload.toJson()), name: 'Upload - Submission Payload');
   } catch (e) {

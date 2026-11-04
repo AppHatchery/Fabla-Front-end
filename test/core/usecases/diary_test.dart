@@ -228,18 +228,23 @@ void main() {
       promptLength: 3,
       preferenceService: mockPreferenceService,
     );
-    final location = await appendLocation(
+    final snapshot = await captureLocation(
+      diary: diary,
+      participantID: TestValues.testParticipantId,
+      location: mockLocation,
+      preferenceService: mockPreferenceService,
+    );
+    final location = locationEntry(
+      snapshot!,
       experimentCode: TestValues.testExperimentCode,
       participantID: TestValues.testParticipantId,
       promptLength: 3,
       diary: diary,
       study: null,
-      location: mockLocation,
-      preferenceService: mockPreferenceService,
     );
 
     // Assert
-    final ids = [...times.map((e) => e.promptID), location!.promptID];
+    final ids = [...times.map((e) => e.promptID), location.promptID];
     expect(ids.toSet().length, equals(3));
   });
 }
