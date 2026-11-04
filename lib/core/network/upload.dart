@@ -96,7 +96,6 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
       promptEntryList.add(locationEntry(location,
           experimentCode: experiment.login,
           participantID: participantID,
-          promptLength: diary.prompts.length,
           diary: diary,
           study: study));
     }
@@ -317,8 +316,7 @@ Future<void> _logSubmissionPayload(
           ...await buildResponses(
               prompts: diary.prompts, files: files, dir: dir),
           // The same reading as the flat location row.
-          if (location != null)
-            locationResponse(location, promptLength: diary.prompts.length),
+          if (location != null) locationResponse(location),
         ]);
 
     dev.log(jsonEncode(payload.toJson()), name: 'Upload - Submission Payload');

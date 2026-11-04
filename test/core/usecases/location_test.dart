@@ -25,7 +25,6 @@ void main() {
   group('captureLocation + locationEntry', () {
     final testExperimentCode = TestValues.testExperimentCode;
     final testParticipantID = TestValues.testParticipantId;
-    const testPromptLength = 5;
     final testDiaryName =
         '${TestValues.testName.toLowerCase().replaceAll(' ', '_')}_diary';
     final testDiary = createTestDiaryModel(name: testDiaryName);
@@ -35,7 +34,6 @@ void main() {
     Future<PromptEntry?> appendLocation({
       required String experimentCode,
       required String participantID,
-      required int promptLength,
       required DiaryModel diary,
       required StudyModel? study,
       required Location location,
@@ -50,7 +48,6 @@ void main() {
       return locationEntry(snapshot,
           experimentCode: experimentCode,
           participantID: participantID,
-          promptLength: promptLength,
           diary: diary,
           study: study);
     }
@@ -71,7 +68,6 @@ void main() {
       final result = await appendLocation(
         experimentCode: testExperimentCode,
         participantID: testParticipantID,
-        promptLength: testPromptLength,
         diary: testDiary,
         study: testStudy,
         location: mockLocation,
@@ -86,7 +82,7 @@ void main() {
       expect(result?.diaryID, equals(testDiary.id.toString()));
       expect(result?.diaryName, equals(testDiary.name));
       expect(result?.study, equals(testStudy.name));
-      expect(result?.promptID, equals('8')); // promptLength + 3
+      expect(result?.promptID, isEmpty);
       expect(
           result?.response, equals('latitude: 37.7749, longitude: -122.4194'));
       expect(result?.questionsType, equals('location'));
@@ -106,7 +102,6 @@ void main() {
       final result = await appendLocation(
         experimentCode: testExperimentCode,
         participantID: testParticipantID,
-        promptLength: testPromptLength,
         diary: testDiary,
         study: testStudy,
         location: mockLocation,
@@ -121,7 +116,7 @@ void main() {
       expect(result?.diaryID, equals(testDiary.id.toString()));
       expect(result?.diaryName, equals(testDiary.name));
       expect(result?.study, equals(testStudy.name));
-      expect(result?.promptID, equals('8')); // promptLength + 3
+      expect(result?.promptID, isEmpty);
       expect(result?.response, equals('Location permission not granted'));
       expect(result?.questionsType, equals('location'));
       expect(result?.required, isTrue);
@@ -137,7 +132,6 @@ void main() {
       final result = await appendLocation(
         experimentCode: testExperimentCode,
         participantID: testParticipantID,
-        promptLength: testPromptLength,
         diary: testDiary,
         study: testStudy,
         location: mockLocation,
@@ -157,7 +151,6 @@ void main() {
       final result = await appendLocation(
         experimentCode: testExperimentCode,
         participantID: testParticipantID,
-        promptLength: testPromptLength,
         diary: testDiary,
         study: testStudy,
         location: mockLocation,
@@ -180,7 +173,6 @@ void main() {
       final result = await appendLocation(
         experimentCode: testExperimentCode,
         participantID: testParticipantID,
-        promptLength: testPromptLength,
         diary: testDiary,
         study: null,
         location: mockLocation,
@@ -273,9 +265,9 @@ void main() {
           accuracyMeters: 12.5,
           capturedAt: DateTime.utc(2026, 11, 4, 9, 15));
 
-      final response = locationResponse(snapshot, promptLength: 5);
+      final response = locationResponse(snapshot);
 
-      expect(response['PromptID'], '6'); // promptLength + 1
+      expect(response.containsKey('PromptID'), isFalse);
       expect(response['QuestionTitle'], 'Current location');
       expect(response['QuestionType'], 'location');
       expect(response['Required'], isTrue);
@@ -286,8 +278,7 @@ void main() {
 
     test('a denied permission still gets an entry, with no time', () {
       final response = locationResponse(
-          const LocationSnapshot(status: LocationStatus.permissionDenied),
-          promptLength: 5);
+          const LocationSnapshot(status: LocationStatus.permissionDenied));
 
       expect(response['Response'], ['Location permission not granted']);
       expect(response['RespondedAt'], isNull);

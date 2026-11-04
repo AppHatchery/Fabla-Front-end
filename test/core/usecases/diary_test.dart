@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
-import 'package:audio_diaries_flutter/core/usecases/location.dart';
-import 'package:location/location.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -10,8 +8,6 @@ import 'package:mocktail/mocktail.dart';
 import '../../dummy_data.dart';
 
 class MockPreferenceService extends Mock implements PreferenceService {}
-
-class MockLocation extends Mock implements Location {}
 
 void main() {
   late MockPreferenceService mockPreferenceService;
@@ -202,49 +198,5 @@ void main() {
       verifyNever(() => mockPreferenceService.setStringPreference(
           key: any(named: 'key'), value: any(named: 'value')));
     });
-  });
-
-  test('location, start and end rows never share a PromptID', () async {
-    // Arrange
-    final diary = createTestDiaryModel(id: 1, name: 'Test Diary');
-    stubPreferences(
-      starts: {'1': '2024-01-01T08:00:00.000'},
-      ends: {'1': '2024-01-01T08:30:00.000'},
-    );
-    when(() => mockPreferenceService.getStringListPreference(
-        key: 'extra_permissions')).thenAnswer((_) async => ['location']);
-    final mockLocation = MockLocation();
-    when(() => mockLocation.hasPermission())
-        .thenAnswer((_) async => PermissionStatus.granted);
-    when(() => mockLocation.getLocation()).thenAnswer(
-        (_) async => LocationData.fromMap({'latitude': 1.0, 'longitude': 2.0}));
-
-    // Act
-    final times = await submitDiaryCompletionTime(
-      diary: diary,
-      study: null,
-      participantID: TestValues.testParticipantId,
-      experimentCode: TestValues.testExperimentCode,
-      promptLength: 3,
-      preferenceService: mockPreferenceService,
-    );
-    final snapshot = await captureLocation(
-      diary: diary,
-      participantID: TestValues.testParticipantId,
-      location: mockLocation,
-      preferenceService: mockPreferenceService,
-    );
-    final location = locationEntry(
-      snapshot!,
-      experimentCode: TestValues.testExperimentCode,
-      participantID: TestValues.testParticipantId,
-      promptLength: 3,
-      diary: diary,
-      study: null,
-    );
-
-    // Assert
-    final ids = [...times.map((e) => e.promptID), location.promptID];
-    expect(ids.toSet().length, equals(3));
   });
 }

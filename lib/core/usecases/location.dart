@@ -108,16 +108,12 @@ Future<LocationSnapshot?> captureLocation({
   }
 }
 
-/// The flat Dynamo row for [snapshot].
-///
-/// Parameters:
-/// - [promptLength]: the diary's prompt count; the row's PromptID is placed
-///   after the start and end time rows.
+/// The flat Dynamo row for [snapshot]. It has no PromptID: location isn't a
+/// prompt in the protocol.
 PromptEntry locationEntry(
   LocationSnapshot snapshot, {
   required String experimentCode,
   required String participantID,
-  required int promptLength,
   required DiaryModel diary,
   required StudyModel? study,
 }) {
@@ -128,8 +124,7 @@ PromptEntry locationEntry(
       diaryID: diary.id.toString(),
       diaryName: diary.name,
       study: study?.name ?? 'unknown',
-      // +1 and +2 are the start and end time rows from submitDiaryCompletionTime.
-      promptID: (promptLength + 3).toString(),
+      promptID: "",
       response: snapshot.description,
       respondedAt: "",
       questionsType: "location",
@@ -138,15 +133,9 @@ PromptEntry locationEntry(
 
 /// The nested payload's response entry for [snapshot], shaped like a prompt
 /// response with the structured reading under `Location`, the way recordings
-/// sit under `Files`.
-///
-/// The PromptID follows the diary's prompts directly: start and end times are
-/// `Diary` fields in the nested payload, not rows, so nothing else uses
-/// `promptLength + 1` there.
-Map<String, dynamic> locationResponse(LocationSnapshot snapshot,
-        {required int promptLength}) =>
-    {
-      'PromptID': (promptLength + 1).toString(),
+/// sit under `Files`. It has no PromptID: location isn't a prompt in the
+/// protocol.
+Map<String, dynamic> locationResponse(LocationSnapshot snapshot) => {
       'QuestionTitle': 'Current location',
       'QuestionType': 'location',
       'Required': true,
