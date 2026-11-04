@@ -39,10 +39,13 @@ final Duration _slowS3Threshold = http_client_factory.kUploadTimeout;
 ///
 /// Throws an error if there's any issue during the process.
 ///
+/// Pass [credentials] when the caller already holds them (as [uploadFiles]
+/// does for a whole batch) to skip a secure-storage read per file.
 Future<String?> getPresignedUrl(
   String apiUrl,
   String filename, {
   SecureSave? secureSave,
+  CredentialsModel? credentials,
   http.Client? client,
 }) async {
   final secureStorage = secureSave ?? SecureSave();
@@ -55,7 +58,7 @@ Future<String?> getPresignedUrl(
       );
 
   try {
-    var cred = await secureStorage.read();
+    var cred = credentials ?? await secureStorage.read();
 
     if (cred == null) {
       dev.log('Credentials null — attempting refresh',
@@ -124,20 +127,13 @@ Future<bool> uploadFileToS3(
   http.Client? client,
 }) async {
   try {
-    var file = File(filePath);
-    var fileStream = file.openRead();
+    // One sized buffer of raw bytes, rather than a List<int> grown chunk by
+    // chunk from the stream.
+    final bytes = await File(filePath).readAsBytes();
 
-    var request = http.Request('PUT', Uri.parse(presignedUrl))
-      ..headers['Content-Type'] = extensionToContentType(p.extension(filePath));
-
-    // Collect bytes from the file stream into a single list
-    List<int> bytes = [];
-    await for (var chunk in fileStream) {
-      bytes.addAll(chunk);
-    }
-
-    // Set the body bytes of the request
-    request.bodyBytes = bytes;
+    final request = http.Request('PUT', Uri.parse(presignedUrl))
+      ..headers['Content-Type'] = extensionToContentType(p.extension(filePath))
+      ..bodyBytes = bytes;
 
     final bool ownClient = client == null;
     final s3Client = client ??
@@ -148,17 +144,21 @@ Future<bool> uploadFileToS3(
         );
     try {
       final response = await s3Client.send(request);
-      // Drain the response stream so the underlying native client considers
-      // the request complete before we close it below.
-      await response.stream.drain();
       if (response.statusCode == 200) {
+        // Drain the response stream so the underlying native client considers
+        // the request complete before we close it below.
+        await response.stream.drain();
         return true;
       } else {
+        // S3's XML error names the cause (SignatureDoesNotMatch,
+        // AccessDenied, expired request), which the status alone does not.
+        final body = await response.stream.bytesToString();
         dev.log(
-            'S3 upload failed: status=${response.statusCode} file=$filePath',
+            'S3 upload failed: status=${response.statusCode} file=$filePath body=$body',
             name: 'Upload - S3 Storage');
         CrashlyticsService().recordApiError(
-            'S3 upload failed with status ${response.statusCode}', presignedUrl,
+            'S3 upload failed with status ${response.statusCode}: $body',
+            presignedUrl,
             statusCode: response.statusCode,
             method: 'PUT',
             requestData: {'file_path': filePath});
@@ -217,7 +217,7 @@ Future<bool> uploadFiles(List<FileData> files) async {
   dev.log('Starting Files Upload - ${DateTime.now()}');
   for (var file in files) {
     var presignedUrl = await getPresignedUrl(apiUrl, file.awsS3Directory,
-        secureSave: secureStorage);
+        secureSave: secureStorage, credentials: cred);
     if (presignedUrl != null) {
       final stopwatch = Stopwatch()..start();
       final result = await uploadFileToS3(presignedUrl, file.localDirectory);

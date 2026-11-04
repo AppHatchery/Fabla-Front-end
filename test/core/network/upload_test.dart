@@ -240,6 +240,33 @@ void main() {
           )).called(1);
     });
 
+    test('getPresignedUrl uses passed-in credentials without reading storage',
+        () async {
+      // ───── Arrange ─────
+      const expectedUrl = 'https://presigned-url.com/test.txt';
+
+      when(() => mockHttpClient.post(
+                any(),
+                headers: any(named: 'headers'),
+                body: any(named: 'body'),
+              ))
+          .thenAnswer((_) async => http.Response(
+              '{"body": "{\\"uploadURL\\": \\"$expectedUrl\\"}"}', 200));
+
+      // ───── Act ─────
+      final result = await getPresignedUrl(
+        TestValues.testUrl,
+        'test.txt',
+        secureSave: mockSecureSave,
+        credentials: createTestCredentials(),
+        client: mockHttpClient,
+      );
+
+      // ───── Assert ─────
+      expect(result, expectedUrl);
+      verifyNever(() => mockSecureSave.read());
+    });
+
     test('getPresignedUrl returns null on failed request', () async {
       // ───── Arrange ─────
       const apiUrl = TestValues.testUrl;
