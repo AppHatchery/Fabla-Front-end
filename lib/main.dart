@@ -261,9 +261,9 @@ class _HubState extends State<Hub>
           .scheduleAdditional(); // Ensure that this also trigger when the app has just started
       NotificationManager().scheduleUserReminders(); // Schedule user reminders
 
-      // Keep the contact email current without blocking the update check or
+      // Keep the stored experiment details current without blocking the update check or
       // quickstart below; failures are handled inside the repository.
-      unawaited(SetupRepository().updateExperimentOwnerEmail());
+      unawaited(SetupRepository().updateExperiment());
 
       // Check for experiment updates after the first frame is rendered, and
       // wait for the (possibly non-dismissible) update dialog to be shown

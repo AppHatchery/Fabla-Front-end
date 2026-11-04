@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:audio_diaries_flutter/core/database/dao/experiment_dao.dart';
+import 'package:audio_diaries_flutter/screens/home/domain/entities/experiment.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -12,6 +13,13 @@ class MockExperimentDAO extends Mock implements ExperimentDAO {}
 void main() {
   late MockExperimentDAO mockDao;
   late List<Map<String, dynamic>> postedBodies;
+
+  setUpAll(() => registerFallbackValue(createTestExperiment()));
+
+  setUp(() {
+    mockDao = MockExperimentDAO();
+    postedBodies = [];
+  });
 
   /// Builds a repository whose network call returns [response] (or throws
   /// [error]) and records every request body.
@@ -27,184 +35,181 @@ void main() {
     );
   }
 
-  String studyInfo(Object? ownerEmail, {String? loginCode}) => jsonEncode({
+  /// A well-formed `getstudyinfo` response; override fields via [overrides].
+  String studyInfo({Map<String, Object?> overrides = const {}}) => jsonEncode({
         'data': {
-          if (ownerEmail != null) 'owner_email': ownerEmail,
-          if (loginCode != null) 'login_code': loginCode,
+          'login_code': 'test_login',
+          'researcher': 'New Researcher',
+          'organisation': 'New Org',
+          'name': 'New Name',
+          'duration': '14 days',
+          'description': 'New description',
+          'owner_email': 'new@test.com',
+          'version': '2.0.0',
+          ...overrides,
         },
       });
 
-  setUp(() {
-    mockDao = MockExperimentDAO();
-    postedBodies = [];
-  });
+  void storedExperiment([String login = 'test_login']) => when(
+        () => mockDao.getExperiment(),
+      ).thenReturn(createTestExperiment(login: login));
 
-  group('SetupRepository.updateExperimentOwnerEmail', () {
+  group('SetupRepository.updateExperiment', () {
     test('returns false without a request when no experiment is stored',
         () async {
       when(() => mockDao.getExperiment()).thenReturn(null);
 
-      final result = await buildRepository().updateExperimentOwnerEmail();
-
-      expect(result, isFalse);
+      expect(await buildRepository().updateExperiment(), isFalse);
       expect(postedBodies, isEmpty);
     });
 
     test('returns false without a request when the login code is empty',
         () async {
-      when(() => mockDao.getExperiment())
-          .thenReturn(createTestExperiment(login: ''));
+      storedExperiment('');
 
-      final result = await buildRepository().updateExperimentOwnerEmail();
-
-      expect(result, isFalse);
+      expect(await buildRepository().updateExperiment(), isFalse);
       expect(postedBodies, isEmpty);
     });
 
     test('sends the stored login code', () async {
-      when(() => mockDao.getExperiment())
-          .thenReturn(createTestExperiment(login: 'ABC123'));
+      storedExperiment('ABC123');
+      when(() => mockDao.updateExperiment(any(), any())).thenReturn(true);
 
-      await buildRepository(response: studyInfo('a@test.com'))
-          .updateExperimentOwnerEmail();
+      await buildRepository(
+        response: studyInfo(overrides: {'login_code': 'ABC123'}),
+      ).updateExperiment();
 
       expect(postedBodies, [
         {'login_code': 'ABC123'}
       ]);
     });
 
-    test('saves a new, trimmed owner email and returns true', () async {
-      when(() => mockDao.getExperiment())
-          .thenReturn(createTestExperiment(ownerEmail: 'old@test.com'));
-      when(() => mockDao.updateOwnerEmail(any(), any())).thenReturn(true);
+    test('replaces the whole experiment with the response and returns true',
+        () async {
+      storedExperiment();
+      when(() => mockDao.updateExperiment(any(), any())).thenReturn(true);
 
       final result =
-          await buildRepository(response: studyInfo('  new@test.com '))
-              .updateExperimentOwnerEmail();
+          await buildRepository(response: studyInfo()).updateExperiment();
 
       expect(result, isTrue);
-      verify(() => mockDao.updateOwnerEmail('test_login', 'new@test.com'))
-          .called(1);
+      final updated = verify(
+        () => mockDao.updateExperiment('test_login', captureAny()),
+      ).captured.single as Experiment;
+      expect(updated.login, 'test_login');
+      expect(updated.researcher, 'New Researcher');
+      expect(updated.organization, 'New Org');
+      expect(updated.name, 'New Name');
+      expect(updated.duration, '14 days');
+      expect(updated.description, 'New description');
+      expect(updated.ownerEmail, 'new@test.com');
+      expect(updated.version, '2.0.0');
     });
 
-    test('returns true without writing when the email is unchanged', () async {
-      when(() => mockDao.getExperiment())
-          .thenReturn(createTestExperiment(ownerEmail: 'same@test.com'));
+    test('accepts a response whose login code differs only by case', () async {
+      storedExperiment('ABC123');
+      when(() => mockDao.updateExperiment(any(), any())).thenReturn(true);
 
-      final result = await buildRepository(response: studyInfo('same@test.com'))
-          .updateExperimentOwnerEmail();
+      final result = await buildRepository(
+        response: studyInfo(overrides: {'login_code': 'abc123'}),
+      ).updateExperiment();
 
       expect(result, isTrue);
-      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
+      verify(() => mockDao.updateExperiment('ABC123', any())).called(1);
     });
 
-    test('never overwrites with a missing, null, blank or non-string email',
+    test('ignores a response for a different login code', () async {
+      storedExperiment('ABC123');
+
+      final result = await buildRepository(
+        response: studyInfo(overrides: {'login_code': 'OTHER'}),
+      ).updateExperiment();
+
+      expect(result, isFalse);
+      verifyNever(() => mockDao.updateExperiment(any(), any()));
+    });
+
+    test('ignores a response with no usable login code (would blank the row)',
         () async {
-      when(() => mockDao.getExperiment()).thenReturn(createTestExperiment());
+      storedExperiment();
 
-      for (final response in [
-        studyInfo(null),
-        jsonEncode({
-          'data': {'owner_email': null}
-        }),
-        studyInfo('   '),
-        studyInfo(42),
-      ]) {
+      for (final loginCode in [null, '', 42]) {
         expect(
-            await buildRepository(response: response)
-                .updateExperimentOwnerEmail(),
-            isFalse,
-            reason: response);
+          await buildRepository(
+            response: studyInfo(overrides: {'login_code': loginCode}),
+          ).updateExperiment(),
+          isFalse,
+          reason: 'login_code: $loginCode',
+        );
       }
-      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
+      verifyNever(() => mockDao.updateExperiment(any(), any()));
+    });
+
+    test('returns false when a field has an unexpected type', () async {
+      storedExperiment();
+
+      final result = await buildRepository(
+        response: studyInfo(overrides: {'duration': 7}),
+      ).updateExperiment();
+
+      expect(result, isFalse);
+      verifyNever(() => mockDao.updateExperiment(any(), any()));
     });
 
     test('returns false when the request fails (null response)', () async {
-      when(() => mockDao.getExperiment()).thenReturn(createTestExperiment());
+      storedExperiment();
 
-      final result = await buildRepository().updateExperimentOwnerEmail();
-
-      expect(result, isFalse);
-      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
+      expect(await buildRepository().updateExperiment(), isFalse);
+      verifyNever(() => mockDao.updateExperiment(any(), any()));
     });
 
-    test('returns false for malformed JSON or a non-object data field',
-        () async {
-      when(() => mockDao.getExperiment()).thenReturn(createTestExperiment());
+    test('returns false for malformed JSON or a non-object payload', () async {
+      storedExperiment();
 
       for (final response in [
         'not json',
+        jsonEncode([]),
         jsonEncode({'data': null}),
         jsonEncode({'data': []}),
         jsonEncode({'status': 'error'}),
       ]) {
         expect(
-            await buildRepository(response: response)
-                .updateExperimentOwnerEmail(),
-            isFalse,
-            reason: response);
+          await buildRepository(response: response).updateExperiment(),
+          isFalse,
+          reason: response,
+        );
       }
-      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
-    });
-
-    test('accepts a response whose login code matches, ignoring case',
-        () async {
-      when(() => mockDao.getExperiment())
-          .thenReturn(createTestExperiment(login: 'ABC123'));
-      when(() => mockDao.updateOwnerEmail(any(), any())).thenReturn(true);
-
-      final result = await buildRepository(
-              response: studyInfo('new@test.com', loginCode: 'abc123'))
-          .updateExperimentOwnerEmail();
-
-      expect(result, isTrue);
-      verify(() => mockDao.updateOwnerEmail('ABC123', 'new@test.com'))
-          .called(1);
-    });
-
-    test('ignores a response for a different login code', () async {
-      when(() => mockDao.getExperiment())
-          .thenReturn(createTestExperiment(login: 'ABC123'));
-
-      final result = await buildRepository(
-              response: studyInfo('other@test.com', loginCode: 'OTHER'))
-          .updateExperimentOwnerEmail();
-
-      expect(result, isFalse);
-      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
+      verifyNever(() => mockDao.updateExperiment(any(), any()));
     });
 
     test('returns false when the stored study changed during the request',
         () async {
-      when(() => mockDao.getExperiment()).thenReturn(
-          createTestExperiment(login: 'OLD', ownerEmail: 'a@test.com'));
+      storedExperiment();
       // The DAO re-checks the login and refuses to write.
-      when(() => mockDao.updateOwnerEmail(any(), any())).thenReturn(false);
+      when(() => mockDao.updateExperiment(any(), any())).thenReturn(false);
 
-      final result = await buildRepository(response: studyInfo('new@test.com'))
-          .updateExperimentOwnerEmail();
+      expect(
+        await buildRepository(response: studyInfo()).updateExperiment(),
+        isFalse,
+      );
+    });
+
+    test('returns false instead of throwing when the request throws', () async {
+      storedExperiment();
+
+      final result = await buildRepository(error: Exception('network down'))
+          .updateExperiment();
 
       expect(result, isFalse);
+      verifyNever(() => mockDao.updateExperiment(any(), any()));
     });
 
     test('returns false instead of throwing when reading the experiment throws',
         () async {
       when(() => mockDao.getExperiment()).thenThrow(StateError('store closed'));
 
-      final result = await buildRepository().updateExperimentOwnerEmail();
-
-      expect(result, isFalse);
+      expect(await buildRepository().updateExperiment(), isFalse);
       expect(postedBodies, isEmpty);
-    });
-
-    test('returns false instead of throwing when the request throws', () async {
-      when(() => mockDao.getExperiment()).thenReturn(createTestExperiment());
-
-      final result = await buildRepository(error: Exception('network down'))
-          .updateExperimentOwnerEmail();
-
-      expect(result, isFalse);
-      verifyNever(() => mockDao.updateOwnerEmail(any(), any()));
     });
   });
 }

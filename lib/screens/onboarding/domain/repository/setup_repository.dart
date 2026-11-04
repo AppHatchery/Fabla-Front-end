@@ -835,47 +835,56 @@ class SetupRepository {
     }
   }
 
-  /// Refreshes the stored experiment's owner email from the remote source.
+  /// Refreshes the stored experiment from the remote source.
   ///
-  /// Only the owner email is changed; every other experiment field (including
-  /// `version`) is left untouched. An empty or missing email from the server
-  /// never overwrites the stored one.
+  /// The response must carry the same `login_code` that was sent; anything
+  /// else (missing, different study, malformed) leaves the stored experiment
+  /// untouched, since a partial response would otherwise blank its fields.
+  /// The experiment keeps its database id.
   ///
-  /// Returns `true` if the stored email is now up to date, `false` if there is
-  /// no stored experiment, the request failed, or the response was unusable.
-  Future<bool> updateExperimentOwnerEmail() async {
+  /// Returns `true` if the stored experiment was updated, `false` if there is
+  /// no stored experiment, the request failed, the response was unusable, or
+  /// the stored study changed while the request was in flight.
+  Future<bool> updateExperiment() async {
     try {
-      final experiment = _experimentDAO.getExperiment();
-      if (experiment == null || experiment.login.isEmpty) return false;
+      final current = _experimentDAO.getExperiment();
+      if (current == null || current.login.isEmpty) return false;
 
       final response = await _post(
-        path: "/fabla/getstudyinfo",
-        body: {'login_code': experiment.login},
+        path: '/fabla/getstudyinfo',
+        body: {'login_code': current.login},
       );
       if (response == null) return false;
 
-      final data = json.decode(response)['data'];
+      final decoded = json.decode(response);
+      if (decoded is! Map<String, dynamic>) return false;
+
+      final data = decoded['data'];
       if (data is! Map<String, dynamic>) return false;
 
-      // Ignore a response that is explicitly for a different study.
+      // Require the response to be for this study.
       final returnedLogin = data['login_code'];
-      if (returnedLogin is String &&
-          returnedLogin.toLowerCase() != experiment.login.toLowerCase()) {
+      if (returnedLogin is! String ||
+          returnedLogin.toLowerCase() != current.login.toLowerCase()) {
         return false;
       }
 
-      final ownerEmail = (data['owner_email'] as String?)?.trim();
-      if (ownerEmail == null || ownerEmail.isEmpty) return false;
-
-      if (ownerEmail == experiment.ownerEmail) return true;
+      final experiment = ExperimentModel.fromJson(data);
 
       // The DAO re-checks the login, in case the stored study changed while
       // the request was in flight.
-      return _experimentDAO.updateOwnerEmail(experiment.login, ownerEmail);
+      dev.log("Experiment Updated");
+      return _experimentDAO.updateExperiment(
+        current.login,
+        Experiment.fromModel(experiment),
+      );
     } catch (e, stackTrace) {
-      CrashlyticsService().recordError(e, stackTrace,
-          reason: 'Error updating owner email in updateExperimentOwnerEmail');
-      dev.log("Error updating owner email: $e", name: "Update Owner Email");
+      CrashlyticsService().recordError(
+        e,
+        stackTrace,
+        reason: 'Error updating experiment in updateExperiment',
+      );
+      dev.log('Error updating experiment: $e', name: 'Update Experiment');
       return false;
     }
   }

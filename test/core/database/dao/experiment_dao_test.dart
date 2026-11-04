@@ -59,57 +59,58 @@ void main() {
       verify(() => mockBox.put(experiment)).called(1);
     });
 
-    group('updateOwnerEmail', () {
-      test('changes only the owner email and keeps the same id', () {
-        final stored = createTestExperiment(
-          id: 7,
-          name: 'Keep Me',
+    group('updateExperiment', () {
+      test('overwrites the stored experiment but keeps its id', () {
+        final stored = createTestExperiment(id: 7, login: 'ABC123');
+        final updated = createTestExperiment(
+          id: 0,
           login: 'ABC123',
-          version: '3',
-          ownerEmail: 'old@test.com',
+          name: 'Renamed',
+          ownerEmail: 'new@test.com',
+          version: '9',
         );
         when(() => mockBox.getAll()).thenReturn([stored]);
-        when(() => mockBox.put(any())).thenReturn(stored.id);
+        when(() => mockBox.put(any())).thenReturn(7);
 
-        final wrote = experimentDAO.updateOwnerEmail('ABC123', 'new@test.com');
+        final wrote = experimentDAO.updateExperiment('ABC123', updated);
 
         expect(wrote, isTrue);
         final captured = verify(() => mockBox.put(captureAny())).captured.single
             as Experiment;
         expect(captured.id, 7);
+        expect(captured.name, 'Renamed');
         expect(captured.ownerEmail, 'new@test.com');
-        expect(captured.name, 'Keep Me');
-        expect(captured.version, '3');
+        expect(captured.version, '9');
         verifyNever(() => mockBox.removeAll());
       });
 
       test('matches the login case-insensitively', () {
-        final stored = createTestExperiment(login: 'ABC123');
-        when(() => mockBox.getAll()).thenReturn([stored]);
-        when(() => mockBox.put(any())).thenReturn(stored.id);
+        when(() => mockBox.getAll())
+            .thenReturn([createTestExperiment(login: 'ABC123')]);
+        when(() => mockBox.put(any())).thenReturn(1);
 
         expect(
-            experimentDAO.updateOwnerEmail('abc123', 'new@test.com'), isTrue);
+            experimentDAO.updateExperiment(
+                'abc123', createTestExperiment(login: 'ABC123')),
+            isTrue);
       });
 
       test('does not write onto a different study than the one requested', () {
-        final stored = createTestExperiment(
-            login: 'NEW_STUDY', ownerEmail: 'keep@test.com');
-        when(() => mockBox.getAll()).thenReturn([stored]);
+        when(() => mockBox.getAll())
+            .thenReturn([createTestExperiment(login: 'NEW_STUDY')]);
 
-        final wrote =
-            experimentDAO.updateOwnerEmail('OLD_STUDY', 'new@test.com');
+        final wrote = experimentDAO.updateExperiment(
+            'OLD_STUDY', createTestExperiment(login: 'OLD_STUDY'));
 
         expect(wrote, isFalse);
-        expect(stored.ownerEmail, 'keep@test.com');
         verifyNever(() => mockBox.put(any()));
       });
 
       test('does nothing when no experiment is stored', () {
         when(() => mockBox.getAll()).thenReturn([]);
 
-        expect(
-            experimentDAO.updateOwnerEmail('ABC123', 'new@test.com'), isFalse);
+        expect(experimentDAO.updateExperiment('ABC123', createTestExperiment()),
+            isFalse);
         verifyNever(() => mockBox.put(any()));
       });
     });
