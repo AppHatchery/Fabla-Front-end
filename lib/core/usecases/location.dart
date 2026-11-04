@@ -37,6 +37,8 @@ Future<PromptEntry?> appendLocation({
   PreferenceService? preferenceService,
 }) async {
   // Use injected dependencies or create default instances
+  // +1 and +2 are the start and end time rows from submitDiaryCompletionTime.
+  final promptID = (promptLength + 3).toString();
   final locationService = location ?? Location();
   final prefService = preferenceService ?? PreferenceService();
 
@@ -58,7 +60,7 @@ Future<PromptEntry?> appendLocation({
             diaryID: diary.id.toString(),
             diaryName: diary.name,
             study: study?.name ?? 'unknown',
-            promptID: (promptLength + 1).toString(),
+            promptID: promptID,
             response:
                 "latitude: ${data.latitude}, longitude: ${data.longitude}",
             respondedAt: "",
@@ -80,7 +82,7 @@ Future<PromptEntry?> appendLocation({
             diaryID: diary.id.toString(),
             diaryName: diary.name,
             study: study?.name ?? 'unknown',
-            promptID: (promptLength + 1).toString(),
+            promptID: promptID,
             response: "Location fetch failed: ${e.runtimeType}",
             respondedAt: "",
             questionsType: "location",
@@ -94,7 +96,7 @@ Future<PromptEntry?> appendLocation({
           diaryID: diary.id.toString(),
           diaryName: diary.name,
           study: study?.name ?? 'unknown',
-          promptID: (promptLength + 1).toString(),
+          promptID: promptID,
           response: "Location permission not granted",
           respondedAt: "",
           questionsType: "location",
