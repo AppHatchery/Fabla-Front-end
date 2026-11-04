@@ -17,7 +17,7 @@ import 'package:path/path.dart' as p;
 /// Builds the nested submission for [diary].
 ///
 /// [sessionStartedAt] and [sessionCompletedAt] are passed in rather than read
-/// here, because [submitDiaryCompletionTime] clears them from prefs once read.
+/// here, so they always match the flat rows [submitDiaryCompletionTime] built.
 Future<SubmissionPayload> buildSubmissionPayload(
     {required DiaryModel diary,
     required StudyModel? study,

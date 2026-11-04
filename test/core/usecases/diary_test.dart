@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
+import 'package:audio_diaries_flutter/core/usecases/location.dart';
+import 'package:location/location.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -8,6 +10,8 @@ import 'package:mocktail/mocktail.dart';
 import '../../dummy_data.dart';
 
 class MockPreferenceService extends Mock implements PreferenceService {}
+
+class MockLocation extends Mock implements Location {}
 
 void main() {
   late MockPreferenceService mockPreferenceService;
@@ -19,7 +23,8 @@ void main() {
         value: any(named: 'value'))).thenAnswer((_) async => true);
   });
 
-  void stubPreferences({Map<String, String>? starts, Map<String, String>? ends}) {
+  void stubPreferences(
+      {Map<String, String>? starts, Map<String, String>? ends}) {
     when(() => mockPreferenceService.getStringPreference(key: 'diary_starts'))
         .thenAnswer((_) async => starts == null ? null : jsonEncode(starts));
     when(() => mockPreferenceService.getStringPreference(key: 'diary_ends'))
@@ -52,8 +57,7 @@ void main() {
       // Assert
       expect(entries.length, equals(2));
 
-      final start =
-          entries.firstWhere((e) => e.questionsType == 'start_time');
+      final start = entries.firstWhere((e) => e.questionsType == 'start_time');
       expect(start.diaryID, equals('1'));
       expect(start.diaryName, equals('Test Diary'));
       expect(start.study, equals('Test Study'));
@@ -124,16 +128,24 @@ void main() {
       expect(entries, isEmpty);
     });
 
-    test('removes the diary entry from saved start times after building it',
+    test('leaves saved times in place so a failed upload can resend them',
         () async {
       // Arrange
-      stubPreferences(starts: {
-        '1': '2024-01-01T08:00:00.000',
-        '2': '2024-01-02T08:00:00.000',
-      });
+      stubPreferences(
+        starts: {'1': '2024-01-01T08:00:00.000'},
+        ends: {'1': '2024-01-01T08:30:00.000'},
+      );
 
       // Act
-      await submitDiaryCompletionTime(
+      final first = await submitDiaryCompletionTime(
+        diary: testDiary,
+        study: testStudy,
+        participantID: TestValues.testParticipantId,
+        experimentCode: TestValues.testExperimentCode,
+        promptLength: 3,
+        preferenceService: mockPreferenceService,
+      );
+      final retry = await submitDiaryCompletionTime(
         diary: testDiary,
         study: testStudy,
         participantID: TestValues.testParticipantId,
@@ -143,12 +155,91 @@ void main() {
       );
 
       // Assert
-      final captured = verify(() => mockPreferenceService.setStringPreference(
-          key: 'diary_starts', value: captureAny(named: 'value'))).captured;
-      final savedStarts =
-          jsonDecode(captured.single as String) as Map<String, dynamic>;
-      expect(savedStarts.containsKey('1'), isFalse);
-      expect(savedStarts.containsKey('2'), isTrue);
+      verifyNever(() => mockPreferenceService.setStringPreference(
+          key: any(named: 'key'), value: any(named: 'value')));
+      expect(
+          retry.map((e) => e.response), equals(first.map((e) => e.response)));
+      expect(retry.length, equals(2));
     });
+  });
+
+  group('clearDiaryCompletionTime', () {
+    test('removes only the given diary from saved start and end times',
+        () async {
+      // Arrange
+      stubPreferences(
+        starts: {
+          '1': '2024-01-01T08:00:00.000',
+          '2': '2024-01-02T08:00:00.000'
+        },
+        ends: {'1': '2024-01-01T08:30:00.000', '2': '2024-01-02T08:30:00.000'},
+      );
+
+      // Act
+      await clearDiaryCompletionTime(
+          diaryID: '1', preferenceService: mockPreferenceService);
+
+      // Assert
+      for (final key in ['diary_starts', 'diary_ends']) {
+        final captured = verify(() => mockPreferenceService.setStringPreference(
+            key: key, value: captureAny(named: 'value'))).captured;
+        final saved =
+            jsonDecode(captured.single as String) as Map<String, dynamic>;
+        expect(saved.containsKey('1'), isFalse);
+        expect(saved.containsKey('2'), isTrue);
+      }
+    });
+
+    test('writes nothing when the diary has no saved times', () async {
+      // Arrange
+      stubPreferences(starts: {'2': '2024-01-02T08:00:00.000'});
+
+      // Act
+      await clearDiaryCompletionTime(
+          diaryID: '1', preferenceService: mockPreferenceService);
+
+      // Assert
+      verifyNever(() => mockPreferenceService.setStringPreference(
+          key: any(named: 'key'), value: any(named: 'value')));
+    });
+  });
+
+  test('location, start and end rows never share a PromptID', () async {
+    // Arrange
+    final diary = createTestDiaryModel(id: 1, name: 'Test Diary');
+    stubPreferences(
+      starts: {'1': '2024-01-01T08:00:00.000'},
+      ends: {'1': '2024-01-01T08:30:00.000'},
+    );
+    when(() => mockPreferenceService.getStringListPreference(
+        key: 'extra_permissions')).thenAnswer((_) async => ['location']);
+    final mockLocation = MockLocation();
+    when(() => mockLocation.hasPermission())
+        .thenAnswer((_) async => PermissionStatus.granted);
+    when(() => mockLocation.getLocation()).thenAnswer(
+        (_) async => LocationData.fromMap({'latitude': 1.0, 'longitude': 2.0}));
+
+    // Act
+    final times = await submitDiaryCompletionTime(
+      diary: diary,
+      study: null,
+      participantID: TestValues.testParticipantId,
+      experimentCode: TestValues.testExperimentCode,
+      promptLength: 3,
+      preferenceService: mockPreferenceService,
+    );
+    final location = await appendLocation(
+      experimentCode: TestValues.testExperimentCode,
+      participantID: TestValues.testParticipantId,
+      promptLength: 3,
+      diary: diary,
+      study: null,
+      location: mockLocation,
+      preferenceService: mockPreferenceService,
+    );
+
+    // Assert
+    final ids = [...times.map((e) => e.promptID), location!.promptID];
+    expect(ids.toSet().length, equals(3));
   });
 }

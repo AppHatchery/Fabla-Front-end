@@ -40,11 +40,10 @@ void diaryEnd({required String diaryID}) async {
       key: "diary_ends", value: jsonEncode(ends));
 }
 
-/// Submitting the completion diary with the start time and the end time
-/// Collects the saved start itme in Shared preferences and submits with
-/// the time of now to indicate the completion of a diary
-/// The entry of [diaryID] is then removed from the Start Map to allow
-/// reoccurring diaries to use the same ID for completion submission
+/// Builds the start and end time rows for [diary] from Shared Preferences.
+///
+/// Read-only: the saved times stay in prefs so a failed upload can resend
+/// them on retry. Call [clearDiaryCompletionTime] once the upload succeeds.
 ///
 /// [preferenceService] can be injected for testing; defaults to the shared
 /// [preferences] instance otherwise.
@@ -84,12 +83,6 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
           questionsType: "start_time",
           required: true);
       entries.add(start);
-
-      //Clean Up!
-      // To avoid reoccurring diaries from having the same start time
-      starts.removeWhere((key, _) => key == diary.id.toString());
-      await prefs.setStringPreference(
-          key: "diary_starts", value: jsonEncode(starts));
     }
 
     if (ends.containsKey(diary.id.toString())) {
@@ -108,11 +101,6 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
           questionsType: "end_time",
           required: true);
       entries.add(end);
-
-      // Clean Up!
-      ends.removeWhere((key, _) => key == diary.id.toString());
-      await prefs.setStringPreference(
-          key: "diary_ends", value: jsonEncode(ends));
     }
 
     return entries;
@@ -128,6 +116,30 @@ Future<List<PromptEntry>> submitDiaryCompletionTime(
         reason:
             'Failed to read/decode completion time preferences — submission will continue without timing data');
     return [];
+  }
+}
+
+/// Removes [diaryID]'s saved start and end times, so the next entry of a
+/// recurring diary records its own. Only call after a successful upload.
+Future<void> clearDiaryCompletionTime(
+    {required String diaryID, PreferenceService? preferenceService}) async {
+  final prefs = preferenceService ?? preferences;
+  try {
+    for (final key in const ["diary_starts", "diary_ends"]) {
+      final saved = await prefs.getStringPreference(key: key);
+      if (saved == null) continue;
+      final Map<String, String> times =
+          jsonDecode(saved).cast<String, String>();
+      if (times.remove(diaryID) != null) {
+        await prefs.setStringPreference(key: key, value: jsonEncode(times));
+      }
+    }
+  } catch (e, stackTrace) {
+    dev.log('Failed to clear completion times: $e',
+        name: 'Diary - clearDiaryCompletionTime');
+    CrashlyticsService().recordError(e, stackTrace,
+        context: {'DiaryID': diaryID},
+        reason: 'Failed to clear completion time preferences after upload');
   }
 }
 

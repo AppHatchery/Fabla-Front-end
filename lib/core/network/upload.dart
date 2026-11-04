@@ -155,6 +155,11 @@ Future<bool> upload(String participantID, DiaryModel diary) async {
 
     final uploaded = await awsUploadResponses(promptEntryList, files);
 
+    // Only now: a failed upload must keep the times for its retry.
+    if (uploaded) {
+      await clearDiaryCompletionTime(diaryID: diary.id.toString());
+    }
+
     await PendoService.track('Submission Completed', {
       'Diary': diary.name.toString(),
       'DiaryID': diary.id.toString(),
