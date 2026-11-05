@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/utils/participant_experiment_details.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../hub/presentation/cubit/hub_cubit.dart';
 
 class SettingsStudyDetails extends StatefulWidget {
@@ -59,7 +60,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
           children: [
             Flexible(
               child: Text(
-                "Study Details",
+                AppLocalizations.of(context).studyDetails,
                 style: CustomTypography()
                     .titleLarge(color: CustomColors.textNormalContent),
               ),
@@ -95,7 +96,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                         if (lastUpdated != null)
                           Flexible(
                             child: Text(
-                              "Last Updated: $lastUpdated",
+                              "${AppLocalizations.of(context).lastUpdated}: $lastUpdated",
                               style: CustomTypography().custom(
                                   color: CustomColors.textTertiaryContent,
                                   fontWeight: FontWeight.w400),
@@ -130,7 +131,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                             children: Wrap(children: [
                               Center(
                                 child: Text(
-                                  "View Details",
+                                  AppLocalizations.of(context).viewStudyDetails,
                                   style: CustomTypography()
                                       .button(color: CustomColors.textWhite),
                                 ),
@@ -149,7 +150,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                                 horizontal: 24.0, vertical: 8.0),
                             children: Wrap(children: [
                               Center(
-                                child: Text("Update Study",
+                                child: Text(AppLocalizations.of(context).updateStudy,
                                     style: CustomTypography().button(
                                       color: CustomColors.productNormal,
                                     )),
@@ -169,7 +170,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
             color: CustomColors.fillWhite,
             textColor: CustomColors.productNormalActive,
             onClick: launchEmailMethod,
-            text: "Contact Researcher"),
+            text: AppLocalizations.of(context).contactResearcher),
       ],
     );
   }

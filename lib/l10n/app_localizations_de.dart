@@ -261,7 +261,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get total => 'Gesamtbetrag';
 
   @override
-  String get bonusText => 'Prämie bei Abschluss von';
+  String bonusText(int entries) {
+    return 'Prämie bei Abschluss von $entries';
+  }
 
   @override
   String get getYourBonus => 'Einträge bis Prämie:';
@@ -286,4 +288,123 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get opensAt => 'Verfügbar ab:';
+
+  @override
+  String get studyDetails => 'Studiendetails';
+
+  @override
+  String get lastUpdated => 'Zuletzt aktualisiert:';
+
+  @override
+  String get viewDetials => 'Details anzeigen';
+
+  @override
+  String get updateStudy => 'Studie aktualisieren';
+
+  @override
+  String get contactResearcher => 'Studienleitung kontaktieren';
+
+  @override
+  String get participantDetails => 'Teilnehmenden Details';
+
+  @override
+  String get dateJoined => 'Beitrittsdatum';
+
+  @override
+  String get onboardingSurvey => 'Einführungsumfrage';
+
+  @override
+  String get onboardingCompletedText => 'Ausgefüllt';
+
+  @override
+  String get microphone => 'Mikrofon';
+
+  @override
+  String get enableMicAccess => 'Zugriff auf das Mikrofon aktivieren';
+
+  @override
+  String get micAccessTextSettings =>
+      'Der Zugriff auf das Mikrofon muss aktiviert werden, um Audio-Tagebücher aufzunehmen.';
+
+  @override
+  String get reminders => 'Erinnerungen';
+
+  @override
+  String get reminderText =>
+      'Zusätzlich zu den Standardbenachrichtigungen von Fabla kannst du personalisierte Erinnerungen einstellen.';
+
+  @override
+  String get addReminder => 'Erinnerungen hinzufügen';
+
+  @override
+  String get poweredByAppHatchery => 'Entwickelt von AppHatchery';
+
+  @override
+  String get leaveStudy => 'Studie verlassen';
+
+  @override
+  String get studyUpdateRemote => 'Für deine Studie ist ein Update verfügbar';
+
+  @override
+  String get studyUpdateRemoteTextOne =>
+      'Die Studienleitung hat ein Update für die Studie vorgenommen, das möglicherweise Änderungen am Wortlaut oder an den Anweisungen enthält. Bitte aktualisiere die Studie, um mit der neuesten Version fortzufahren.';
+
+  @override
+  String get studyUpdateRemoteTextTwo =>
+      'Wenn Fragen zu den Änderungen aufkommen, wende dich bitte an die Studienleitung.';
+
+  @override
+  String get updateNow => 'Jetzt aktualisieren';
+
+  @override
+  String get updatingStudy => 'Studie wird aktualisiert';
+
+  @override
+  String get updatingStudyText =>
+      'Bitte habe noch etwas Geduld! Wir aktualisieren gerade den Inhalt der Studie. Das dauert nicht lange.';
+
+  @override
+  String get studyUpdateSuccessful => 'Aktualisierung erfolgreich';
+
+  @override
+  String get studyUpdateSuccessfulText =>
+      'Die Studie wurde erfolgreich aktualisiert.';
+
+  @override
+  String get studyUpdateFailed => 'Aktualisierung fehlgeschlagen';
+
+  @override
+  String get studyUpdateFailedInternetText =>
+      'Die Studie wurde nicht aktualisiert. Bitte überprüfe deine Internetverbindung und versuche es erneut oder aktualisiere sie später unter. ';
+
+  @override
+  String get studyUpdateFailedInternetTextTwo =>
+      '“Einstellungen > Studiendetails”';
+
+  @override
+  String get studyUpdateFailedText =>
+      'Die Studie wurde nicht aktualisiert. Versuche es erneut oder später unter ';
+
+  @override
+  String get retryUpdate => 'Aktualisieren wiederholen';
+
+  @override
+  String get updateLater => 'Später aktualisieren';
+
+  @override
+  String get studyUpdateFailedHelpText =>
+      'Wenn das Problem weiterhin besteht, wende dich bitte an die ';
+
+  @override
+  String get studyUpdateWarning => 'Warnung';
+
+  @override
+  String get studyUpdateWarningText =>
+      'Du bist dabei, die Studie manuell zu aktualisieren. Führe diese Aktion nur aus, wenn die Studienleitung dich ausdrücklich dazu aufgefordert hat.';
+
+  @override
+  String get takeMeBack => 'Zurück';
+
+  @override
+  String get proceed => 'Weiter';
 }

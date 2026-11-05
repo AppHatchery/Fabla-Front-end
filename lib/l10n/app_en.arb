@@ -202,9 +202,14 @@
   "@total": {
     "description": "Label for the total compensation amount"
   },
-  "bonusText": "Bonus When You Complete",
+  "bonusText": "Bonus When You Complete {entries} entries",
   "@bonusText": {
-    "description": "Fragment shown before the entry count required to earn a completion bonus"
+    "description": "Fragment shown before the entry count required to earn a completion bonus",
+    "placeholders": {
+      "entries": {
+        "type": "int"
+      }
+    }
   },
   "getYourBonus": "Get Your Bonus",
   "@getYourBonus": {
@@ -241,5 +246,42 @@
   "opensAt": "Opens At:",
   "@opensAt": {
     "description": "when the diary open"
-  }
+  },
+
+  "studyDetails": "Study Details",
+  "lastUpdated": "Last Updated:",
+  "viewDetials": "View Details",
+  "updateStudy": "Update Study",
+  "contactResearcher": "Contact Researcher",
+  "participantDetails": "Participant Details",
+  "dateJoined": "Date Joined",
+  "onboardingSurvey": "Onboarding Survey",
+  "onboardingCompletedText": "Completed",
+  "microphone": "Microphone",
+  "enableMicAccess": "Enable Microphone Access",
+  "micAccessTextSettings": "You must enable microphone Access to record audio diaries.",
+  "reminders": "Reminders",
+  "reminderText": "Set personalized reminders in addition to Fabla’s default notifications.",
+  "addReminder": "+ Add Reminder",
+  "poweredByAppHatchery": "Powered by AppHatchery",
+  "leaveStudy": "Leave Study",
+  "studyUpdateRemote": "Your study has an update",
+  "studyUpdateRemoteTextOne": "Your researcher has made an update to the study, which may include changes to wording or instructions. Please update to continue with the latest version.",
+  "studyUpdateRemoteTextTwo": "If you have questions about the changes, please contact your researcher.",
+  "updateNow": "Update Now",
+  "updatingStudy": "Updating Study",
+  "updatingStudyText": "Hang tight! We're updating the experiment content. This won't take long!",
+  "studyUpdateSuccessful": "Study Update Successful",
+  "studyUpdateSuccessfulText": "Your study has been updated to the latest version.",
+  "studyUpdateFailed": "Study Update Failed",
+  "studyUpdateFailedInternetText": "Your study was not updated. Please check your internet connection and try again or update later under ",
+  "studyUpdateFailedInternetTextTwo": "“Settings > Study Details”",
+  "studyUpdateFailedText": "Your study was not updated. Retry update or try later under ",
+  "retryUpdate": "Retry Update",
+  "updateLater": "Update Later",
+  "studyUpdateFailedHelpText": "If the issue persists, ",
+  "studyUpdateWarning": "Waring",
+  "studyUpdateWarningText": "You are trying to make a manual update to the study. Only proceed if you have received a request from your researcher to update your study.",
+  "takeMeBack": "Take Me Back",
+  "proceed": "Proceed"
 }

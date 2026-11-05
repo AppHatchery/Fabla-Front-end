@@ -547,8 +547,8 @@ abstract class AppLocalizations {
   /// Fragment shown before the entry count required to earn a completion bonus
   ///
   /// In en, this message translates to:
-  /// **'Bonus When You Complete'**
-  String get bonusText;
+  /// **'Bonus When You Complete {entries} entries'**
+  String bonusText(int entries);
 
   /// get your bonus text
   ///
@@ -597,6 +597,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Opens At:'**
   String get opensAt;
+
+  /// No description provided for @studyDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Details'**
+  String get studyDetails;
+
+  /// No description provided for @lastUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Updated:'**
+  String get lastUpdated;
+
+  /// No description provided for @viewDetials.
+  ///
+  /// In en, this message translates to:
+  /// **'View Details'**
+  String get viewDetials;
+
+  /// No description provided for @updateStudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Study'**
+  String get updateStudy;
+
+  /// No description provided for @contactResearcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Researcher'**
+  String get contactResearcher;
+
+  /// No description provided for @participantDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Participant Details'**
+  String get participantDetails;
+
+  /// No description provided for @dateJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Joined'**
+  String get dateJoined;
+
+  /// No description provided for @onboardingSurvey.
+  ///
+  /// In en, this message translates to:
+  /// **'Onboarding Survey'**
+  String get onboardingSurvey;
+
+  /// No description provided for @onboardingCompletedText.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get onboardingCompletedText;
+
+  /// No description provided for @microphone.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone'**
+  String get microphone;
+
+  /// No description provided for @enableMicAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Microphone Access'**
+  String get enableMicAccess;
+
+  /// No description provided for @micAccessTextSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'You must enable microphone Access to record audio diaries.'**
+  String get micAccessTextSettings;
+
+  /// No description provided for @reminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get reminders;
+
+  /// No description provided for @reminderText.
+  ///
+  /// In en, this message translates to:
+  /// **'Set personalized reminders in addition to Fabla’s default notifications.'**
+  String get reminderText;
+
+  /// No description provided for @addReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add Reminder'**
+  String get addReminder;
+
+  /// No description provided for @poweredByAppHatchery.
+  ///
+  /// In en, this message translates to:
+  /// **'Powered by AppHatchery'**
+  String get poweredByAppHatchery;
+
+  /// No description provided for @leaveStudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Study'**
+  String get leaveStudy;
+
+  /// No description provided for @studyUpdateRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your study has an update'**
+  String get studyUpdateRemote;
+
+  /// No description provided for @studyUpdateRemoteTextOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Your researcher has made an update to the study, which may include changes to wording or instructions. Please update to continue with the latest version.'**
+  String get studyUpdateRemoteTextOne;
+
+  /// No description provided for @studyUpdateRemoteTextTwo.
+  ///
+  /// In en, this message translates to:
+  /// **'If you have questions about the changes, please contact your researcher.'**
+  String get studyUpdateRemoteTextTwo;
+
+  /// No description provided for @updateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Now'**
+  String get updateNow;
+
+  /// No description provided for @updatingStudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating Study'**
+  String get updatingStudy;
+
+  /// No description provided for @updatingStudyText.
+  ///
+  /// In en, this message translates to:
+  /// **'Hang tight! We\'re updating the experiment content. This won\'t take long!'**
+  String get updatingStudyText;
+
+  /// No description provided for @studyUpdateSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Update Successful'**
+  String get studyUpdateSuccessful;
+
+  /// No description provided for @studyUpdateSuccessfulText.
+  ///
+  /// In en, this message translates to:
+  /// **'Your study has been updated to the latest version.'**
+  String get studyUpdateSuccessfulText;
+
+  /// No description provided for @studyUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Update Failed'**
+  String get studyUpdateFailed;
+
+  /// No description provided for @studyUpdateFailedInternetText.
+  ///
+  /// In en, this message translates to:
+  /// **'Your study was not updated. Please check your internet connection and try again or update later under '**
+  String get studyUpdateFailedInternetText;
+
+  /// No description provided for @studyUpdateFailedInternetTextTwo.
+  ///
+  /// In en, this message translates to:
+  /// **'“Settings > Study Details”'**
+  String get studyUpdateFailedInternetTextTwo;
+
+  /// No description provided for @studyUpdateFailedText.
+  ///
+  /// In en, this message translates to:
+  /// **'Your study was not updated. Retry update or try later under '**
+  String get studyUpdateFailedText;
+
+  /// No description provided for @retryUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry Update'**
+  String get retryUpdate;
+
+  /// No description provided for @updateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Later'**
+  String get updateLater;
+
+  /// No description provided for @studyUpdateFailedHelpText.
+  ///
+  /// In en, this message translates to:
+  /// **'If the issue persists, '**
+  String get studyUpdateFailedHelpText;
+
+  /// No description provided for @studyUpdateWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Waring'**
+  String get studyUpdateWarning;
+
+  /// No description provided for @studyUpdateWarningText.
+  ///
+  /// In en, this message translates to:
+  /// **'You are trying to make a manual update to the study. Only proceed if you have received a request from your researcher to update your study.'**
+  String get studyUpdateWarningText;
+
+  /// No description provided for @takeMeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Me Back'**
+  String get takeMeBack;
+
+  /// No description provided for @proceed.
+  ///
+  /// In en, this message translates to:
+  /// **'Proceed'**
+  String get proceed;
 }
 
 class _AppLocalizationsDelegate

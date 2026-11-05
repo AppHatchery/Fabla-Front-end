@@ -2,6 +2,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/diary_l
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
 
@@ -29,7 +30,7 @@ class _DiaryPageState extends State<DiariesPage> {
           automaticallyImplyLeading: false,
           centerTitle: true,
           title: Text(
-            "History",
+            AppLocalizations.of(context).history,
             style: CustomTypography()
                 .titleLarge(color: CustomColors.textNormalContent),
           ),

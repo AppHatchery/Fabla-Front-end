@@ -679,7 +679,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                       children: [
                         Expanded(
                             child: Text(
-                                "${AppLocalizations.of(context).bonusText} $bonusEntriesRequired Entries",
+                                AppLocalizations.of(context).bonusText(bonusEntriesRequired),
                                 style: CustomTypography().bodyMedium())),
                         Text(
                             formatMoney(widget.study.incentive.bonus,

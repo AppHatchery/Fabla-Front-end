@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../services/pendo_service.dart';
 import '../../../services/preference_service.dart';
 import '../../../theme/components/buttons.dart';
@@ -74,7 +75,7 @@ class _ActiveRemindersState extends State<ActiveReminders> {
                 SizedBox(
                   width: 382,
                   child: Text(
-                    'Set personalized reminders in addition to Fabla’s default notifications.',
+                    AppLocalizations.of(context).reminderText,
                     style: TextStyle(
                       color: Colors.black.withValues(alpha: 0.64),
                       fontSize: 14,
@@ -128,7 +129,7 @@ class _ActiveRemindersState extends State<ActiveReminders> {
                     borderRadius: 100,
                     children: Wrap(children: [
                       Text(
-                        "+ Add Reminder",
+                        AppLocalizations.of(context).addReminder,
                         style: CustomTypography()
                             .title(color: CustomColors.textWhite),
                       )

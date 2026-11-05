@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/utils/participant_experiment_details.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/dialogs/pop_ups.dart';
 import '../../home/data/experiment.dart';
 import '../../onboarding/domain/entities/participant.dart';
@@ -128,7 +129,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                       children: [
                         Flexible(
                           child: Text(
-                            "Participant ID",
+                            AppLocalizations.of(context).participantID,
                             style: CustomTypography().bodyLarge(
                               weight: FontWeight.w500,
                             ),
@@ -149,7 +150,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                       children: [
                         Flexible(
                           child: Text(
-                            "Study String",
+                            AppLocalizations.of(context).studyID,
                             style: CustomTypography().bodyLarge(
                               weight: FontWeight.w500,
                             ),
@@ -171,7 +172,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                             children: [
                               Flexible(
                                 child: Text(
-                                  "Date Joined",
+                                  AppLocalizations.of(context).dateJoined,
                                   style: CustomTypography().bodyLarge(
                                     weight: FontWeight.w500,
                                   ),
@@ -225,12 +226,12 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Onboarding Survey",
+                        AppLocalizations.of(context).onboardingSurvey,
                         style: CustomTypography()
                             .bodyLarge(color: CustomColors.productNormalActive),
                       ),
                       Text(
-                        hasSurvey ? "Completed $date" : "",
+                        hasSurvey ? "${AppLocalizations.of(context).onboardingCompletedText} $date" : "",
                         style: CustomTypography()
                             .bodyMedium(color: CustomColors.textTertiaryContent),
                       ),

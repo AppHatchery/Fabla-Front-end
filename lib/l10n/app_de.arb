@@ -86,7 +86,7 @@
   "totalEntries": "Gesamtzahl der Einträge",
   "each": "Für jede",
   "total": "Gesamtbetrag",
-  "bonusText": "Prämie bei Abschluss von",
+  "bonusText": "Prämie bei Abschluss von {entries}",
   "getYourBonus": "Einträge bis Prämie:",
   "totalCompletion": "Gesamteinträge bis Abschluss:",
 
@@ -98,5 +98,43 @@
 
 
   "availableUntil": "Verfügbar bis:",
-  "opensAt": "Verfügbar ab:"
+  "opensAt": "Verfügbar ab:",
+
+
+  "studyDetails": "Studiendetails",
+  "lastUpdated": "Zuletzt aktualisiert:",
+  "viewDetials": "Details anzeigen",
+  "updateStudy": "Studie aktualisieren",
+  "contactResearcher": "Studienleitung kontaktieren",
+  "participantDetails": "Teilnehmenden Details",
+  "dateJoined": "Beitrittsdatum",
+  "onboardingSurvey": "Einführungsumfrage",
+  "onboardingCompletedText": "Ausgefüllt",
+  "microphone": "Mikrofon",
+  "enableMicAccess": "Zugriff auf das Mikrofon aktivieren",
+  "micAccessTextSettings": "Der Zugriff auf das Mikrofon muss aktiviert werden, um Audio-Tagebücher aufzunehmen.",
+  "reminders": "Erinnerungen",
+  "reminderText": "Zusätzlich zu den Standardbenachrichtigungen von Fabla kannst du personalisierte Erinnerungen einstellen.",
+  "addReminder": "Erinnerungen hinzufügen",
+  "poweredByAppHatchery": "Entwickelt von AppHatchery",
+  "leaveStudy": "Studie verlassen",
+  "studyUpdateRemote": "Für deine Studie ist ein Update verfügbar",
+  "studyUpdateRemoteTextOne": "Die Studienleitung hat ein Update für die Studie vorgenommen, das möglicherweise Änderungen am Wortlaut oder an den Anweisungen enthält. Bitte aktualisiere die Studie, um mit der neuesten Version fortzufahren.",
+  "studyUpdateRemoteTextTwo": "Wenn Fragen zu den Änderungen aufkommen, wende dich bitte an die Studienleitung.",
+  "updateNow": "Jetzt aktualisieren",
+  "updatingStudy": "Studie wird aktualisiert",
+  "updatingStudyText": "Bitte habe noch etwas Geduld! Wir aktualisieren gerade den Inhalt der Studie. Das dauert nicht lange.",
+  "studyUpdateSuccessful": "Aktualisierung erfolgreich",
+  "studyUpdateSuccessfulText": "Die Studie wurde erfolgreich aktualisiert.",
+  "studyUpdateFailed": "Aktualisierung fehlgeschlagen",
+  "studyUpdateFailedInternetText": "Die Studie wurde nicht aktualisiert. Bitte überprüfe deine Internetverbindung und versuche es erneut oder aktualisiere sie später unter. ",
+  "studyUpdateFailedInternetTextTwo": "“Einstellungen > Studiendetails”",
+  "studyUpdateFailedText": "Die Studie wurde nicht aktualisiert. Versuche es erneut oder später unter ",
+  "retryUpdate": "Aktualisieren wiederholen",
+  "updateLater": "Später aktualisieren",
+  "studyUpdateFailedHelpText": "Wenn das Problem weiterhin besteht, wende dich bitte an die ",
+  "studyUpdateWarning": "Warnung",
+  "studyUpdateWarningText": "Du bist dabei, die Studie manuell zu aktualisieren. Führe diese Aktion nur aus, wenn die Studienleitung dich ausdrücklich dazu aufgefordert hat.",
+  "takeMeBack": "Zurück",
+  "proceed":"Weiter"
 }

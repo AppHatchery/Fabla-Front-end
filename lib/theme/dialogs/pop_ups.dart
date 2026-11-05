@@ -1594,19 +1594,19 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       ),
       const SizedBox(height: 12),
       Text(
-        "Your study has an update",
+        AppLocalizations.of(context).studyUpdateRemote,
         style: CustomTypography().headlineMedium(),
         textAlign: TextAlign.center,
       ),
       const SizedBox(height: 12),
       Text(
-          'Your researcher has made an update to the study, which may include changes to wording or instructions. Please update to continue with the latest version.',
+          AppLocalizations.of(context).studyUpdateRemoteTextOne,
           style: CustomTypography()
               .bodyMedium(color: CustomColors.textSecondaryContent),
           textAlign: TextAlign.center),
       const SizedBox(height: 24),
       Text(
-          'If you have questions about the changes, please contact your researcher.',
+          AppLocalizations.of(context).studyUpdateRemoteTextTwo,
           style: CustomTypography()
               .bodyMedium(color: CustomColors.textSecondaryContent),
           textAlign: TextAlign.center),
@@ -1616,7 +1616,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
           Expanded(
             child: CustomFlatButton(
               onClick: _startUpdate,
-              text: "Update Now",
+              text:  AppLocalizations.of(context).updateNow,
               color: CustomColors.productNormal,
               textColor: CustomColors.fillWhite,
               borderColor: CustomColors.productNormal,
@@ -1638,13 +1638,13 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       ),
       const SizedBox(height: 12),
       Text(
-        'Warning',
+        AppLocalizations.of(context).studyUpdateWarning,
         style: CustomTypography()
             .headlineMedium(color: CustomColors.warningActive),
       ),
       const SizedBox(height: 12),
       Text(
-        'You are trying to make a manual update to the study. Only proceed if you have received a request from your researcher to update your study.',
+        AppLocalizations.of(context).studyUpdateWarningText,
         textAlign: TextAlign.center,
         style: CustomTypography()
             .bodyLarge(color: CustomColors.textSecondaryContent),
@@ -1657,7 +1657,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
           Expanded(
             child: CustomFlatButton(
               onClick: _startUpdate,
-              text: 'Proceed',
+              text: AppLocalizations.of(context).proceed,
               textColor: CustomColors.fillWhite,
               color: CustomColors.warningActive,
               borderColor: CustomColors.warningActive,
@@ -1666,7 +1666,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
           Expanded(
             child: CustomFlatButton(
               onClick: () => Navigator.pop(context),
-              text: 'Take Me Back',
+              text: AppLocalizations.of(context).takeMeBack,
               textColor: CustomColors.backgroundPrimary,
               color: CustomColors.fillWhite,
               borderColor: CustomColors.backgroundPrimary,
@@ -1693,13 +1693,13 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       ),
       const SizedBox(height: 12),
       Text(
-        'Updating Study',
+        AppLocalizations.of(context).updatingStudy,
         textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
       ),
       const SizedBox(height: 12),
       Text(
-        "Hang tight! We're updating the experiment content. This won't take long!",
+        AppLocalizations.of(context).updatingStudyText,
         textAlign: TextAlign.center,
         style: CustomTypography()
             .bodyMedium(color: CustomColors.textSecondaryContent),
@@ -1725,13 +1725,13 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       ),
       const SizedBox(height: 12),
       Text(
-        'Study Update Successful',
+        AppLocalizations.of(context).studyUpdateSuccessful,
         textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
       ),
       const SizedBox(height: 12),
       Text(
-        'Your study has been updated to the latest version.',
+        AppLocalizations.of(context).studyUpdateSuccessfulText,
         textAlign: TextAlign.center,
         style: CustomTypography()
             .bodyLarge(color: CustomColors.textSecondaryContent),
@@ -1749,7 +1749,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       ),
       const SizedBox(height: 12),
       Text(
-        'Study Update Failed',
+        AppLocalizations.of(context).studyUpdateFailed,
         textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
       ),
@@ -1761,11 +1761,11 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
             style: CustomTypography()
                 .bodyMedium(color: CustomColors.textSecondaryContent),
             children: [
-              const TextSpan(
-                  text:
-                      "Your study was not updated. Please check your internet connection and try again or update later under "),
               TextSpan(
-                text: "Settings > Study Details",
+                  text:
+                  AppLocalizations.of(context).studyUpdateFailedInternetText),
+              TextSpan(
+                text: AppLocalizations.of(context).studyUpdateFailedInternetTextTwo,
                 style: CustomTypography()
                     .bodyMedium(color: CustomColors.textSecondaryContent)
                     .copyWith(fontStyle: FontStyle.italic),
@@ -1781,11 +1781,11 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
             style: CustomTypography()
                 .bodyMedium(color: CustomColors.textSecondaryContent),
             children: [
-              const TextSpan(
-                  text:
-                      "Your study was not updated. Retry update or try later under "),
               TextSpan(
-                text: "Settings > Study Details",
+                  text:
+                  AppLocalizations.of(context).studyUpdateFailedText),
+              TextSpan(
+                text: AppLocalizations.of(context).studyUpdateFailedInternetTextTwo,
                 style: CustomTypography()
                     .bodyMedium(color: CustomColors.textSecondaryContent)
                     .copyWith(fontStyle: FontStyle.italic),
@@ -1802,7 +1802,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
           Expanded(
             child: CustomFlatButton(
               onClick: _reschedule,
-              text: 'Update Later',
+              text: AppLocalizations.of(context).updateLater,
               color: CustomColors.fillWhite,
               textColor: CustomColors.productNormalActive,
               borderColor: CustomColors.productNormalActive,
@@ -1811,18 +1811,18 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
           Expanded(
             child: CustomFlatButton(
               onClick: _startUpdate,
-              text: 'Retry Update',
+              text: AppLocalizations.of(context).retryUpdate,
             ),
           ),
         ],
       ),
       const SizedBox(height: 24),
       Text.rich(TextSpan(
-          text: "If the issue persists ",
+          text: AppLocalizations.of(context).studyUpdateFailedHelpText,
           style: CustomTypography().bodyLarge(),
           children: [
             TextSpan(
-              text: "contact researcher",
+              text: AppLocalizations.of(context).contactResearcher,
               style: CustomTypography()
                   .bodyLarge(color: CustomColors.productNormal)
                   .copyWith(
@@ -1874,7 +1874,7 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
                 height: 12,
               ),
               Text(
-                'Update Study',
+                AppLocalizations.of(context).updateStudy,
                 style: CustomTypography().headlineMedium(),
               ),
               SizedBox(

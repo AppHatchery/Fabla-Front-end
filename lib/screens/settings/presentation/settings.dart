@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/utils/device_appInfo.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../services/preference_service.dart';
 import '../../../theme/dialogs/pop_ups.dart';
 import '../../onboarding/domain/repository/setup_repository.dart';
@@ -104,7 +105,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
             backgroundColor: CustomColors.fillNormal,
             scrolledUnderElevation: 0.0,
             title: Text(
-              "Settings",
+              AppLocalizations.of(context).settings,
               style: CustomTypography()
                   .titleLarge(color: CustomColors.textNormalContent),
             ),
@@ -138,7 +139,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Microphone",
+                      AppLocalizations.of(context).microphone,
                       style: CustomTypography()
                           .titleLarge(color: CustomColors.textNormalContent),
                     ),
@@ -205,12 +206,12 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Enable Microphone Access',
+                                  AppLocalizations.of(context).enableMicAccess,
                                   style: CustomTypography().bodyLarge(
                                       color: CustomColors.textNormalContent),
                                 ),
                                 Text(
-                                  'You must enable microphone Access to record audio diaries.',
+                                  AppLocalizations.of(context).micAccessTextSettings,
                                   style: CustomTypography().bodyMedium(
                                       color: CustomColors.textSecondaryContent),
                                 ),
@@ -231,7 +232,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                                 borderRadius: 200,
                                 children: Wrap(children: [
                                   Text(
-                                    "Open Settings",
+                                    AppLocalizations.of(context).openSettings,
                                     style: CustomTypography()
                                         .title(color: CustomColors.textWhite),
                                   )
@@ -255,7 +256,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Reminders",
+                      AppLocalizations.of(context).reminders,
                       style: CustomTypography()
                           .titleLarge(color: CustomColors.textNormalContent),
                     ),
@@ -353,7 +354,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                     color: CustomColors.fillWhite,
                     textColor: CustomColors.warningActive,
                     onClick: () => leaveStudy(context),
-                    text: "Leave Study"),
+                    text: AppLocalizations.of(context).leaveStudy),
                 SizedBox(
                   height: 24,
                 ),
@@ -387,7 +388,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                     height: 12,
                   ),
                   Text(
-                    "Powered by AppHatchery",
+                    AppLocalizations.of(context).poweredByAppHatchery,
                     style: CustomTypography()
                         .bodyMedium(color: CustomColors.textSecondaryContent),
                     textAlign: TextAlign.center,

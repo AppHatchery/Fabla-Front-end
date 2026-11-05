@@ -259,7 +259,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get total => 'Total';
 
   @override
-  String get bonusText => 'Bono al completar';
+  String bonusText(int entries) {
+    return 'Bono al completar';
+  }
 
   @override
   String get getYourBonus => 'Consigue tu bono';
@@ -284,4 +286,121 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get opensAt => 'Disponible desde:';
+
+  @override
+  String get studyDetails => 'Study Details';
+
+  @override
+  String get lastUpdated => 'Last Updated:';
+
+  @override
+  String get viewDetials => 'View Details';
+
+  @override
+  String get updateStudy => 'Update Study';
+
+  @override
+  String get contactResearcher => 'Contact Researcher';
+
+  @override
+  String get participantDetails => 'Participant Details';
+
+  @override
+  String get dateJoined => 'Date Joined';
+
+  @override
+  String get onboardingSurvey => 'Onboarding Survey';
+
+  @override
+  String get onboardingCompletedText => 'Completed';
+
+  @override
+  String get microphone => 'Microphone';
+
+  @override
+  String get enableMicAccess => 'Enable Microphone Access';
+
+  @override
+  String get micAccessTextSettings =>
+      'You must enable microphone Access to record audio diaries.';
+
+  @override
+  String get reminders => 'Reminders';
+
+  @override
+  String get reminderText =>
+      'Set personalized reminders in addition to Fabla’s default notifications.';
+
+  @override
+  String get addReminder => '+ Add Reminder';
+
+  @override
+  String get poweredByAppHatchery => 'Powered by AppHatchery';
+
+  @override
+  String get leaveStudy => 'Leave Study';
+
+  @override
+  String get studyUpdateRemote => 'Your study has an update';
+
+  @override
+  String get studyUpdateRemoteTextOne =>
+      'Your researcher has made an update to the study, which may include changes to wording or instructions. Please update to continue with the latest version.';
+
+  @override
+  String get studyUpdateRemoteTextTwo =>
+      'If you have questions about the changes, please contact your researcher.';
+
+  @override
+  String get updateNow => 'Update Now';
+
+  @override
+  String get updatingStudy => 'Updating Study';
+
+  @override
+  String get updatingStudyText =>
+      'Hang tight! We\'re updating the experiment content. This won\'t take long!';
+
+  @override
+  String get studyUpdateSuccessful => 'Study Update Successful';
+
+  @override
+  String get studyUpdateSuccessfulText =>
+      'Your study has been updated to the latest version.';
+
+  @override
+  String get studyUpdateFailed => 'Study Update Failed';
+
+  @override
+  String get studyUpdateFailedInternetText =>
+      'Your study was not updated. Please check your internet connection and try again or update later under ';
+
+  @override
+  String get studyUpdateFailedInternetTextTwo => '“Settings > Study Details”';
+
+  @override
+  String get studyUpdateFailedText =>
+      'Your study was not updated. Retry update or try later under ';
+
+  @override
+  String get retryUpdate => 'Retry Update';
+
+  @override
+  String get updateLater => 'Update Later';
+
+  @override
+  String get studyUpdateFailedHelpText => 'If the issue persists, ';
+
+  @override
+  String get studyUpdateWarning => 'Waring';
+
+  @override
+  String get studyUpdateWarningText =>
+      'You are trying to make a manual update to the study. Only proceed if you have received a request from your researcher to update your study.';
+
+  @override
+  String get takeMeBack => 'Take Me Back';
+
+  @override
+  String get proceed => 'Proceed';
 }
