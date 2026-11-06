@@ -21,10 +21,39 @@ class AudioSegmentMerger {
     required String output,
   }) async {
     try {
-      return await _channel.invokeMethod<String>('merge', {
+      final reply = await _channel.invokeMapMethod<String, dynamic>('merge', {
         'segments': segments,
         'output': output,
       });
+
+      final skipped = reply?['skipped'] as List? ?? const [];
+      if (skipped.isNotEmpty) {
+        // The take was joined without these, so say so rather than lose them
+        // silently.
+        CrashlyticsService().recordError(
+          StateError('Segments skipped while joining'),
+          StackTrace.current,
+          reason: 'Joined a take without some of its segments',
+          context: {
+            'segment_count': segments.length,
+            'skipped': skipped.toString(),
+          },
+        );
+      }
+
+      return reply?['path'] as String?;
+    } on PlatformException catch (e, s) {
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'Joining the take\'s segments failed',
+        context: {
+          'segment_count': segments.length,
+          'details': e.details?.toString() ?? 'null',
+        },
+      );
+
+      return null;
     } catch (e, s) {
       CrashlyticsService().recordError(
         e,

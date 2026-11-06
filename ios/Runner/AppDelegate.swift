@@ -148,7 +148,7 @@ import AVFoundation
 /// Dart side records each stretch between interruptions into its own file and
 /// asks for them to be joined here once the participant stops.
 enum AudioSegmentMerger {
-  /// Returns [output] on success, or a FlutterError. The segments are never
+  /// Returns `["path": output, "skipped": [...]]` on success, or a FlutterError. The segments are never
   /// touched, so a failure loses nothing.
   ///
   /// Passthrough first: it copies the AAC data as it is, so it is fast and
@@ -161,23 +161,51 @@ enum AudioSegmentMerger {
       return FlutterError(code: "NO_TRACK", message: "Could not create an audio track", details: nil)
     }
 
-    do {
-      var cursor = CMTime.zero
-      for path in segments {
+    var cursor = CMTime.zero
+    // One entry per segment that could not be used, so Dart can report it.
+    var skipped: [[String: Any]] = []
+    var firstFailure: FlutterError?
+
+    for (index, path) in segments.enumerated() {
+      let size = (try? FileManager.default.attributesOfItem(atPath: path)[.size] as? Int) ?? -1
+      do {
         let asset = AVURLAsset(url: URL(fileURLWithPath: path))
         // A segment with no audio in it adds nothing, rather than failing the
         // whole recording.
-        guard let source = try await asset.loadTracks(withMediaType: .audio).first else { continue }
+        guard let source = try await asset.loadTracks(withMediaType: .audio).first else {
+          skipped.append(["index": index, "size": size, "reason": "no audio track"])
+          continue
+        }
         let duration = try await asset.load(.duration)
+        guard duration.isNumeric, duration > .zero else {
+          skipped.append(["index": index, "size": size, "reason": "unusable duration"])
+          continue
+        }
         try track.insertTimeRange(
           CMTimeRange(start: .zero, duration: duration), of: source, at: cursor)
         cursor = CMTimeAdd(cursor, duration)
+      } catch {
+        // A truncated segment, say one cut short by an interruption, must not
+        // cost the participant the segments that are fine.
+        let ns = error as NSError
+        var entry: [String: Any] = [
+          "index": index, "size": size, "reason": "\(ns.domain) \(ns.code)",
+        ]
+        if let underlying = ns.userInfo[NSUnderlyingErrorKey] as? NSError {
+          entry["underlying"] = "\(underlying.domain) \(underlying.code)"
+        }
+        skipped.append(entry)
+        if firstFailure == nil {
+          firstFailure = FlutterError(
+            code: "COMPOSE_FAILED", message: error.localizedDescription,
+            details: ["domain": ns.domain, "code": ns.code, "segments": skipped])
+        }
       }
-      if cursor == .zero {
-        return FlutterError(code: "EMPTY", message: "No segment held any audio", details: nil)
-      }
-    } catch {
-      return FlutterError(code: "COMPOSE_FAILED", message: error.localizedDescription, details: nil)
+    }
+
+    if cursor == .zero {
+      return firstFailure
+        ?? FlutterError(code: "EMPTY", message: "No segment held any audio", details: skipped)
     }
 
     let outputURL = URL(fileURLWithPath: output)
@@ -190,7 +218,7 @@ enum AudioSegmentMerger {
       export.outputURL = outputURL
       export.outputFileType = .m4a
       await export.export()
-      if export.status == .completed { return output }
+      if export.status == .completed { return ["path": output, "skipped": skipped] }
       lastError = export.error?.localizedDescription
     }
 
