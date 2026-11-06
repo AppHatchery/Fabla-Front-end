@@ -131,7 +131,10 @@ class _MyAppState extends State<MyApp> {
     final width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
         minTextAdapt: true,
-        designSize: Size(width, height),
+        // First frame can report 0x0, which turns every .sp into NaN.
+        designSize: width.isFinite && height.isFinite && width > 0 && height > 0
+            ? Size(width, height)
+            : ScreenUtil.defaultSize,
         builder: (context, child) {
           return MultiBlocProvider(
               providers: [
