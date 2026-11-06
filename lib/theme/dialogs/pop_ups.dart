@@ -1170,6 +1170,7 @@ class DeletePopUp extends StatelessWidget {
   }
 }
 
+
 class ExitPopUp extends StatelessWidget {
   final List<Widget> content;
   final String confirmText;
@@ -1221,6 +1222,7 @@ class ExitPopUp extends StatelessWidget {
     );
   }
 }
+
 
 class UpdatePopUp extends StatefulWidget {
   const UpdatePopUp({super.key});
