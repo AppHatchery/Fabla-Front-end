@@ -2,7 +2,8 @@ name: Unit and Widget Tests
 
 # PRs validate the proposed merge (required check; main is branch-protected).
 # workflow_dispatch allows manual re-runs from the Actions tab (flake triage,
-# post-secret-rotation).
+# post-secret-rotation). The coverage, report and gate steps run scripts in
+# .github/scripts/tests/.
 on:
   pull_request:
     branches:
@@ -21,12 +22,26 @@ concurrency:
 
 jobs:
   test:
+    # This name is the heading the full details appear under on the run
+    # Summary page.
+    name: Test Results
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       MIN_COVERAGE: "24"
+      # For the report's "Results for <commit>" line and its file:line links.
+      # The PR head is the commit the author pushed; github.sha would be the
+      # temporary merge commit.
+      COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - uses: actions/checkout@v6
+
+      # Under a second, and first, so a broken report script fails fast rather
+      # than after a ten-minute test run.
+      - name: Test the report script
+        run: python3 .github/scripts/tests/test_summary_test.py
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -76,93 +91,36 @@ jobs:
       # reported, but respect cancel-in-progress — a superseded run must not keep
       # burning minutes or overwrite the newer run's PR comment.
       - name: Compute in-scope coverage
-        id: coverage
         if: ${{ !cancelled() }}
-        run: |
-          sudo apt-get install -y lcov
-          COVERAGE="0"
-          LINES=""
-          if [ -f coverage/lcov.info ]; then
-            lcov --remove coverage/lcov.info \
-              'lib/**/*.g.dart' \
-              'lib/**/*.freezed.dart' \
-              'lib/objectbox.g.dart' \
-              'lib/main.dart' \
-              'lib/firebase_options.dart' \
-              'lib/theme/**' \
-              'lib/core/utils/dummy_data.dart' \
-              'lib/core/utils/errorCodes.dart' \
-              'lib/core/utils/emailFunction.dart' \
-              -o coverage/lcov.info --ignore-errors unused
-            SUMMARY=$(lcov --summary coverage/lcov.info 2>&1)
-            COVERAGE=$(echo "$SUMMARY" \
-              | grep -oP 'lines.*: \K[0-9.]+(?=%)' || echo "0")
-            LINES=$(echo "$SUMMARY" \
-              | grep -oP 'lines.*\(\K[0-9]+ of [0-9]+(?= lines\))' || echo "")
-          fi
-          echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
-          echo "lines=$LINES" >> "$GITHUB_OUTPUT"
-          echo "Coverage: $COVERAGE% (gate ${MIN_COVERAGE}%)"
+        run: bash .github/scripts/tests/test_coverage.sh
 
-      # Build two Markdown reports: report.md (concise — sticky PR comment) and
-      # summary.md (extended — run details, slowest tests, per-file breakdown)
-      # for the Actions run Summary page. Counts are exposed as step outputs.
       - name: Build test report
-        id: report
         if: ${{ !cancelled() }}
-        run: |
-          python3 .github/scripts/test_summary.py \
-            test-results.json report.md \
-            "${{ steps.coverage.outputs.coverage }}" "${MIN_COVERAGE}" \
-            --summary-out summary.md \
-            --lines "${{ steps.coverage.outputs.lines }}" \
-            >> "$GITHUB_OUTPUT"
-          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+        env:
+          # The report's verdict uses the same inputs as the gate below.
+          TESTS_OUTCOME: ${{ steps.tests.outcome }}
+        run: bash .github/scripts/tests/test_report.sh
 
-      # Upsert a single sticky comment on the PR (first-party github-script, no
-      # third-party action). Matched by the hidden marker so re-runs update it.
+      # Upsert a single sticky comment on the PR. The shared helper handles
+      # pagination, null comment bodies, the 65536-character limit and the
+      # read-only token a fork PR gets — see .github/scripts/upsert_pr_comment.js
       - name: Comment results on the PR
         if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         uses: actions/github-script@v9
         with:
           script: |
-            const fs = require('fs');
-            const marker = '<!-- unit-widget-tests -->';
-            const body = marker + '\n' + fs.readFileSync('report.md', 'utf8');
-            const { owner, repo } = context.repo;
-            const issue_number = context.issue.number;
-            const { data: comments } = await github.rest.issues.listComments({
-              owner, repo, issue_number, per_page: 100,
+            const upsert = require('.github/scripts/upsert_pr_comment.js');
+            await upsert({
+              github, context, core,
+              marker: '<!-- unit-widget-tests -->',
+              path: 'report.md',
+              fallback: '_Test report was not generated._',
             });
-            const existing = comments.find(
-              (c) => c.body && c.body.includes(marker)
-            );
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner, repo, comment_id: existing.id, body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner, repo, issue_number, body,
-              });
-            }
 
-      # Single place the job actually fails: tests must pass AND coverage must
-      # meet the gate. Reasons are emitted as ::error:: annotations.
+      # Fails the job on results: tests must pass and coverage must meet
+      # MIN_COVERAGE.
       - name: Enforce results and coverage gate
         if: ${{ !cancelled() }}
-        run: |
-          ok=1
-          if [ "${{ steps.tests.outcome }}" != "success" ]; then
-            echo "::error::${{ steps.report.outputs.failed }} test(s) failed — see the job summary and PR comment."
-            ok=0
-          fi
-          COVERAGE="${{ steps.coverage.outputs.coverage }}"
-          if ! awk "BEGIN {exit !($COVERAGE >= $MIN_COVERAGE)}"; then
-            echo "::error::Coverage $COVERAGE% is below the gate of ${MIN_COVERAGE}%."
-            ok=0
-          fi
-          if [ "$ok" -ne 1 ]; then
-            exit 1
-          fi
-          echo "All tests passed; coverage $COVERAGE% >= ${MIN_COVERAGE}%."
+        env:
+          TESTS_OUTCOME: ${{ steps.tests.outcome }}
+        run: bash .github/scripts/tests/test_gate.sh

@@ -40,6 +40,8 @@ jobs:
         stale-issue-label: 'no-issue-activity'
         stale-pr-label: 'no-pr-activity'
 
-        exempt-issue-labels: 'priority: P0,priority: P1,good first issue,help wanted'
+        # `complexity` is the standing issue Complexity_Checker.yml updates on
+        # each release; releases can be more than 60 days apart.
+        exempt-issue-labels: 'priority: P0,priority: P1,good first issue,help wanted,complexity'
         exempt-all-milestones: true
         exempt-draft-pr: true
