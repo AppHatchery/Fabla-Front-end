@@ -148,7 +148,8 @@ class LoginRepository {
       final exists = data['exists'];
       if (exists == true) {
         await SecureSave().save(
-          CredentialsModel.fromBackendMessage(data['message'] as Map<String, dynamic>),
+          CredentialsModel.fromBackendMessage(
+              data['message'] as Map<String, dynamic>),
         );
 
         //Add Participant to DB

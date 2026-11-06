@@ -156,6 +156,22 @@ class RouteService {
         extraPermissions.contains('camera') ? (preferences[5] ?? false) : true;
     final onboardingComplete = preferences[6] ?? false;
 
+    final lastExperimentAction = await _preferenceService.getStringPreference(
+      key: SetupRepository.experimentLastActionKey,
+    );
+    if (lastExperimentAction != null) {
+      await CrashlyticsService().setCustomKey(
+        SetupRepository.experimentLastActionKey,
+        lastExperimentAction,
+      );
+      await CrashlyticsService().log(
+        'Recovered incomplete experiment action: $lastExperimentAction',
+      );
+      await _preferenceService.removePreference(
+        key: SetupRepository.experimentLastActionKey,
+      );
+    }
+
     final participant = _setupRepository.getParticipant();
 
     // Priority cascade: each condition represents an incomplete onboarding step.

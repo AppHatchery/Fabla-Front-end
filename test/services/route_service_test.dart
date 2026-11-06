@@ -60,6 +60,9 @@ void main() {
         when(mockPreferenceService.getStringListPreference(
                 key: 'extra_permissions'))
             .thenAnswer((_) async => extraPermissions ?? []);
+        when(mockPreferenceService.getStringPreference(
+                key: SetupRepository.experimentLastActionKey))
+            .thenAnswer((_) async => null);
         when(mockPreferenceService.getBoolPreference(key: 'setup'))
             .thenAnswer((_) async => setup);
         when(mockPreferenceService.getBoolPreference(
