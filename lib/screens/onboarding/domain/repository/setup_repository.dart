@@ -835,6 +835,20 @@ class SetupRepository {
     }
   }
 
+  static const _lastExperimentUpdateKey = 'last_experiment_update_date';
+
+  /// Runs [updateExperiment] at most once per calendar day.
+  Future<bool> updateExperimentDaily() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+
+    if (prefs.getString(_lastExperimentUpdateKey) == today) return false;
+
+    final updated = await updateExperiment();
+    if (updated) await prefs.setString(_lastExperimentUpdateKey, today);
+    return updated;
+  }
+
   /// Refreshes the stored experiment from the remote source.
   ///
   /// The response must carry the same `login_code` that was sent; anything
