@@ -261,7 +261,8 @@ class _HubState extends State<Hub>
           .scheduleAdditional(); // Ensure that this also trigger when the app has just started
       NotificationManager().scheduleUserReminders(); // Schedule user reminders
 
-      //update the experiment details
+      // Refresh experiment details at most once a day (onboarding stamps today
+      // as done, so a fresh sign-up skips it).
       unawaited(SetupRepository().updateExperimentDaily());
 
       // Check for experiment updates after the first frame is rendered, and

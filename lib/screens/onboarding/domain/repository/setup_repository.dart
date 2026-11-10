@@ -837,10 +837,23 @@ class SetupRepository {
 
   static const _lastExperimentUpdateKey = 'last_experiment_update_date';
 
+  static String _today() => DateTime.now().toIso8601String().substring(0, 10);
+
+  /// Records that the stored experiment is current as of today. Call this
+  /// right after onboarding, which has just fetched fresh details, so the
+  /// daily refresh starts tomorrow.
+  Future<void> markExperimentUpToDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastExperimentUpdateKey, _today());
+  }
+
   /// Runs [updateExperiment] at most once per calendar day.
+  ///
+  /// The day is only recorded after a successful update, so a failed
+  /// (e.g. offline) attempt is retried on the next launch.
   Future<bool> updateExperimentDaily() async {
     final prefs = await SharedPreferences.getInstance();
-    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final today = _today();
 
     if (prefs.getString(_lastExperimentUpdateKey) == today) return false;
 
