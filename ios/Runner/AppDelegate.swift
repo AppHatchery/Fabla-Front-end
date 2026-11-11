@@ -7,7 +7,7 @@ import UserNotifications
 import alarm
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
     
   override func application(
     _ application: UIApplication,
@@ -22,18 +22,15 @@ import alarm
         UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
       }
       SwiftAlarmPlugin.registerBackgroundTasks()
-      
-    GeneratedPluginRegistrant.register(with: self)
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
-    
-    override func application(_ app: UIApplication,open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        if url.scheme?.range(of: "pendo") != nil {
-            PendoManager.shared().initWith(url)
-            return true
-        }
-        return true
-    }
+
+  // UIScene lifecycle: plugins are registered once the implicit engine
+  // (created by FlutterSceneDelegate) is ready, not in didFinishLaunching.
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+  }
     
     // APNs token received
     override  func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
@@ -47,4 +44,29 @@ import alarm
          //  print("Failed to register for remote notifications: \(error.localizedDescription)")
        }
         
+}
+
+// With the UIScene lifecycle, URLs are delivered to the scene delegate instead of
+// application(_:open:options:), so Pendo deep links are handled here.
+class SceneDelegate: FlutterSceneDelegate {
+  override func scene(
+    _ scene: UIScene,
+    willConnectTo session: UISceneSession,
+    options connectionOptions: UIScene.ConnectionOptions
+  ) {
+    super.scene(scene, willConnectTo: session, options: connectionOptions)
+    // Cold launch from a URL.
+    handlePendoURLs(connectionOptions.urlContexts)
+  }
+
+  override func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+    super.scene(scene, openURLContexts: URLContexts)
+    handlePendoURLs(URLContexts)
+  }
+
+  private func handlePendoURLs(_ contexts: Set<UIOpenURLContext>) {
+    for context in contexts where context.url.scheme?.range(of: "pendo") != nil {
+      PendoManager.shared().initWith(context.url)
+    }
+  }
 }
