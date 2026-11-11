@@ -4,31 +4,33 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
-import 'dart:typed_data' as _i10;
+import 'dart:typed_data' as _i11;
 
 import 'package:awesome_notifications/awesome_notifications.dart' as _i2;
 import 'package:awesome_notifications/src/enumerators/notification_life_cycle.dart'
-    as _i9;
+    as _i10;
 import 'package:awesome_notifications/src/enumerators/notification_permission.dart'
     as _i4;
-import 'package:awesome_notifications/src/models/notification_button.dart'
-    as _i7;
-import 'package:awesome_notifications/src/models/notification_channel.dart'
-    as _i13;
-import 'package:awesome_notifications/src/models/notification_channel_group.dart'
-    as _i14;
-import 'package:awesome_notifications/src/models/notification_content.dart'
+import 'package:awesome_notifications/src/enumerators/notification_permission_status.dart'
     as _i5;
-import 'package:awesome_notifications/src/models/notification_localization.dart'
+import 'package:awesome_notifications/src/models/notification_button.dart'
     as _i8;
-import 'package:awesome_notifications/src/models/notification_model.dart'
+import 'package:awesome_notifications/src/models/notification_channel.dart'
+    as _i14;
+import 'package:awesome_notifications/src/models/notification_channel_group.dart'
     as _i15;
-import 'package:awesome_notifications/src/models/notification_schedule.dart'
+import 'package:awesome_notifications/src/models/notification_content.dart'
     as _i6;
+import 'package:awesome_notifications/src/models/notification_localization.dart'
+    as _i9;
+import 'package:awesome_notifications/src/models/notification_model.dart'
+    as _i16;
+import 'package:awesome_notifications/src/models/notification_schedule.dart'
+    as _i7;
 import 'package:awesome_notifications/src/models/received_models/received_action.dart'
-    as _i11;
+    as _i12;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i12;
+import 'package:mockito/src/dummies.dart' as _i13;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -163,11 +165,40 @@ class MockAwesomeNotifications extends _i1.Mock
       ) as _i3.Future<List<_i4.NotificationPermission>>);
 
   @override
+  _i3.Future<
+      Map<_i4.NotificationPermission,
+          _i5.NotificationPermissionStatus>> getPermissionStatusList({
+    String? channelKey,
+    List<_i4.NotificationPermission>? permissions = const [
+      _i4.NotificationPermission.Badge,
+      _i4.NotificationPermission.Alert,
+      _i4.NotificationPermission.Sound,
+      _i4.NotificationPermission.Vibration,
+      _i4.NotificationPermission.Light,
+    ],
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getPermissionStatusList,
+          [],
+          {
+            #channelKey: channelKey,
+            #permissions: permissions,
+          },
+        ),
+        returnValue: _i3.Future<
+                Map<_i4.NotificationPermission,
+                    _i5.NotificationPermissionStatus>>.value(
+            <_i4.NotificationPermission, _i5.NotificationPermissionStatus>{}),
+      ) as _i3.Future<
+          Map<_i4.NotificationPermission, _i5.NotificationPermissionStatus>>);
+
+  @override
   _i3.Future<bool> createNotification({
-    required _i5.NotificationContent? content,
-    _i6.NotificationSchedule? schedule,
-    List<_i7.NotificationActionButton>? actionButtons,
-    Map<String, _i8.NotificationLocalization>? localizations,
+    required _i6.NotificationContent? content,
+    _i7.NotificationSchedule? schedule,
+    List<_i8.NotificationActionButton>? actionButtons,
+    Map<String, _i9.NotificationLocalization>? localizations,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -246,28 +277,28 @@ class MockAwesomeNotifications extends _i1.Mock
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<_i9.NotificationLifeCycle> getAppLifeCycle() =>
+  _i3.Future<_i10.NotificationLifeCycle> getAppLifeCycle() =>
       (super.noSuchMethod(
         Invocation.method(
           #getAppLifeCycle,
           [],
         ),
-        returnValue: _i3.Future<_i9.NotificationLifeCycle>.value(
-            _i9.NotificationLifeCycle.Foreground),
-      ) as _i3.Future<_i9.NotificationLifeCycle>);
+        returnValue: _i3.Future<_i10.NotificationLifeCycle>.value(
+            _i10.NotificationLifeCycle.Foreground),
+      ) as _i3.Future<_i10.NotificationLifeCycle>);
 
   @override
-  _i3.Future<_i10.Uint8List?> getDrawableData(String? drawablePath) =>
+  _i3.Future<_i11.Uint8List?> getDrawableData(String? drawablePath) =>
       (super.noSuchMethod(
         Invocation.method(
           #getDrawableData,
           [drawablePath],
         ),
-        returnValue: _i3.Future<_i10.Uint8List?>.value(),
-      ) as _i3.Future<_i10.Uint8List?>);
+        returnValue: _i3.Future<_i11.Uint8List?>.value(),
+      ) as _i3.Future<_i11.Uint8List?>);
 
   @override
-  _i3.Future<_i11.ReceivedAction?> getInitialNotificationAction(
+  _i3.Future<_i12.ReceivedAction?> getInitialNotificationAction(
           {bool? removeFromActionEvents = false}) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -275,8 +306,8 @@ class MockAwesomeNotifications extends _i1.Mock
           [],
           {#removeFromActionEvents: removeFromActionEvents},
         ),
-        returnValue: _i3.Future<_i11.ReceivedAction?>.value(),
-      ) as _i3.Future<_i11.ReceivedAction?>);
+        returnValue: _i3.Future<_i12.ReceivedAction?>.value(),
+      ) as _i3.Future<_i12.ReceivedAction?>);
 
   @override
   _i3.Future<int> getGlobalBadgeCounter() => (super.noSuchMethod(
@@ -293,7 +324,7 @@ class MockAwesomeNotifications extends _i1.Mock
           #getLocalTimeZoneIdentifier,
           [],
         ),
-        returnValue: _i3.Future<String>.value(_i12.dummyValue<String>(
+        returnValue: _i3.Future<String>.value(_i13.dummyValue<String>(
           this,
           Invocation.method(
             #getLocalTimeZoneIdentifier,
@@ -304,7 +335,7 @@ class MockAwesomeNotifications extends _i1.Mock
 
   @override
   _i3.Future<DateTime?> getNextDate(
-    _i6.NotificationSchedule? schedule, {
+    _i7.NotificationSchedule? schedule, {
     DateTime? fixedDate,
   }) =>
       (super.noSuchMethod(
@@ -322,7 +353,7 @@ class MockAwesomeNotifications extends _i1.Mock
           #getUtcTimeZoneIdentifier,
           [],
         ),
-        returnValue: _i3.Future<String>.value(_i12.dummyValue<String>(
+        returnValue: _i3.Future<String>.value(_i13.dummyValue<String>(
           this,
           Invocation.method(
             #getUtcTimeZoneIdentifier,
@@ -343,8 +374,8 @@ class MockAwesomeNotifications extends _i1.Mock
   @override
   _i3.Future<bool> initialize(
     String? defaultIcon,
-    List<_i13.NotificationChannel>? channels, {
-    List<_i14.NotificationChannelGroup>? channelGroups,
+    List<_i14.NotificationChannel>? channels, {
+    List<_i15.NotificationChannelGroup>? channelGroups,
     bool? debug = false,
     String? languageCode,
   }) =>
@@ -374,15 +405,15 @@ class MockAwesomeNotifications extends _i1.Mock
       ) as _i3.Future<bool>);
 
   @override
-  _i3.Future<List<_i15.NotificationModel>> listScheduledNotifications() =>
+  _i3.Future<List<_i16.NotificationModel>> listScheduledNotifications() =>
       (super.noSuchMethod(
         Invocation.method(
           #listScheduledNotifications,
           [],
         ),
-        returnValue: _i3.Future<List<_i15.NotificationModel>>.value(
-            <_i15.NotificationModel>[]),
-      ) as _i3.Future<List<_i15.NotificationModel>>);
+        returnValue: _i3.Future<List<_i16.NotificationModel>>.value(
+            <_i16.NotificationModel>[]),
+      ) as _i3.Future<List<_i16.NotificationModel>>);
 
   @override
   _i3.Future<bool> removeChannel(String? channelKey) => (super.noSuchMethod(
@@ -428,7 +459,7 @@ class MockAwesomeNotifications extends _i1.Mock
 
   @override
   _i3.Future<void> setChannel(
-    _i13.NotificationChannel? notificationChannel, {
+    _i14.NotificationChannel? notificationChannel, {
     bool? forceUpdate = false,
   }) =>
       (super.noSuchMethod(
@@ -534,7 +565,7 @@ class MockAwesomeNotifications extends _i1.Mock
           #getLocalization,
           [],
         ),
-        returnValue: _i3.Future<String>.value(_i12.dummyValue<String>(
+        returnValue: _i3.Future<String>.value(_i13.dummyValue<String>(
           this,
           Invocation.method(
             #getLocalization,

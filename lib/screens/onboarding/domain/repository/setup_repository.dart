@@ -45,19 +45,33 @@ import '../../../diary/domain/entities/protocol_entity.dart';
 import '../entities/participant.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+/// Signature of the network call used to talk to the remote source.
+/// Matches [post] so tests can substitute a fake.
+typedef PostRequest = Future<String?> Function({
+  required String path,
+  required Map<String, dynamic> body,
+});
+
 class SetupRepository {
-  final ParticipantDAO _participantDAO =
+  // Everything except the experiment DAO is created lazily, so a repository
+  // built with an injected [ExperimentDAO] never touches the global objectbox.
+  late final ParticipantDAO _participantDAO =
       ParticipantDAO(box: Box<Participant>(objectbox.store));
-  final ProtocolDAO _protocolDAO =
+  late final ProtocolDAO _protocolDAO =
       ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
-  final StudyDAO _studyDAO = StudyDAO(box: Box<Study>(objectbox.store));
-  final QuestionsDAO _questionsDAO =
+  late final StudyDAO _studyDAO = StudyDAO(box: Box<Study>(objectbox.store));
+  late final QuestionsDAO _questionsDAO =
       QuestionsDAO(box: Box<QuestionsEntity>(objectbox.store));
-  final ExperimentDAO _experimentDAO =
-      ExperimentDAO(box: Box<Experiment>(objectbox.store));
-  final DiaryRepository diaryRepository = DiaryRepository();
-  final PromptRepository promptRepository = PromptRepository();
-  final AnswerRepository answerRepository = AnswerRepository();
+  final ExperimentDAO _experimentDAO;
+  final PostRequest _post;
+  late final DiaryRepository diaryRepository = DiaryRepository();
+  late final PromptRepository promptRepository = PromptRepository();
+  late final AnswerRepository answerRepository = AnswerRepository();
+
+  SetupRepository({ExperimentDAO? experimentDao, PostRequest? postRequest})
+      : _experimentDAO = experimentDao ??
+            ExperimentDAO(box: Box<Experiment>(objectbox.store)),
+        _post = postRequest ?? post;
 
   /// Retrieves the participant's information from the database.
   ///
@@ -817,6 +831,87 @@ class SetupRepository {
     } catch (e, stackTrace) {
       CrashlyticsService()
           .recordError(e, stackTrace, reason: "Leaving study failed");
+      return false;
+    }
+  }
+
+  static const _lastExperimentUpdateKey = 'last_experiment_update_date';
+
+  static String _today() => DateTime.now().toIso8601String().substring(0, 10);
+
+  /// Records that the stored experiment is current as of today. Call this
+  /// right after onboarding, which has just fetched fresh details, so the
+  /// daily refresh starts tomorrow.
+  Future<void> markExperimentUpToDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastExperimentUpdateKey, _today());
+  }
+
+  /// Runs [updateExperiment] at most once per calendar day.
+  ///
+  /// The day is only recorded after a successful update, so a failed
+  /// (e.g. offline) attempt is retried on the next launch.
+  Future<bool> updateExperimentDaily() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _today();
+
+    if (prefs.getString(_lastExperimentUpdateKey) == today) return false;
+
+    final updated = await updateExperiment();
+    if (updated) await prefs.setString(_lastExperimentUpdateKey, today);
+    return updated;
+  }
+
+  /// Refreshes the stored experiment from the remote source.
+  ///
+  /// The response must carry the same `login_code` that was sent; anything
+  /// else (missing, different study, malformed) leaves the stored experiment
+  /// untouched, since a partial response would otherwise blank its fields.
+  /// The experiment keeps its database id.
+  ///
+  /// Returns `true` if the stored experiment was updated, `false` if there is
+  /// no stored experiment, the request failed, the response was unusable, or
+  /// the stored study changed while the request was in flight.
+  Future<bool> updateExperiment() async {
+    try {
+      final current = _experimentDAO.getExperiment();
+      if (current == null || current.login.isEmpty) return false;
+
+      final response = await _post(
+        path: '/fabla/getstudyinfo',
+        body: {'login_code': current.login},
+      );
+      if (response == null) return false;
+
+      final decoded = json.decode(response);
+      if (decoded is! Map<String, dynamic>) return false;
+
+      final data = decoded['data'];
+      if (data is! Map<String, dynamic>) return false;
+
+      // Require the response to be for this study.
+      final returnedLogin = data['login_code'];
+      if (returnedLogin is! String ||
+          returnedLogin.toLowerCase() != current.login.toLowerCase()) {
+        return false;
+      }
+
+      final experiment = ExperimentModel.fromJson(data);
+
+      // The DAO re-checks the login, in case the stored study changed while
+      // the request was in flight.
+      dev.log("Experiment Updated");
+      return _experimentDAO.updateExperiment(
+        current.login,
+        Experiment.fromModel(experiment),
+      );
+    } catch (e, stackTrace) {
+      CrashlyticsService().recordError(
+        e,
+        stackTrace,
+        reason: 'Error updating experiment in updateExperiment',
+      );
+      dev.log('Error updating experiment: $e', name: 'Update Experiment');
       return false;
     }
   }
