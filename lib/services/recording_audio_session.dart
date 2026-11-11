@@ -116,6 +116,47 @@ class RecordingAudioSession {
     }
   }
 
+  /// Claims the session again for a take an interruption paused, reporting
+  /// whether it took.
+  ///
+  /// [activate] alone can't answer that on Android. A call costs us focus only
+  /// transiently, so audio_session keeps its old focus request, and while it
+  /// holds one `setActive(true)` returns true without asking Android. Resuming
+  /// mid-call then "succeeded" and recorded over a microphone the call held.
+  /// Dropping the stale request first makes the next one a real request, which
+  /// Android refuses while a call holds focus.
+  ///
+  /// iOS asks the system on every `setActive(true)`, so it goes straight on.
+  Future<bool> reclaim() async {
+    if (_isAndroid) await releaseFocus();
+    return activate();
+  }
+
+  /// Drops audio_session's held focus request without the iOS-only hint
+  /// [deactivate] sends. Failures are logged: [activate] still runs after.
+  ///
+  /// Only [reclaim] should call it; visible so a test can see the order.
+  @visibleForTesting
+  Future<void> releaseFocus() async {
+    try {
+      final session = await AudioSession.instance;
+      await session.setActive(false);
+    } catch (e, s) {
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'Releasing stale audio focus failed',
+      );
+    }
+  }
+
+  bool get _isAndroid =>
+      isAndroidOverride ?? defaultTargetPlatform == TargetPlatform.android;
+
+  /// Lets a test pick the platform branch of [reclaim].
+  @visibleForTesting
+  bool? isAndroidOverride;
+
   /// Hands the session back once capture is done.
   ///
   /// Audio focus is borrowed, not taken: the media app that paused for us only

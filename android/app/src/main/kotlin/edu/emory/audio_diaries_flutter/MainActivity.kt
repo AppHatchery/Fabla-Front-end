@@ -1,28 +1,59 @@
 package edu.emory.audio_diaries_flutter
 
+import android.content.Intent
+import edu.emory.audio_diaries_flutter.core.notification.isNightMode
+import edu.emory.audio_diaries_flutter.features.battery.presentation.BatteryChannel
+import edu.emory.audio_diaries_flutter.features.recording.data.AndroidRecordingNotifications
+import edu.emory.audio_diaries_flutter.features.recording.presentation.RecordingChannel
+import edu.emory.audio_diaries_flutter.features.timer.data.AndroidTimerNotifications
+import edu.emory.audio_diaries_flutter.features.timer.presentation.TimerChannel
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 
+/**
+ * Wires each feature's Flutter channel to its Android implementation. The only place that knows
+ * every concrete class.
+ */
 class MainActivity : FlutterFragmentActivity() {
 
-    private lateinit var batteryService: BatteryService
-    private lateinit var timerLiveUpdate: TimerLiveUpdate
+    private var batteryChannel: BatteryChannel? = null
+
+    private var timerNotifications: AndroidTimerNotifications? = null
+    private var timerChannel: TimerChannel? = null
+
+    private var recordingNotifications: AndroidRecordingNotifications? = null
+    private var recordingChannel: RecordingChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
         val messenger = flutterEngine.dartExecutor.binaryMessenger
+        val appContext = applicationContext
 
-        batteryService = BatteryService(packageName)
-        batteryService.setup(this, messenger, this)
+        batteryChannel = BatteryChannel(appContext).also { it.attach(messenger) }
 
-        timerLiveUpdate = TimerLiveUpdate(applicationContext)
-        timerLiveUpdate.setup(messenger)
+        val timer = AndroidTimerNotifications(appContext).also { it.start() }
+        timerNotifications = timer
+        timerChannel = TimerChannel(timer).also { it.attach(messenger) }
+
+        val recording = AndroidRecordingNotifications(appContext).also { it.start() }
+        recordingNotifications = recording
+        recordingChannel = RecordingChannel(recording, isNightMode = { appContext.isNightMode() })
+            .also { it.attach(messenger) }
+    }
+
+    /** The recording notification's Resume and Record again actions reopen the app through here. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        recordingNotifications?.handleLaunchIntent(intent)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        batteryService.terminate()
-        timerLiveUpdate.terminate()
+        batteryChannel?.detach()
+        timerChannel?.detach()
+        timerNotifications?.stop()
+        recordingChannel?.detach()
+        recordingNotifications?.stop()
     }
 }

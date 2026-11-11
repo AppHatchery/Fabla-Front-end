@@ -421,7 +421,7 @@ class AudioRecordingService {
         'segmentSealed=$_segmentSealed',
       );
 
-      if (!await _audioSession.activate()) {
+      if (!await _audioSession.reclaim()) {
         _emit(microphoneUnavailable: true);
         return;
       }
