@@ -220,6 +220,15 @@ class AudioRecordingService {
   /// reusing its number would be confusing to anyone reading the disk.
   int _segmentCount = 0;
 
+  /// Join attempts made for the live take, used to give each one its own
+  /// output file. A join that timed out may still be writing its file
+  /// natively, so a retry into the same name would race it.
+  int _joinAttempts = 0;
+
+  /// Output files of the live take's joins that did not succeed. Deleted once
+  /// the take is joined or thrown away, since none of them is the take.
+  final List<String> _abandonedJoins = [];
+
   /// Whether the live take's current segment was stopped by an interruption.
   ///
   /// The take is paused, but flutter_sound's recorder is stopped, not paused.
@@ -337,6 +346,8 @@ class AudioRecordingService {
       _takeBasePath = path;
       _segments.clear();
       _segmentCount = 1;
+      _joinAttempts = 0;
+      _abandonedJoins.clear();
       _segmentSealed = false;
       _recordingStartedAt = DateTime.now();
 
@@ -578,9 +589,30 @@ class AudioRecordingService {
       return false;
     }
 
-    final path = await _joinSegments();
+    final outcome = await _joinSegments();
 
-    if (path == null) {
+    if (outcome is SegmentsUnusable) {
+      // No segment could be read, so another attempt would fail the same way
+      // and stop would look dead. The take ends as an empty one instead. Its
+      // files are unreadable, so deleting them loses nothing.
+      await _deleteFiles(_releaseSegments());
+      await _deleteFiles(_releaseAbandonedJoins());
+      _requestedTakePath = null;
+      _takePath = null;
+
+      _emit(
+        status: AudioRecordingStatus.stopped,
+        elapsed: Duration.zero,
+        isInterrupted: false,
+        hasTake: false,
+        takeWasEmpty: true,
+        joinFailed: false,
+      );
+
+      return false;
+    }
+
+    if (outcome is! SegmentsJoined) {
       // Every segment is still on disk. Leaving the take paused and sealed
       // means the next stop tries the join again, and a resume carries on
       // recording, rather than any of it being thrown away.
@@ -597,7 +629,10 @@ class AudioRecordingService {
     }
 
     _segments.clear();
-    _takePath = path;
+    _takePath = outcome.path;
+
+    // Joins that failed or timed out before this one are not the take.
+    await _deleteFiles(_releaseAbandonedJoins());
 
     _emit(
       status: AudioRecordingStatus.stopped,
@@ -678,30 +713,34 @@ class AudioRecordingService {
   }
 
   /// Joins the take's segments into the file at [_takeBasePath] and reports
-  /// where the take ended up, or `null` if the join failed.
+  /// where the take ended up, or why it could not be joined.
   ///
   /// A take that was never split, the usual case and every Android take, is
   /// left exactly where the recorder put it, even when that is not the path it
   /// was asked for. Only a split take is moved to the base name, which also
   /// covers one whose empty first segment was dropped.
-  Future<String?> _joinSegments() async {
+  Future<SegmentMergeResult> _joinSegments() async {
     final base = _takeBasePath ?? _segments.first;
 
     final String joined;
     if (_segments.length == 1) {
       joined = _segments.single;
     } else {
+      final output = _joiningPath(base, ++_joinAttempts);
       final result = await _segmentMerger.merge(
         List.of(_segments),
-        output: _joiningPath(base),
+        output: output,
       );
 
-      if (result == null) return null;
+      if (result is! SegmentsJoined) {
+        _abandonedJoins.add(output);
+        return result;
+      }
 
-      joined = result;
+      joined = result.path;
     }
 
-    if (joined == base || _segmentCount <= 1) return joined;
+    if (joined == base || _segmentCount <= 1) return SegmentsJoined(joined);
 
     try {
       // Replaces the first segment, which the joined file now contains.
@@ -715,14 +754,15 @@ class AudioRecordingService {
 
       // The joined file still holds the whole take, just under another name,
       // so it is kept as it is and nothing else is touched.
-      return joined;
+      return SegmentsJoined(joined);
     }
 
-    for (final segment in _segments) {
+    // A copy, because the list must not change under a loop that awaits.
+    for (final segment in List.of(_segments)) {
       if (segment != base) await _deleteFile(segment);
     }
 
-    return base;
+    return SegmentsJoined(base);
   }
 
   /// The file the [n]th segment of the live take is recorded into. The first
@@ -734,8 +774,31 @@ class AudioRecordingService {
     return '${p.withoutExtension(base)}_part$n${p.extension(base)}';
   }
 
-  String _joiningPath(String base) =>
-      '${p.withoutExtension(base)}_joined${p.extension(base)}';
+  /// The file the [attempt]th join of the live take writes into.
+  String _joiningPath(String base, int attempt) =>
+      '${p.withoutExtension(base)}_joined$attempt${p.extension(base)}';
+
+  /// Empties the take's segment list and returns what it held, so a caller
+  /// can await over the files without the list changing under it.
+  List<String> _releaseSegments() {
+    final segments = List.of(_segments);
+    _segments.clear();
+    return segments;
+  }
+
+  /// Empties [_abandonedJoins] and returns what it held, like
+  /// [_releaseSegments].
+  List<String> _releaseAbandonedJoins() {
+    final joins = List.of(_abandonedJoins);
+    _abandonedJoins.clear();
+    return joins;
+  }
+
+  Future<void> _deleteFiles(List<String> paths) async {
+    for (final path in paths) {
+      await _deleteFile(path);
+    }
+  }
 
   /// Finds the file a finished take is actually in, or `null` if there is not
   /// one.
@@ -813,11 +876,9 @@ class AudioRecordingService {
     // behind is worth keeping. Segments too: a take whose join failed still
     // has them on disk.
     await _deleteCandidates(_takePath);
-    for (final segment in _segments) {
-      await _deleteFile(segment);
-    }
+    await _deleteFiles(_releaseSegments());
+    await _deleteFiles(_releaseAbandonedJoins());
 
-    _segments.clear();
     _requestedTakePath = null;
     _takePath = null;
   }
