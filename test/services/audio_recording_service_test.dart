@@ -106,21 +106,36 @@ class _FakeSegmentMerger implements AudioSegmentMerger {
   /// What each join was asked to put together, in call order.
   final List<List<String>> merged = [];
 
+  /// Where each join was asked to write, in call order.
+  final List<String> outputs = [];
+
   /// Whether the join works. `false` is the export failing on the device.
   bool succeeds = true;
 
+  /// Whether no segment could be read at all, which no retry can fix.
+  bool unusable = false;
+
   @override
-  Future<String?> merge(List<String> segments, {required String output}) async {
+  Future<SegmentMergeResult> merge(
+    List<String> segments, {
+    required String output,
+  }) async {
     calls.add('merger.merge');
     merged.add(List.of(segments));
+    outputs.add(output);
 
-    if (!succeeds) return null;
+    if (unusable) return const SegmentsUnusable();
+    if (!succeeds) {
+      // What a timed-out export leaves behind: a file that is not the take.
+      File(output).writeAsBytesSync([9]);
+      return const SegmentJoinFailed();
+    }
 
     File(output).writeAsBytesSync([
       for (final segment in segments) ...File(segment).readAsBytesSync(),
     ]);
 
-    return output;
+    return SegmentsJoined(output);
   }
 }
 
@@ -1244,6 +1259,84 @@ void main() {
         expect(platformCalls, isNot(contains('recorder.stopRecorder')));
         expect(service.state.value.joinFailed, isFalse);
         expect(File(first).readAsBytesSync(), [1, 1, 2, 2]);
+      });
+
+      test('a take with no readable segment ends instead of retrying',
+          () async {
+        final first = await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        final second = await resumeMarked([2, 2]);
+        segmentMerger.unusable = true;
+
+        expect(await service.stop(), isFalse);
+
+        final state = service.state.value;
+        expect(state.joinFailed, isFalse);
+        expect(state.takeWasEmpty, isTrue);
+        expect(state.isPaused, isFalse);
+        expect(state.isRecording, isFalse);
+        expect(state.hasCompletedTake, isFalse);
+        expect(File(first).existsSync(), isFalse);
+        expect(File(second).existsSync(), isFalse);
+
+        // Nothing is left to stop, and a new take starts clean.
+        segmentMerger.unusable = false;
+        platformCalls.clear();
+        expect(await service.stop(), isFalse);
+        expect(platformCalls, isNot(contains('merger.merge')));
+
+        await service.record();
+        expect(service.state.value.isRecording, isTrue);
+        expect(service.state.value.takeWasEmpty, isFalse);
+      });
+
+      test('each retry writes a new file and clears the failed ones',
+          () async {
+        final first = await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        await resumeMarked([2]);
+        segmentMerger.succeeds = false;
+
+        await service.stop();
+        await service.stop();
+        segmentMerger.succeeds = true;
+        expect(await service.stop(), isTrue);
+
+        final outputs = segmentMerger.outputs;
+        expect(outputs.toSet(), hasLength(3),
+            reason: 'a retry must not race a join still writing its file');
+        expect(File(outputs[0]).existsSync(), isFalse);
+        expect(File(outputs[1]).existsSync(), isFalse);
+        expect(File(first).readAsBytesSync(), [1, 1, 2]);
+      });
+
+      test('a take with no readable segment clears its failed joins too',
+          () async {
+        await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        await resumeMarked([2]);
+        segmentMerger.succeeds = false;
+        await service.stop();
+        final failed = segmentMerger.outputs.single;
+        expect(File(failed).existsSync(), isTrue);
+
+        segmentMerger.unusable = true;
+        await service.stop();
+
+        expect(File(failed).existsSync(), isFalse);
+      });
+
+      test('discarding a take clears its failed joins', () async {
+        await startMarkedTake();
+        await captureCompromised(CaptureLoss.interruption);
+        await resumeMarked([2]);
+        segmentMerger.succeeds = false;
+        await service.stop();
+        final failed = segmentMerger.outputs.single;
+
+        await service.discardTake();
+
+        expect(File(failed).existsSync(), isFalse);
       });
 
       test('a take whose join failed can be resumed into another segment',

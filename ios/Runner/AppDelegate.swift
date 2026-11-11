@@ -164,7 +164,8 @@ enum AudioSegmentMerger {
     var cursor = CMTime.zero
     // One entry per segment that could not be used, so Dart can report it.
     var skipped: [[String: Any]] = []
-    var firstFailure: FlutterError?
+    // The first error that cost a segment, reported if no segment survives.
+    var firstError: NSError?
 
     for (index, path) in segments.enumerated() {
       let size = (try? FileManager.default.attributesOfItem(atPath: path)[.size] as? Int) ?? -1
@@ -195,17 +196,23 @@ enum AudioSegmentMerger {
           entry["underlying"] = "\(underlying.domain) \(underlying.code)"
         }
         skipped.append(entry)
-        if firstFailure == nil {
-          firstFailure = FlutterError(
-            code: "COMPOSE_FAILED", message: error.localizedDescription,
-            details: ["domain": ns.domain, "code": ns.code, "segments": skipped])
-        }
+        if firstError == nil { firstError = ns }
       }
     }
 
+    // The only code that tells Dart no segment can ever be joined, which is
+    // what lets it delete them. Returned only here, once every segment was
+    // tried, with the full skipped list so Dart can check that for itself.
     if cursor == .zero {
-      return firstFailure
-        ?? FlutterError(code: "EMPTY", message: "No segment held any audio", details: skipped)
+      var details: [String: Any] = ["segments": skipped]
+      if let firstError {
+        details["domain"] = firstError.domain
+        details["code"] = firstError.code
+      }
+      return FlutterError(
+        code: "NO_USABLE_SEGMENTS",
+        message: firstError?.localizedDescription ?? "No segment held any audio",
+        details: details)
     }
 
     let outputURL = URL(fileURLWithPath: output)

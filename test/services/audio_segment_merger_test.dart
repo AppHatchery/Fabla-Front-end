@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:audio_diaries_flutter/services/audio_segment_merger.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // Covers the Dart half of the iOS segment join. The native half is stubbed at
 // the channel, so these pin the contract: what is sent, what a success looks
-// like, and that every failure becomes `null` rather than a throw.
+// like, and how each failure is reported rather than thrown.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -44,7 +46,8 @@ void main() {
 
     expect(
       await merger.merge(segments, output: '/take_joined.m4a'),
-      '/take_joined.m4a',
+      isA<SegmentsJoined>()
+          .having((r) => r.path, 'path', '/take_joined.m4a'),
     );
   });
 
@@ -60,7 +63,8 @@ void main() {
 
     expect(
       await merger.merge(segments, output: '/take_joined.m4a'),
-      '/take_joined.m4a',
+      isA<SegmentsJoined>()
+          .having((r) => r.path, 'path', '/take_joined.m4a'),
     );
   });
 
@@ -69,47 +73,98 @@ void main() {
 
     expect(
       await merger.merge(segments, output: '/take_joined.m4a'),
-      '/take_joined.m4a',
+      isA<SegmentsJoined>()
+          .having((r) => r.path, 'path', '/take_joined.m4a'),
     );
   });
 
-  // Every native failure code takes the same path: reported, then null, so
-  // the caller keeps the segments and lets the participant try again. Details
-  // are optional because only COMPOSE_FAILED and EMPTY carry them.
+  // Only NO_USABLE_SEGMENTS means retrying cannot help, and the caller
+  // deletes the segments on it, so it also has to account for every one.
+  Map<String, Object?> skippedAll(List<int> indexes) => {
+        'domain': 'AVFoundationErrorDomain',
+        'code': -11800,
+        'segments': [
+          for (final i in indexes)
+            {'index': i, 'size': 48, 'reason': 'AVFoundationErrorDomain -11800'},
+        ],
+      };
+
   for (final failure in {
-    'COMPOSE_FAILED': {
-      'domain': 'AVFoundationErrorDomain',
-      'code': -11800,
-      'segments': [
-        {'index': 0, 'size': 48, 'reason': 'AVFoundationErrorDomain -11800'},
-      ],
-    },
-    'EMPTY': <Object?>[],
-    'EXPORT_FAILED': null,
+    'every segment skipped': (
+      code: 'NO_USABLE_SEGMENTS',
+      details: skippedAll([0, 1]),
+      result: isA<SegmentsUnusable>(),
+    ),
+    'only some segments listed': (
+      code: 'NO_USABLE_SEGMENTS',
+      details: skippedAll([0]),
+      result: isA<SegmentJoinFailed>(),
+    ),
+    'a duplicated index': (
+      code: 'NO_USABLE_SEGMENTS',
+      details: skippedAll([0, 0]),
+      result: isA<SegmentJoinFailed>(),
+    ),
+    'no details': (
+      code: 'NO_USABLE_SEGMENTS',
+      details: null,
+      result: isA<SegmentJoinFailed>(),
+    ),
+    'another code with every segment skipped': (
+      code: 'COMPOSE_FAILED',
+      details: skippedAll([0, 1]),
+      result: isA<SegmentJoinFailed>(),
+    ),
+    'an export failure': (
+      code: 'EXPORT_FAILED',
+      details: null,
+      result: isA<SegmentJoinFailed>(),
+    ),
   }.entries) {
-    test('returns null for ${failure.key}', () async {
+    test('${failure.key} is reported as ${failure.value.result}', () async {
       stub(
         (_) async => throw PlatformException(
-          code: failure.key,
+          code: failure.value.code,
           message: 'failed',
-          details: failure.value,
+          details: failure.value.details,
         ),
       );
 
-      expect(await merger.merge(segments, output: '/out.m4a'), isNull);
+      expect(
+        await merger.merge(segments, output: '/out.m4a'),
+        failure.value.result,
+      );
     });
   }
 
-  test('returns null when the channel is not implemented', () async {
+  test('a native call that never answers times out as retryable', () async {
+    final never = Completer<Object?>();
+    stub((_) => never.future);
+
+    final quick = AudioSegmentMerger(timeout: const Duration(milliseconds: 10));
+
+    expect(
+      await quick.merge(segments, output: '/out.m4a'),
+      isA<SegmentJoinFailed>(),
+    );
+  });
+
+  test('a missing channel is a retryable failure', () async {
     // What Android sees: only iOS registers the channel.
     stub((_) async => throw MissingPluginException());
 
-    expect(await merger.merge(segments, output: '/out.m4a'), isNull);
+    expect(
+      await merger.merge(segments, output: '/out.m4a'),
+      isA<SegmentJoinFailed>(),
+    );
   });
 
-  test('returns null when the native side replies null', () async {
+  test('a null reply is a retryable failure', () async {
     stub((_) async => null);
 
-    expect(await merger.merge(segments, output: '/out.m4a'), isNull);
+    expect(
+      await merger.merge(segments, output: '/out.m4a'),
+      isA<SegmentJoinFailed>(),
+    );
   });
 }
