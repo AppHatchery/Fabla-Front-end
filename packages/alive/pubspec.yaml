@@ -1,0 +1,19 @@
+name: alive
+description: >-
+  The Alive engine for Fabla. Plays designed Fabio moments (vector art and keyed clips, made from Figma Motion or the
+  board pages by the alive CLI) in Flutter: a stage widget and a controller, scenes loaded by id and released when
+  he leaves, typed inputs (mic level, taps, events, app state), variant pools, worn-item physics, reduced motion,
+  lifecycle and accessibility.
+version: 0.7.0
+publish_to: none
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # SVG path data to dart:ui Path (arcs included), the Flutter team's own parser
+  path_parsing: ^1.1.0
+

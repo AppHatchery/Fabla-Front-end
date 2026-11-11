@@ -1,5 +1,9 @@
 
+import 'dart:async';
 import 'dart:io';
+
+import 'package:alive/alive.dart' show AliveClipEnded, AliveEvent, AliveStatus;
+import 'package:audio_diaries_flutter/alive/alive.dart';
 
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -1945,7 +1949,10 @@ class MyUpgrader extends Upgrader {
     final installedVersion = currentInstalledVersion;
     print('storeVersion=$storeVersion');
     print('installedVersion=$installedVersion');
-    return super.isUpdateAvailable();
+    final available = super.isUpdateAvailable();
+    // Load Fabio's scene before the dialog shows, so he is ready on its first frame (nothing when Alive is off).
+    if (available) Alive.preloadAppUpdate();
+    return available;
   }
 }
 
@@ -1962,6 +1969,112 @@ class MyUpgradeAlert extends UpgradeAlert {
 
 class MyUpgradeAlertState extends UpgradeAlertState {
   bool _doNotShow = false;
+
+  /// Drives Fabio's payoff and goodbye from the buttons (only used when Fabla Alive is on).
+  final _fabio = AppUpdateFabioController();
+
+  /// True while Fabio's payoff or goodbye plays after a choice; the buttons take no taps then.
+  bool _leaving = false;
+  StreamSubscription<AliveEvent>? _clipEnded;
+  Timer? _clipTimeout;
+
+  @override
+  void dispose() {
+    _clipEnded?.cancel();
+    _clipTimeout?.cancel();
+    super.dispose();
+  }
+
+  /// Whether Fabio is on screen and can play a state (false when Alive is off or his scene failed to load).
+  bool get _fabioReady => _fabio.alive?.status.value == AliveStatus.ready;
+
+  /// Plays Fabio's [clip] (via [play]) and calls [then] when it ends, or after [timeout] if its end never comes.
+  void _playThen(String clip, VoidCallback play, Duration timeout, VoidCallback then) {
+    _leaving = true;
+    play();
+    void done() {
+      _clipEnded?.cancel();
+      _clipTimeout?.cancel();
+      _clipEnded = null;
+      _leaving = false;
+      then();
+    }
+
+    _clipEnded = _fabio.alive!.events.listen((e) {
+      if (e is AliveClipEnded && e.clip == clip) done();
+    });
+    _clipTimeout = Timer(timeout, done);
+  }
+
+  /// Yes, Update Now: the store opens at once; with Fabio shown, the dialog stays until his 1 s payoff has played.
+  void _updateNow(BuildContext context, bool isBlocked) {
+    if (_leaving) return;
+    if (!_fabioReady) return onUserUpdated(context, !isBlocked);
+    onUserUpdated(context, false); // open the store now, without closing the dialog
+    _playThen('now', _fabio.onUpdateNow, const Duration(milliseconds: 1600), () {
+      if (!isBlocked && context.mounted) popNavigator(context);
+    });
+  }
+
+  /// Maybe later: with Fabio shown, let his goodbye play (about 2 s) before the dialog closes.
+  void _later(BuildContext context) {
+    if (_leaving) return;
+    if (!_fabioReady) return onUserLater(context, true);
+    _playThen('later', _fabio.onLater, const Duration(milliseconds: 3200), () {
+      if (context.mounted) onUserLater(context, true);
+    });
+  }
+
+  /// The dialog's top: the app's art, or, with Fabla Alive on, Fabio's full width band.
+  Widget _art(BuildContext context) {
+    final png = SizedBox(
+      height: 130,
+      width: 130,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 1, end: 0),
+        duration: const Duration(milliseconds: 1000),
+        curve: Curves.easeOutCubic,
+        builder: (context, t, child) => Transform.translate(
+          offset: Offset(MediaQuery.of(context).size.width * t, 0),
+          child: child,
+        ),
+        child: Image.asset(
+          'assets/images/icons/FabioUpdate.png',
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+    return _fabioBand(
+          controller: _fabio,
+          fallback: Padding(
+            padding: const EdgeInsets.only(top: 48),
+            child: Center(child: png),
+          ),
+        ) ??
+        png;
+  }
+
+  /// Fabio's full width band at the dialog's top, at the 3 Nov dialog's size; null when Fabla Alive is off.
+  /// [fallback] shows if his scene cannot load.
+  Widget? _fabioBand({
+    String scene = Alive.appUpdateScene,
+    String? initialState,
+    AppUpdateFabioController? controller,
+    required Widget fallback,
+  }) {
+    final fabio = Alive.appUpdateArt(
+      scene: scene,
+      initialState: initialState,
+      controller: controller,
+      scale: AppUpdateFabio.dialogScale,
+      fallback: (_) => fallback,
+    );
+    if (fabio == null) return null;
+    // SimpleDialog sizes itself with IntrinsicWidth, and Fabio's stage is a LayoutBuilder, which cannot report an
+    // intrinsic width. A tight width answers that question without asking the stage; the dialog's own max width
+    // still clamps it, so he fills the dialog as designed (396 pt).
+    return SizedBox(width: AppUpdateFabio.designWidth, child: fabio);
+  }
 
   @override
   Widget alertDialog(
@@ -2005,42 +2118,30 @@ class MyUpgradeAlertState extends UpgradeAlertState {
     required bool isBlocked,
     required StateSetter setDialogState,
   }) {
+    // With Fabla Alive on, Fabio's band is the dialog's top, full width and clipped by its corners, in place of the
+    // top padding and the art (the title stays where it was: 48 pt padding + 130 pt art ~ his 180 pt band).
+    final fabioOn = Alive.on;
     return SimpleDialog(
       key: key,
       backgroundColor: CustomColors.fillWhite,
-      contentPadding: const EdgeInsets.all(16),
+      contentPadding: fabioOn ? EdgeInsets.zero : const EdgeInsets.all(16),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+      clipBehavior: fabioOn ? Clip.antiAlias : Clip.none,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: const BorderSide(color: Colors.grey, width: 2),
       ),
       surfaceTintColor: CustomColors.fillWhite,
       children: [
+        if (fabioOn) _art(context),
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 32,
-          ),
+          padding: fabioOn
+              ? const EdgeInsets.fromLTRB(32, 0, 32, 48)
+              : const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                height: 130,
-                width: 130,
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 1, end: 0),
-                  duration: const Duration(milliseconds: 1000),
-                  curve: Curves.easeOutCubic,
-                  builder: (context, t, child) => Transform.translate(
-                    offset: Offset(MediaQuery.of(context).size.width * t, 0),
-                    child: child,
-                  ),
-                  child: Image.asset(
-                    'assets/images/icons/FabioUpdate.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
+              if (!fabioOn) _art(context),
               const SizedBox(height: 12),
               Text(
                 'A new version of Fabla is available. '
@@ -2053,7 +2154,7 @@ class MyUpgradeAlertState extends UpgradeAlertState {
               ),
               const SizedBox(height: 24),
               CustomFlatButton(
-                onClick: () => onUserUpdated(context, !isBlocked),
+                onClick: () => _updateNow(context, isBlocked),
                 text: 'Yes, Update Now',
                 buttonFontSize: 17,
                 color: CustomColors.productNormal,
@@ -2061,7 +2162,7 @@ class MyUpgradeAlertState extends UpgradeAlertState {
               ),
               if (!isBlocked && widget.showLater)
                 CustomTextButton(
-                  onClick: () => onUserLater(context, true),
+                  onClick: () => _later(context),
                   text: 'Maybe later',
                 ),
               if (!isBlocked && widget.showIgnore)
@@ -2104,38 +2205,53 @@ class MyUpgradeAlertState extends UpgradeAlertState {
     required VoidCallback onUpdate,
   }) {
     final store = Platform.isIOS ? "App Store" : "Play Store";
+    final close = GestureDetector(
+      onTap: () => onUserIgnored(context, true),
+      child: const Icon(Icons.close, size: 24),
+    );
+    final idea = Image.asset(
+      'assets/images/idea.png',
+      height: 80,
+      width: 80,
+    );
+    // With Fabla Alive on, the rocket Fabio fills the top and opens on his goodbye (no walk in), in place of the
+    // top padding and the idea art; the X sits over his band.
+    final fabio = _fabioBand(
+      initialState: 'later',
+      fallback: Padding(
+        padding: const EdgeInsets.only(top: 72),
+        child: Center(child: idea),
+      ),
+    );
 
     return SimpleDialog(
       key: key,
       backgroundColor: CustomColors.fillWhite,
-      contentPadding: const EdgeInsets.all(16),
+      contentPadding: fabio != null ? EdgeInsets.zero : const EdgeInsets.all(16),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+      clipBehavior: fabio != null ? Clip.antiAlias : Clip.none,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: const BorderSide(color: Colors.grey, width: 2),
       ),
       surfaceTintColor: CustomColors.fillWhite,
       children: [
+        if (fabio != null)
+          Stack(children: [
+            fabio,
+            Positioned(top: 32, right: 32, child: close),
+          ]),
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 32,
-          ),
+          padding: fabio != null
+              ? const EdgeInsets.fromLTRB(32, 0, 32, 48)
+              : const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: GestureDetector(
-                  onTap: () => onUserIgnored(context, true),
-                  child: const Icon(Icons.close, size: 24),
-                ),
-              ),
-              Image.asset(
-                'assets/images/idea.png',
-                height: 80,
-                width: 80,
-              ),
+              if (fabio == null) ...[
+                Align(alignment: Alignment.topRight, child: close),
+                idea,
+              ],
               const SizedBox(height: 24),
               Text(
                 'You can still update Fabla',

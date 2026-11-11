@@ -65,6 +65,8 @@ late List<CameraDescription> cameras;
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
+  await Upgrader.clearSavedSettings();
+
   FlutterNativeSplash.preserve(
       widgetsBinding: widgetsBinding); // Start Splash Screen
 

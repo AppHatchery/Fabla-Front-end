@@ -1,0 +1,949 @@
+{
+ "note": "alive figma against the Figma MP4 exports: visible = share of pixels whose largest channel difference is over 40 (average, worst instant); fabio = distance between the centroids of #A8D0FB in the two pictures, px (both must show it).",
+ "average": 0.008070731707317076,
+ "measured": {
+  "sys3-tap-record": {
+   "scene": "sys3-tap-record",
+   "clip": "sys3-tap-record",
+   "visible": 0.0121,
+   "worst": 0.0163,
+   "fabio": 3.1,
+   "at": [
+    0.667,
+    2,
+    3.333,
+    4.667,
+    6,
+    7.333
+   ],
+   "perInstant": [
+    0.0086,
+    0.0163,
+    0.0113,
+    0.0115,
+    0.0119,
+    0.0131
+   ]
+  },
+  "slider-v1": {
+   "scene": "slider-carry",
+   "clip": "v1",
+   "visible": 0.0036,
+   "worst": 0.0044,
+   "fabio": null,
+   "at": [
+    0.417,
+    1.25,
+    2.083,
+    2.917,
+    3.75,
+    4.583
+   ],
+   "perInstant": [
+    0.0022,
+    0.0038,
+    0.0042,
+    0.004,
+    0.0044,
+    0.003
+   ]
+  },
+  "slider-v2": {
+   "scene": "slider-carry",
+   "clip": "v2",
+   "visible": 0.004,
+   "worst": 0.005,
+   "fabio": null,
+   "at": [
+    0.417,
+    1.25,
+    2.083,
+    2.917,
+    3.75,
+    4.583
+   ],
+   "perInstant": [
+    0.0022,
+    0.0043,
+    0.0047,
+    0.0046,
+    0.005,
+    0.003
+   ]
+  },
+  "slider-v3": {
+   "scene": "slider-carry",
+   "clip": "v3",
+   "visible": 0.003,
+   "worst": 0.0035,
+   "fabio": null,
+   "at": [
+    0.417,
+    1.25,
+    2.083,
+    2.917,
+    3.75,
+    4.583
+   ],
+   "perInstant": [
+    0.0022,
+    0.0028,
+    0.0033,
+    0.0032,
+    0.0035,
+    0.003
+   ]
+  },
+  "sys3-turn": {
+   "scene": "sys3-turn",
+   "clip": "sys3-turn",
+   "visible": 0.0057,
+   "worst": 0.0059,
+   "fabio": 0.2,
+   "at": [
+    0.417,
+    1.25,
+    2.083,
+    2.917,
+    3.75,
+    4.583
+   ],
+   "perInstant": [
+    0.0057,
+    0.0057,
+    0.0057,
+    0.0059,
+    0.0058,
+    0.0057
+   ]
+  },
+  "sys3-arrives": {
+   "scene": "sys3-arrives",
+   "clip": "sys3-arrives",
+   "visible": 0.0137,
+   "worst": 0.0148,
+   "fabio": 3.2,
+   "at": [
+    0.583,
+    1.75,
+    2.917,
+    4.083,
+    5.25,
+    6.417
+   ],
+   "perInstant": [
+    0.0124,
+    0.0148,
+    0.0148,
+    0.0141,
+    0.0139,
+    0.0122
+   ]
+  },
+  "enc-express": {
+   "scene": "enc-express",
+   "clip": "enc-express",
+   "visible": 0.0038,
+   "worst": 0.0054,
+   "fabio": 0.6,
+   "at": [
+    0.6,
+    1.767,
+    2.967,
+    4.133,
+    5.333,
+    6.5
+   ],
+   "perInstant": [
+    0.0021,
+    0.0033,
+    0.0054,
+    0.0046,
+    0.0048,
+    0.0023
+   ]
+  },
+  "enc-bar": {
+   "scene": "enc-bar",
+   "clip": "enc-bar",
+   "visible": 0.0021,
+   "worst": 0.0022,
+   "fabio": 0.3,
+   "at": [
+    0.333,
+    0.933,
+    1.6,
+    2.2,
+    2.833,
+    3.467
+   ],
+   "perInstant": [
+    0.0018,
+    0.0022,
+    0.0021,
+    0.0021,
+    0.0021,
+    0.0021
+   ]
+  },
+  "enc-last": {
+   "scene": "enc-last",
+   "clip": "enc-last",
+   "visible": 0.0039,
+   "worst": 0.004,
+   "fabio": null,
+   "at": [
+    0.2,
+    0.6,
+    1,
+    1.4,
+    1.8,
+    2.2
+   ],
+   "perInstant": [
+    0.0036,
+    0.0038,
+    0.0039,
+    0.004,
+    0.004,
+    0.004
+   ]
+  },
+  "enc-done": {
+   "scene": "enc-done",
+   "clip": "enc-done",
+   "visible": 0.0023,
+   "worst": 0.0032,
+   "fabio": 0.3,
+   "at": [
+    0.3,
+    0.9,
+    1.5,
+    2.1,
+    2.7,
+    3.3
+   ],
+   "perInstant": [
+    0.0013,
+    0.0017,
+    0.0019,
+    0.0025,
+    0.0032,
+    0.0031
+   ]
+  },
+  "qt-slider": {
+   "scene": "qt-slider",
+   "clip": "qt-slider",
+   "visible": 0.0027,
+   "worst": 0.0029,
+   "fabio": null,
+   "at": [
+    0.433,
+    1.333,
+    2.2,
+    3.1,
+    3.967,
+    4.867
+   ],
+   "perInstant": [
+    0.0019,
+    0.0027,
+    0.0029,
+    0.0029,
+    0.0028,
+    0.0028
+   ]
+  },
+  "qt-text": {
+   "scene": "qt-text",
+   "clip": "qt-text",
+   "visible": 0.0028,
+   "worst": 0.0032,
+   "fabio": null,
+   "at": [
+    0.3,
+    0.867,
+    1.467,
+    2.033,
+    2.633,
+    3.2
+   ],
+   "perInstant": [
+    0.0025,
+    0.0027,
+    0.0025,
+    0.0024,
+    0.0032,
+    0.0031
+   ]
+  },
+  "qt-pick": {
+   "scene": "qt-pick",
+   "clip": "qt-pick",
+   "visible": 0.009,
+   "worst": 0.0135,
+   "fabio": null,
+   "at": [
+    0.333,
+    0.967,
+    1.633,
+    2.267,
+    2.933,
+    3.567
+   ],
+   "perInstant": [
+    0.0065,
+    0.0082,
+    0.0084,
+    0.0135,
+    0.0084,
+    0.0091
+   ]
+  },
+  "rec-record": {
+   "scene": "rec-record",
+   "clip": "rec-record",
+   "visible": 0.0136,
+   "worst": 0.0141,
+   "fabio": 0.6,
+   "at": [
+    0.208,
+    0.583,
+    1,
+    1.417,
+    1.792,
+    2.208
+   ],
+   "perInstant": [
+    0.014,
+    0.0136,
+    0.0128,
+    0.0131,
+    0.0141,
+    0.014
+   ]
+  },
+  "rec-recording": {
+   "scene": "rec-recording",
+   "clip": "rec-recording",
+   "visible": 0.013,
+   "worst": 0.0133,
+   "fabio": null,
+   "at": [
+    0.25,
+    0.75,
+    1.25,
+    1.75,
+    2.25,
+    2.75
+   ],
+   "perInstant": [
+    0.0126,
+    0.0126,
+    0.0132,
+    0.0133,
+    0.0133,
+    0.0131
+   ]
+  },
+  "rec-one-minute": {
+   "scene": "rec-one-minute",
+   "clip": "rec-one-minute",
+   "visible": 0.0122,
+   "worst": 0.0132,
+   "fabio": null,
+   "at": [
+    0.208,
+    0.667,
+    1.083,
+    1.5,
+    1.958,
+    2.375
+   ],
+   "perInstant": [
+    0.0123,
+    0.0132,
+    0.0113,
+    0.0122,
+    0.0122,
+    0.0122
+   ]
+  },
+  "rec-stop": {
+   "scene": "rec-stop",
+   "clip": "rec-stop",
+   "visible": 0.0098,
+   "worst": 0.0124,
+   "fabio": null,
+   "at": [
+    0.208,
+    0.667,
+    1.083,
+    1.5,
+    1.958,
+    2.375
+   ],
+   "perInstant": [
+    0.0124,
+    0.0101,
+    0.0094,
+    0.0084,
+    0.0091,
+    0.0092
+   ]
+  },
+  "rescue-return": {
+   "scene": "rescue-return",
+   "clip": "rescue-return",
+   "visible": 0.0342,
+   "worst": 0.1161,
+   "fabio": 2,
+   "at": [
+    0.333,
+    1.042,
+    1.75,
+    2.458,
+    3.167,
+    3.833
+   ],
+   "perInstant": [
+    0.0174,
+    0.1161,
+    0.017,
+    0.0168,
+    0.019,
+    0.019
+   ]
+  },
+  "rescue-replay": {
+   "scene": "rescue-replay",
+   "clip": "rescue-replay",
+   "visible": 0.0118,
+   "worst": 0.0141,
+   "fabio": null,
+   "at": [
+    0.458,
+    1.375,
+    2.292,
+    3.208,
+    4.125,
+    5.042
+   ],
+   "perInstant": [
+    0.0119,
+    0.0141,
+    0.0139,
+    0.0107,
+    0.01,
+    0.01
+   ]
+  },
+  "storage-peek": {
+   "scene": "storage-peek",
+   "clip": "storage-peek",
+   "visible": 0.0023,
+   "worst": 0.0025,
+   "fabio": 1.3,
+   "at": [
+    0.167,
+    0.542,
+    0.917,
+    1.292,
+    1.667,
+    2
+   ],
+   "perInstant": [
+    0.0019,
+    0.0021,
+    0.002,
+    0.0025,
+    0.0025,
+    0.0025
+   ]
+  },
+  "storage-heads-up": {
+   "scene": "storage-heads-up",
+   "clip": "storage-heads-up",
+   "visible": 0.0066,
+   "worst": 0.0074,
+   "fabio": 8.3,
+   "at": [
+    0.167,
+    0.542,
+    0.917,
+    1.292,
+    1.667,
+    2
+   ],
+   "perInstant": [
+    0.0055,
+    0.0056,
+    0.0061,
+    0.0073,
+    0.0074,
+    0.0074
+   ]
+  },
+  "storage-confirm": {
+   "scene": "storage-confirm",
+   "clip": "storage-confirm",
+   "visible": 0.0022,
+   "worst": 0.0044,
+   "fabio": 0.9,
+   "at": [
+    0.125,
+    0.417,
+    0.667,
+    0.917,
+    1.208,
+    1.458
+   ],
+   "perInstant": [
+    0.001,
+    0.0008,
+    0.0011,
+    0.0012,
+    0.0044,
+    0.0044
+   ]
+  },
+  "storage-sending": {
+   "scene": "storage-sending",
+   "clip": "storage-sending",
+   "visible": 0.0034,
+   "worst": 0.0048,
+   "fabio": 0.1,
+   "at": [
+    0.208,
+    0.583,
+    1,
+    1.417,
+    1.792,
+    2.208
+   ],
+   "perInstant": [
+    0.0023,
+    0.0022,
+    0.0025,
+    0.0036,
+    0.0048,
+    0.0048
+   ]
+  },
+  "storage-tips": {
+   "scene": "storage-tips",
+   "clip": "storage-tips",
+   "visible": 0.0137,
+   "worst": 0.0235,
+   "fabio": null,
+   "at": [
+    0.125,
+    0.417,
+    0.667,
+    0.917,
+    1.208,
+    1.458
+   ],
+   "perInstant": [
+    0.0235,
+    0.0218,
+    0.0102,
+    0.0112,
+    0.0077,
+    0.0077
+   ]
+  },
+  "storage-space-back": {
+   "scene": "storage-space-back",
+   "clip": "storage-space-back",
+   "visible": 0.0049,
+   "worst": 0.0059,
+   "fabio": null,
+   "at": [
+    0.25,
+    0.708,
+    1.167,
+    1.625,
+    2.083,
+    2.583
+   ],
+   "perInstant": [
+    0.0059,
+    0.0058,
+    0.0033,
+    0.0047,
+    0.0048,
+    0.0049
+   ]
+  },
+  "warn-battery": {
+   "scene": "warn-battery",
+   "clip": "warn-battery",
+   "visible": 0.0264,
+   "worst": 0.027,
+   "fabio": null,
+   "at": [
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    5.5
+   ],
+   "perInstant": [
+    0.0263,
+    0.027,
+    0.027,
+    0.0263,
+    0.0267,
+    0.0251
+   ]
+  },
+  "warn-mic": {
+   "scene": "warn-mic",
+   "clip": "warn-mic",
+   "visible": 0.0083,
+   "worst": 0.0099,
+   "fabio": null,
+   "at": [
+    0.542,
+    1.667,
+    2.75,
+    3.833,
+    4.958,
+    6.042
+   ],
+   "perInstant": [
+    0.0066,
+    0.0099,
+    0.0089,
+    0.0089,
+    0.0089,
+    0.0064
+   ]
+  },
+  "warn-battery-rec": {
+   "scene": "warn-battery-rec",
+   "clip": "warn-battery-rec",
+   "visible": 0.0255,
+   "worst": 0.0263,
+   "fabio": null,
+   "at": [
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    5.5
+   ],
+   "perInstant": [
+    0.0248,
+    0.0255,
+    0.0255,
+    0.0261,
+    0.0263,
+    0.0246
+   ]
+  },
+  "warn-mic-rec": {
+   "scene": "warn-mic-rec",
+   "clip": "warn-mic-rec",
+   "visible": 0.0147,
+   "worst": 0.0156,
+   "fabio": null,
+   "at": [
+    0.542,
+    1.667,
+    2.75,
+    3.833,
+    4.958,
+    6.042
+   ],
+   "perInstant": [
+    0.014,
+    0.0149,
+    0.0156,
+    0.0156,
+    0.0152,
+    0.0128
+   ]
+  },
+  "media-breathing": {
+   "scene": "media-breathing",
+   "clip": "media-breathing",
+   "visible": 0.0088,
+   "worst": 0.0089,
+   "fabio": 0.4,
+   "at": [
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    5.5
+   ],
+   "perInstant": [
+    0.0088,
+    0.0089,
+    0.0089,
+    0.0089,
+    0.0089,
+    0.0088
+   ]
+  },
+  "media-print": {
+   "scene": "media-print",
+   "clip": "media-print",
+   "visible": 0.0091,
+   "worst": 0.0095,
+   "fabio": 0.4,
+   "at": [
+    0.208,
+    0.667,
+    1.083,
+    1.5,
+    1.958,
+    2.375
+   ],
+   "perInstant": [
+    0.0075,
+    0.0095,
+    0.0093,
+    0.0095,
+    0.0093,
+    0.0093
+   ]
+  },
+  "media-letter": {
+   "scene": "media-letter",
+   "clip": "media-letter",
+   "visible": 0.0029,
+   "worst": 0.0031,
+   "fabio": 0.5,
+   "at": [
+    0.375,
+    1.083,
+    1.833,
+    2.583,
+    3.292,
+    4.042
+   ],
+   "perInstant": [
+    0.0026,
+    0.0025,
+    0.0031,
+    0.0031,
+    0.0031,
+    0.003
+   ]
+  },
+  "media-stamped": {
+   "scene": "media-stamped",
+   "clip": "media-stamped",
+   "visible": 0.0065,
+   "worst": 0.0068,
+   "fabio": 1.6,
+   "at": [
+    0.208,
+    0.583,
+    1,
+    1.417,
+    1.792,
+    2.208
+   ],
+   "perInstant": [
+    0.0064,
+    0.0065,
+    0.0062,
+    0.0065,
+    0.0068,
+    0.0067
+   ]
+  },
+  "media-clip": {
+   "scene": "media-clip",
+   "clip": "media-clip",
+   "visible": 0.005,
+   "worst": 0.0063,
+   "fabio": 0.3,
+   "at": [
+    0.167,
+    0.542,
+    0.917,
+    1.292,
+    1.667,
+    2
+   ],
+   "perInstant": [
+    0.0062,
+    0.0063,
+    0.0044,
+    0.0044,
+    0.0044,
+    0.0044
+   ]
+  },
+  "media-pop": {
+   "scene": "media-pop",
+   "clip": "media-pop",
+   "visible": 0.0019,
+   "worst": 0.0019,
+   "fabio": 0.1,
+   "at": [
+    0.208,
+    0.583,
+    1,
+    1.417,
+    1.792,
+    2.208
+   ],
+   "perInstant": [
+    0.0019,
+    0.0019,
+    0.0019,
+    0.0019,
+    0.0019,
+    0.0019
+   ]
+  },
+  "survey-v1": {
+   "scene": "survey-no-internet",
+   "clip": "v1",
+   "visible": 0.0034,
+   "worst": 0.0115,
+   "fabio": 0.3,
+   "at": [
+    0.625,
+    1.917,
+    3.167,
+    4.417,
+    5.708,
+    6.958
+   ],
+   "perInstant": [
+    0.0023,
+    0.0014,
+    0.0034,
+    0.0115,
+    0.0013,
+    0.0003
+   ]
+  },
+  "survey-v2": {
+   "scene": "survey-no-internet",
+   "clip": "v2",
+   "visible": 0.0033,
+   "worst": 0.0113,
+   "fabio": null,
+   "at": [
+    0.625,
+    1.917,
+    3.167,
+    4.417,
+    5.708,
+    6.958
+   ],
+   "perInstant": [
+    0.0023,
+    0.0014,
+    0.0032,
+    0.0113,
+    0.0013,
+    0.0003
+   ]
+  },
+  "survey-v3": {
+   "scene": "survey-no-internet",
+   "clip": "v3",
+   "visible": 0.0033,
+   "worst": 0.0113,
+   "fabio": null,
+   "at": [
+    0.625,
+    1.917,
+    3.167,
+    4.417,
+    5.708,
+    6.958
+   ],
+   "perInstant": [
+    0.0023,
+    0.0014,
+    0.0031,
+    0.0113,
+    0.0013,
+    0.0003
+   ]
+  },
+  "sys2-recording": {
+   "scene": "sys2-recording",
+   "clip": "sys2-recording",
+   "visible": 0.0056,
+   "worst": 0.0062,
+   "fabio": 0.6,
+   "at": [
+    0.333,
+    1,
+    1.667,
+    2.333,
+    3,
+    3.667
+   ],
+   "perInstant": [
+    0.0045,
+    0.0054,
+    0.0055,
+    0.0058,
+    0.006,
+    0.0062
+   ]
+  },
+  "sys2-slider": {
+   "scene": "sys2-slider",
+   "clip": "sys2-slider",
+   "visible": 0.0033,
+   "worst": 0.0037,
+   "fabio": 0.7,
+   "at": [
+    0.417,
+    1.25,
+    2.083,
+    2.917,
+    3.75,
+    4.583
+   ],
+   "perInstant": [
+    0.0028,
+    0.003,
+    0.0035,
+    0.0033,
+    0.0037,
+    0.0036
+   ]
+  },
+  "sys2-state-glow": {
+   "scene": "sys2-state-glow",
+   "clip": "sys2-state-glow",
+   "visible": 0.0065,
+   "worst": 0.0098,
+   "fabio": 0.6,
+   "at": [
+    0.583,
+    1.75,
+    2.917,
+    4.083,
+    5.25,
+    6.417
+   ],
+   "perInstant": [
+    0.003,
+    0.0051,
+    0.0056,
+    0.0056,
+    0.0098,
+    0.0098
+   ]
+  }
+ }
+}

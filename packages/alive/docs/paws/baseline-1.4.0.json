@@ -1,0 +1,2484 @@
+{
+ "kit": {
+  "id": "fabio",
+  "version": "1.4.0"
+ },
+ "cases": [
+  {
+   "id": "look host",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 99
+  },
+  {
+   "id": "look safety",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 124
+  },
+  {
+   "id": "look explorer",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.7 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.65,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.7 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.73,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 103
+  },
+  {
+   "id": "look letter-carrier",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 59
+  },
+  {
+   "id": "look coach",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 51
+  },
+  {
+   "id": "look gardener",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 53
+  },
+  {
+   "id": "look night-owl",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.7 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.65,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.7 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.73,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 51
+  },
+  {
+   "id": "look conductor",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 49
+  },
+  {
+   "id": "look doorman",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 48
+  },
+  {
+   "id": "look pen-pal",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.7 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.65,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.7 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.73,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 62
+  },
+  {
+   "id": "look photographer",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 48
+  },
+  {
+   "id": "look calm",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 47
+  },
+  {
+   "id": "look researcher",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 48
+  },
+  {
+   "id": "look rainy-day",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 50
+  },
+  {
+   "id": "look party",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 9.25,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 42
+  },
+  {
+   "id": "look space",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 54
+  },
+  {
+   "id": "look cold-day",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 7.6 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 7.59,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 58
+  },
+  {
+   "id": "look sunny-day",
+   "kind": "look",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 9.25,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 39
+  },
+  {
+   "id": "pose rest",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip rest at 0 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 9.25,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 701
+  },
+  {
+   "id": "pose wave",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip wave at 99 ms: floats 29.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip wave at 99 ms",
+     "gap": 29.33,
+     "depth": 0,
+     "visible": 1,
+     "clip": "wave",
+     "t": 99
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip wave at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip wave at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "wave",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2084
+  },
+  {
+   "id": "pose thumbs",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-thumbs-near-blue) in clip thumbs at 165 ms: floats 25.1 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-thumbs-near-blue",
+     "at": "in clip thumbs at 165 ms",
+     "gap": 25.14,
+     "depth": 0,
+     "visible": 1,
+     "clip": "thumbs",
+     "t": 165
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip thumbs at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip thumbs at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "thumbs",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 1517
+  },
+  {
+   "id": "pose present",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2190
+  },
+  {
+   "id": "pose hold-up",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-hold-near-blue) in clip hold-up at 231 ms: floats 20.5 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-hold-near-blue",
+     "at": "in clip hold-up at 231 ms",
+     "gap": 20.52,
+     "depth": 0,
+     "visible": 1,
+     "clip": "hold-up",
+     "t": 231
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip hold-up at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip hold-up at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "hold-up",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 1845
+  },
+  {
+   "id": "pose hop",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip hop at 264 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip hop at 264 ms",
+     "gap": 9.33,
+     "depth": 0,
+     "visible": 1,
+     "clip": "hop",
+     "t": 264
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip hop at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip hop at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "hop",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 1202
+  },
+  {
+   "id": "pose tilt",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip tilt at 0 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip tilt at 0 ms",
+     "gap": 9.25,
+     "depth": 0,
+     "visible": 1,
+     "clip": "tilt",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip tilt at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip tilt at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "tilt",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 1879
+  },
+  {
+   "id": "pose blink",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip blink at 0 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip blink at 0 ms",
+     "gap": 9.25,
+     "depth": 0,
+     "visible": 1,
+     "clip": "blink",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip blink at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip blink at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "blink",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 368
+  },
+  {
+   "id": "pose look-left",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip look-left at 0 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip look-left at 0 ms",
+     "gap": 9.25,
+     "depth": 0,
+     "visible": 1,
+     "clip": "look-left",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip look-left at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip look-left at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "look-left",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 1728
+  },
+  {
+   "id": "pose look-right",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip look-right at 0 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip look-right at 0 ms",
+     "gap": 9.25,
+     "depth": 0,
+     "visible": 1,
+     "clip": "look-right",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip look-right at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip look-right at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "look-right",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 1747
+  },
+  {
+   "id": "pose look-up",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip look-up at 0 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip look-up at 0 ms",
+     "gap": 9.25,
+     "depth": 0,
+     "visible": 1,
+     "clip": "look-up",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip look-up at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip look-up at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "look-up",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 1662
+  },
+  {
+   "id": "pose look-down",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip look-down at 0 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip look-down at 0 ms",
+     "gap": 9.25,
+     "depth": 0,
+     "visible": 1,
+     "clip": "look-down",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip look-down at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip look-down at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "look-down",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 1618
+  },
+  {
+   "id": "pose carry-both",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip carry-both at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip carry-both at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "carry-both",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 3534
+  },
+  {
+   "id": "pose celebrate",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-hold-near-blue) in clip celebrate at 231 ms: floats 17.2 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-hold-near-blue",
+     "at": "in clip celebrate at 231 ms",
+     "gap": 17.24,
+     "depth": 0,
+     "visible": 1,
+     "clip": "celebrate",
+     "t": 231
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip celebrate at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip celebrate at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "celebrate",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 5288
+  },
+  {
+   "id": "pose carry-front",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-carry-side-near-blue) in clip carry-front at 0 ms: floats 14.9 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-carry-side-near-blue",
+     "at": "in clip carry-front at 0 ms",
+     "gap": 14.87,
+     "depth": 0,
+     "visible": 1,
+     "clip": "carry-front",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-carry-front-far-blue) in clip carry-front at 0 ms: floats 13.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-carry-front-far-blue",
+     "at": "in clip carry-front at 0 ms",
+     "gap": 13.84,
+     "depth": 0,
+     "visible": 1,
+     "clip": "carry-front",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "held-contact",
+     "message": "fabio far paw (hand-carry-front-far-blue) in clip carry-front at 0 ms: is 115.0 kit units from the item it holds; a holding paw touches its item",
+     "paw": "fabio far paw",
+     "part": "hand-carry-front-far-blue",
+     "at": "in clip carry-front at 0 ms",
+     "gap": 13.84,
+     "depth": 0,
+     "visible": 1,
+     "heldGap": 115,
+     "clip": "carry-front",
+     "t": 0
+    },
+    {
+     "severity": "warning",
+     "rule": "paw-overlap",
+     "message": "fabio far paw (hand-carry-front-far-blue) in clip carry-front at 33 ms: touches him but only 1.5 kit units deep (at least 3: his worn physics moves it up to that); a hairline touch reads as a near miss",
+     "paw": "fabio far paw",
+     "part": "hand-carry-front-far-blue",
+     "at": "in clip carry-front at 33 ms",
+     "gap": 0,
+     "depth": 1.5,
+     "visible": 1,
+     "clip": "carry-front",
+     "t": 33
+    },
+    {
+     "severity": "warning",
+     "rule": "paw-overlap",
+     "message": "fabio near paw (hand-carry-side-near-blue) in clip carry-front at 66 ms: touches him but only 0.0 kit units deep (at least 3: his worn physics moves it up to that); a hairline touch reads as a near miss",
+     "paw": "fabio near paw",
+     "part": "hand-carry-side-near-blue",
+     "at": "in clip carry-front at 66 ms",
+     "gap": 0.35,
+     "depth": 0,
+     "visible": 1,
+     "clip": "carry-front",
+     "t": 66
+    }
+   ],
+   "failing": true,
+   "ms": 7006
+  },
+  {
+   "id": "pose you-did-it",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip you-did-it at 0 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip you-did-it at 0 ms",
+     "gap": 9.25,
+     "depth": 0,
+     "visible": 1,
+     "clip": "you-did-it",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip you-did-it at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip you-did-it at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "you-did-it",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2372
+  },
+  {
+   "id": "pose no-worries",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-edge-near-blue) in clip no-worries at 0 ms: floats 9.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-edge-near-blue",
+     "at": "in clip no-worries at 0 ms",
+     "gap": 9.25,
+     "depth": 0,
+     "visible": 1,
+     "clip": "no-worries",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip no-worries at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip no-worries at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "no-worries",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2337
+  },
+  {
+   "id": "pose go-on",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-thumbs-near-blue) in clip go-on at 165 ms: floats 25.1 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-thumbs-near-blue",
+     "at": "in clip go-on at 165 ms",
+     "gap": 25.14,
+     "depth": 0,
+     "visible": 1,
+     "clip": "go-on",
+     "t": 165
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip go-on at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip go-on at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "go-on",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2351
+  },
+  {
+   "id": "card host-present-kept-tape",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip rest at 0 ms: floats 4.7 kit units off his body (68 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 4.74,
+     "depth": 0,
+     "visible": 0.68,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 103
+  },
+  {
+   "id": "card gardener-hold-mic",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-hold-near-blue) in clip rest at 0 ms: floats 1.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-hold-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 1.27,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 94
+  },
+  {
+   "id": "card photographer-carry-parcel",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-carry-near-blue) in clip rest at 0 ms: floats 15.2 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-carry-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 15.16,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 75
+  },
+  {
+   "id": "card space-present-cue-card",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip rest at 0 ms: floats 4.7 kit units off his body (70 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 4.74,
+     "depth": 0,
+     "visible": 0.7,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 85
+  },
+  {
+   "id": "card explorer-hold-envelope",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-hold-near-blue) in clip rest at 0 ms: floats 1.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-hold-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 1.27,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.7 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.73,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 81
+  },
+  {
+   "id": "card calm-wave",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-wave-near-blue) in clip rest at 0 ms: floats 2.1 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-wave-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 2.14,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.8 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.8,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 46
+  },
+  {
+   "id": "card pen-pal-thumbs",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-thumbs-near-blue) in clip rest at 0 ms: floats 5.9 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-thumbs-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 5.94,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip rest at 0 ms: floats 6.7 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 6.73,
+     "depth": 0,
+     "visible": 1,
+     "clip": "rest",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 59
+  },
+  {
+   "id": "card present mic",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (95 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.946,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2013
+  },
+  {
+   "id": "card present mic-off",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (82 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.815,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2083
+  },
+  {
+   "id": "card present cue-card",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (70 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.7,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2103
+  },
+  {
+   "id": "card present cue-card-blank",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (68 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.683,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2436
+  },
+  {
+   "id": "card present envelope",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (68 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.683,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2631
+  },
+  {
+   "id": "card present parcel",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (68 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.683,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2789
+  },
+  {
+   "id": "card present kept-tape",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (68 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.683,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 3027
+  },
+  {
+   "id": "card present phone",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (81 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.805,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2330
+  },
+  {
+   "id": "card present camera",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (73 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.734,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2333
+  },
+  {
+   "id": "card present ticket",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (68 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.683,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2515
+  },
+  {
+   "id": "card present label-tag",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (72 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.721,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2558
+  },
+  {
+   "id": "card present value-pill",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (71 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.709,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 3469
+  },
+  {
+   "id": "card present battery",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (73 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.731,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 4263
+  },
+  {
+   "id": "card present battery-charging",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (73 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.731,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 3522
+  },
+  {
+   "id": "card present watering-can",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (76 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.758,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2880
+  },
+  {
+   "id": "card present paper-plane",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (85 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.846,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 4000
+  },
+  {
+   "id": "card present question-mark",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (95 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.951,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 4252
+  },
+  {
+   "id": "card present singing-bowl",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (78 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.776,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 4225
+  },
+  {
+   "id": "card present table-clock",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (82 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.823,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 3487
+  },
+  {
+   "id": "card present popper",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (98 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.98,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2668
+  },
+  {
+   "id": "card present popper-burst",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "held-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 0 ms: is 6.7 kit units from the item it holds; a holding paw touches its item",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 6.37,
+     "depth": 0,
+     "visible": 1,
+     "heldGap": 6.72,
+     "clip": "present",
+     "t": 0
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2855
+  },
+  {
+   "id": "card present pennant",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (99 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.988,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 3220
+  },
+  {
+   "id": "card present balloon",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (99 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.994,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 3468
+  },
+  {
+   "id": "card present sealed-diary",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (83 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.831,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 3214
+  },
+  {
+   "id": "card present mail-bag",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (74 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.741,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2368
+  },
+  {
+   "id": "card present stamp",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (79 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.787,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2839
+  },
+  {
+   "id": "card present umbrella",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (95 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.949,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2424
+  },
+  {
+   "id": "card present flower-pot",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 420 ms: floats 26.3 kit units off his body (85 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 420 ms",
+     "gap": 26.32,
+     "depth": 0,
+     "visible": 0.847,
+     "clip": "present",
+     "t": 420
+    },
+    {
+     "severity": "error",
+     "rule": "paw-contact",
+     "message": "fabio far paw (hand-edge-far-blue) in clip present at 0 ms: floats 8.3 kit units off his body (100 % of it shows); paws touch or overlap him, as on the team stickers",
+     "paw": "fabio far paw",
+     "part": "hand-edge-far-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 8.31,
+     "depth": 0,
+     "visible": 1,
+     "clip": "present",
+     "t": 0
+    }
+   ],
+   "failing": true,
+   "ms": 2483
+  }
+ ],
+ "summary": {
+  "all": {
+   "n": 71,
+   "failing": 71
+  },
+  "looks": {
+   "n": 18,
+   "failing": 18
+  },
+  "poses": {
+   "n": 18,
+   "failing": 18
+  },
+  "cards": {
+   "n": 35,
+   "failing": 35
+  },
+  "pawsFailing": 141,
+  "errors": 143,
+  "warnings": 2
+ }
+}

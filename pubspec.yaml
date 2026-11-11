@@ -126,6 +126,10 @@ dependencies:
   battery_plus: ^7.1.1
   upgrader: ^13.7.0
 
+  # Fabla Alive: the animated Fabio moments engine, vendored from fabla-alive-engine (behind FABLA_ALIVE)
+  alive:
+    path: packages/alive
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -179,6 +183,16 @@ flutter:
     - assets/protocol.json
     - assets/onboarding.json
     - assets/audio/
+    # Fabla Alive scenes (the app update dialog's Fabio); Flutter does not take subfolders on its own
+    - assets/alive/au-boost-v1/
+    - assets/alive/au-boost-v1/art/
+    - assets/alive/au-boost-v2/
+    - assets/alive/au-boost-v2/art/
+    - assets/alive/au-level-v1/
+    - assets/alive/au-level-v1/art/
+    - assets/alive/au-level-v2/
+    - assets/alive/au-level-v2/art/
+    - assets/alive/_shared/
 
   fonts:
     - family: Rubik

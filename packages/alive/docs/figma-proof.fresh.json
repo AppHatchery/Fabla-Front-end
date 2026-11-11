@@ -1,0 +1,190 @@
+{
+ "note": "alive figma against the Figma MP4 exports: visible = share of pixels whose largest channel difference is over 40 (average, worst instant); fabio = distance between the centroids of #A8D0FB in the two pictures, px (both must show it).",
+ "average": 0.00895,
+ "measured": {
+  "sys3-tap-record": {
+   "scene": "sys3-tap-record",
+   "clip": "sys3-tap-record",
+   "visible": 0.0095,
+   "worst": 0.0137,
+   "fabio": 0.2,
+   "at": [
+    0.667,
+    2,
+    3.333,
+    4.667,
+    6,
+    7.333
+   ],
+   "perInstant": [
+    0.0059,
+    0.0137,
+    0.0087,
+    0.0088,
+    0.0093,
+    0.0105
+   ]
+  },
+  "sys3-arrives": {
+   "scene": "sys3-arrives",
+   "clip": "sys3-arrives",
+   "visible": 0.011,
+   "worst": 0.0123,
+   "fabio": 0.3,
+   "at": [
+    0.583,
+    1.75,
+    2.917,
+    4.083,
+    5.25,
+    6.417
+   ],
+   "perInstant": [
+    0.0096,
+    0.0122,
+    0.0123,
+    0.011,
+    0.0111,
+    0.0095
+   ]
+  },
+  "rec-record": {
+   "scene": "rec-record",
+   "clip": "rec-record",
+   "visible": 0.0082,
+   "worst": 0.0088,
+   "fabio": 0.6,
+   "at": [
+    0.208,
+    0.583,
+    1,
+    1.417,
+    1.792,
+    2.208
+   ],
+   "perInstant": [
+    0.0083,
+    0.0079,
+    0.0074,
+    0.0078,
+    0.0088,
+    0.0087
+   ]
+  },
+  "rec-recording": {
+   "scene": "rec-recording",
+   "clip": "rec-recording",
+   "visible": 0.0074,
+   "worst": 0.0077,
+   "fabio": null,
+   "at": [
+    0.25,
+    0.75,
+    1.25,
+    1.75,
+    2.25,
+    2.75
+   ],
+   "perInstant": [
+    0.0071,
+    0.007,
+    0.0076,
+    0.0076,
+    0.0077,
+    0.0076
+   ]
+  },
+  "rec-one-minute": {
+   "scene": "rec-one-minute",
+   "clip": "rec-one-minute",
+   "visible": 0.0078,
+   "worst": 0.008,
+   "fabio": null,
+   "at": [
+    0.208,
+    0.667,
+    1.083,
+    1.5,
+    1.958,
+    2.375
+   ],
+   "perInstant": [
+    0.0072,
+    0.0079,
+    0.0079,
+    0.008,
+    0.0079,
+    0.008
+   ]
+  },
+  "rec-stop": {
+   "scene": "rec-stop",
+   "clip": "rec-stop",
+   "visible": 0.0048,
+   "worst": 0.0073,
+   "fabio": null,
+   "at": [
+    0.208,
+    0.667,
+    1.083,
+    1.5,
+    1.958,
+    2.375
+   ],
+   "perInstant": [
+    0.0073,
+    0.0049,
+    0.0051,
+    0.0037,
+    0.004,
+    0.0042
+   ]
+  },
+  "rescue-return": {
+   "scene": "rescue-return",
+   "clip": "rescue-return",
+   "visible": 0.0092,
+   "worst": 0.0133,
+   "fabio": 1.3,
+   "at": [
+    0.333,
+    1.042,
+    1.75,
+    2.458,
+    3.167,
+    3.833
+   ],
+   "perInstant": [
+    0.0133,
+    0.0118,
+    0.0067,
+    0.0058,
+    0.0087,
+    0.0087
+   ]
+  },
+  "storage-tips": {
+   "scene": "storage-tips",
+   "clip": "storage-tips",
+   "visible": 0.0137,
+   "worst": 0.0228,
+   "fabio": null,
+   "at": [
+    0.125,
+    0.417,
+    0.667,
+    0.917,
+    1.208,
+    1.458
+   ],
+   "perInstant": [
+    0.0228,
+    0.0218,
+    0.0102,
+    0.0117,
+    0.0077,
+    0.0077
+   ]
+  }
+ }
+}

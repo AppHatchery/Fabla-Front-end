@@ -1,0 +1,752 @@
+{
+ "kit": {
+  "id": "fabio",
+  "version": "1.4.0",
+  "pawStyle": "detached"
+ },
+ "style": "detached",
+ "whitePaw": "royal",
+ "cases": [
+  {
+   "id": "look host",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 171
+  },
+  {
+   "id": "look safety",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 148
+  },
+  {
+   "id": "look explorer",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 183
+  },
+  {
+   "id": "look letter-carrier",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 102
+  },
+  {
+   "id": "look coach",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 84
+  },
+  {
+   "id": "look gardener",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 90
+  },
+  {
+   "id": "look night-owl",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 103
+  },
+  {
+   "id": "look conductor",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 87
+  },
+  {
+   "id": "look doorman",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 89
+  },
+  {
+   "id": "look pen-pal",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 105
+  },
+  {
+   "id": "look photographer",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 81
+  },
+  {
+   "id": "look calm",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 85
+  },
+  {
+   "id": "look researcher",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 84
+  },
+  {
+   "id": "look rainy-day",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 110
+  },
+  {
+   "id": "look party",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 81
+  },
+  {
+   "id": "look space",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 92
+  },
+  {
+   "id": "look cold-day",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 91
+  },
+  {
+   "id": "look sunny-day",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 77
+  },
+  {
+   "id": "pose rest",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 437
+  },
+  {
+   "id": "pose wave",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 1068
+  },
+  {
+   "id": "pose thumbs",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 792
+  },
+  {
+   "id": "pose present",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2430
+  },
+  {
+   "id": "pose hold-up",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-air",
+     "message": "fabio near paw (hand-hold-near-blue) in clip hold-up at 0 ms: only 2.9 kit units of air from his figure; a paw keeps at least 6",
+     "paw": "fabio near paw",
+     "part": "hand-hold-near-blue",
+     "at": "in clip hold-up at 0 ms",
+     "gap": 2.93,
+     "depth": 0,
+     "visible": 1,
+     "out": 34.79,
+     "clip": "hold-up",
+     "t": 0,
+     "side": "near"
+    }
+   ],
+   "failing": true,
+   "ms": 945
+  },
+  {
+   "id": "pose hop",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2401
+  },
+  {
+   "id": "pose tilt",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 887
+  },
+  {
+   "id": "pose blink",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 285
+  },
+  {
+   "id": "pose look-left",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2020
+  },
+  {
+   "id": "pose look-right",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2024
+  },
+  {
+   "id": "pose look-up",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 1916
+  },
+  {
+   "id": "pose look-down",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 1848
+  },
+  {
+   "id": "pose carry-both",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-air",
+     "message": "fabio near paw (hand-carry-both-wide-near-blue) in clip carry-both at 0 ms: on his outline (it touches or straddles him, 47.0 kit units of it outside him); paws are clearly detached, at least 6 kit units of air",
+     "paw": "fabio near paw",
+     "part": "hand-carry-both-wide-near-blue",
+     "at": "in clip carry-both at 0 ms",
+     "gap": 0,
+     "depth": 36.76,
+     "visible": 1,
+     "out": 46.98,
+     "clip": "carry-both",
+     "t": 0,
+     "side": "near"
+    }
+   ],
+   "failing": true,
+   "ms": 1094
+  },
+  {
+   "id": "pose celebrate",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-air",
+     "message": "fabio near paw (hand-hold-near-blue) in clip celebrate at 0 ms: only 2.9 kit units of air from his figure; a paw keeps at least 6",
+     "paw": "fabio near paw",
+     "part": "hand-hold-near-blue",
+     "at": "in clip celebrate at 0 ms",
+     "gap": 2.93,
+     "depth": 0,
+     "visible": 1,
+     "out": 34.79,
+     "clip": "celebrate",
+     "t": 0,
+     "side": "near"
+    }
+   ],
+   "failing": true,
+   "ms": 5439
+  },
+  {
+   "id": "pose carry-front",
+   "kind": "pose",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "held-contact",
+     "message": "fabio far paw (hand-carry-front-far-blue) in clip carry-front at 0 ms: is 115.3 kit units from the item it holds; a holding paw touches its item",
+     "paw": "fabio far paw",
+     "part": "hand-carry-front-far-blue",
+     "at": "in clip carry-front at 0 ms",
+     "gap": 13.89,
+     "depth": 0,
+     "visible": 1,
+     "out": 46.22,
+     "heldGap": 115.25,
+     "clip": "carry-front",
+     "t": 0,
+     "side": "far"
+    },
+    {
+     "severity": "error",
+     "rule": "paw-air",
+     "message": "fabio far paw (hand-carry-front-far-blue) in clip carry-front at 33 ms: on his outline (it touches or straddles him, 30.9 kit units of it outside him); paws are clearly detached, at least 6 kit units of air",
+     "paw": "fabio far paw",
+     "part": "hand-carry-front-far-blue",
+     "at": "in clip carry-front at 33 ms",
+     "gap": 0,
+     "depth": 1.5,
+     "visible": 1,
+     "out": 30.92,
+     "clip": "carry-front",
+     "t": 33,
+     "side": "far"
+    },
+    {
+     "severity": "error",
+     "rule": "paw-air",
+     "message": "fabio near paw (hand-carry-side-near-blue) in clip carry-front at 99 ms: on his outline (it touches or straddles him, 27.0 kit units of it outside him); paws are clearly detached, at least 6 kit units of air",
+     "paw": "fabio near paw",
+     "part": "hand-carry-side-near-blue",
+     "at": "in clip carry-front at 99 ms",
+     "gap": 0,
+     "depth": 5.53,
+     "visible": 1,
+     "out": 26.96,
+     "clip": "carry-front",
+     "t": 99,
+     "side": "near"
+    },
+    {
+     "severity": "error",
+     "rule": "paw-front",
+     "message": "fabio far paw (hand-carry-front-far-blue) in clip carry-front at 132 ms: sits wholly over him, but not with both paws holding one thing; a paw is clearly apart from him (at least 6 kit units of air)",
+     "paw": "fabio far paw",
+     "part": "hand-carry-front-far-blue",
+     "at": "in clip carry-front at 132 ms",
+     "gap": 0,
+     "depth": 30.92,
+     "visible": 1,
+     "out": 0,
+     "clip": "carry-front",
+     "t": 132,
+     "side": "far"
+    }
+   ],
+   "failing": true,
+   "ms": 5916
+  },
+  {
+   "id": "pose you-did-it",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2136
+  },
+  {
+   "id": "pose no-worries",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2873
+  },
+  {
+   "id": "pose go-on",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2199
+  },
+  {
+   "id": "card host-present-kept-tape",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-air",
+     "message": "fabio near paw (hand-present-near-blue) in clip rest at 0 ms: only 4.7 kit units of air from his figure; a paw keeps at least 6",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 4.74,
+     "depth": 0,
+     "visible": 0.68,
+     "out": 43.8,
+     "clip": "rest",
+     "t": 0,
+     "side": "near"
+    }
+   ],
+   "failing": true,
+   "ms": 213
+  },
+  {
+   "id": "card gardener-hold-mic",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-air",
+     "message": "fabio near paw (hand-hold-near-blue) in clip rest at 0 ms: only 1.3 kit units of air from his figure; a paw keeps at least 6",
+     "paw": "fabio near paw",
+     "part": "hand-hold-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 1.27,
+     "depth": 0,
+     "visible": 1,
+     "out": 33.13,
+     "clip": "rest",
+     "t": 0,
+     "side": "near"
+    }
+   ],
+   "failing": true,
+   "ms": 128
+  },
+  {
+   "id": "card photographer-carry-parcel",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 123
+  },
+  {
+   "id": "card space-present-cue-card",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-air",
+     "message": "fabio near paw (hand-present-near-blue) in clip rest at 0 ms: only 4.7 kit units of air from his figure; a paw keeps at least 6",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 4.67,
+     "depth": 0,
+     "visible": 0.7,
+     "out": 43.8,
+     "clip": "rest",
+     "t": 0,
+     "side": "near"
+    }
+   ],
+   "failing": true,
+   "ms": 156
+  },
+  {
+   "id": "card explorer-hold-envelope",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-air",
+     "message": "fabio near paw (hand-hold-near-blue) in clip rest at 0 ms: only 1.3 kit units of air from his figure; a paw keeps at least 6",
+     "paw": "fabio near paw",
+     "part": "hand-hold-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 1.27,
+     "depth": 0,
+     "visible": 1,
+     "out": 33.17,
+     "clip": "rest",
+     "t": 0,
+     "side": "near"
+    }
+   ],
+   "failing": true,
+   "ms": 122
+  },
+  {
+   "id": "card calm-wave",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-air",
+     "message": "fabio near paw (hand-wave-near-blue) in clip rest at 0 ms: only 2.1 kit units of air from his figure; a paw keeps at least 6",
+     "paw": "fabio near paw",
+     "part": "hand-wave-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 2.14,
+     "depth": 0,
+     "visible": 1,
+     "out": 42.3,
+     "clip": "rest",
+     "t": 0,
+     "side": "near"
+    }
+   ],
+   "failing": true,
+   "ms": 85
+  },
+  {
+   "id": "card pen-pal-thumbs",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "paw-air",
+     "message": "fabio near paw (hand-thumbs-near-blue) in clip rest at 0 ms: only 5.9 kit units of air from his figure; a paw keeps at least 6",
+     "paw": "fabio near paw",
+     "part": "hand-thumbs-near-blue",
+     "at": "in clip rest at 0 ms",
+     "gap": 5.94,
+     "depth": 0,
+     "visible": 1,
+     "out": 40.7,
+     "clip": "rest",
+     "t": 0,
+     "side": "near"
+    }
+   ],
+   "failing": true,
+   "ms": 98
+  },
+  {
+   "id": "card present mic",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2142
+  },
+  {
+   "id": "card present mic-off",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2123
+  },
+  {
+   "id": "card present cue-card",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2118
+  },
+  {
+   "id": "card present cue-card-blank",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2105
+  },
+  {
+   "id": "card present envelope",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2260
+  },
+  {
+   "id": "card present parcel",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2281
+  },
+  {
+   "id": "card present kept-tape",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2274
+  },
+  {
+   "id": "card present phone",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2224
+  },
+  {
+   "id": "card present camera",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2179
+  },
+  {
+   "id": "card present ticket",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2183
+  },
+  {
+   "id": "card present label-tag",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2193
+  },
+  {
+   "id": "card present value-pill",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2216
+  },
+  {
+   "id": "card present battery",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2213
+  },
+  {
+   "id": "card present battery-charging",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2254
+  },
+  {
+   "id": "card present watering-can",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2136
+  },
+  {
+   "id": "card present paper-plane",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2085
+  },
+  {
+   "id": "card present question-mark",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2091
+  },
+  {
+   "id": "card present singing-bowl",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2094
+  },
+  {
+   "id": "card present table-clock",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2111
+  },
+  {
+   "id": "card present popper",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2135
+  },
+  {
+   "id": "card present popper-burst",
+   "kind": "card",
+   "problems": [
+    {
+     "severity": "error",
+     "rule": "held-contact",
+     "message": "fabio near paw (hand-present-near-blue) in clip present at 0 ms: is 6.7 kit units from the item it holds; a holding paw touches its item",
+     "paw": "fabio near paw",
+     "part": "hand-present-near-blue",
+     "at": "in clip present at 0 ms",
+     "gap": 6.37,
+     "depth": 0,
+     "visible": 1,
+     "out": 45.47,
+     "heldGap": 6.72,
+     "clip": "present",
+     "t": 0,
+     "side": "near"
+    }
+   ],
+   "failing": true,
+   "ms": 2173
+  },
+  {
+   "id": "card present pennant",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2117
+  },
+  {
+   "id": "card present balloon",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2086
+  },
+  {
+   "id": "card present sealed-diary",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2114
+  },
+  {
+   "id": "card present mail-bag",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2080
+  },
+  {
+   "id": "card present stamp",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2121
+  },
+  {
+   "id": "card present umbrella",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2110
+  },
+  {
+   "id": "card present flower-pot",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2104
+  }
+ ],
+ "summary": {
+  "all": {
+   "n": 71,
+   "failing": 11
+  },
+  "looks": {
+   "n": 18,
+   "failing": 0
+  },
+  "poses": {
+   "n": 18,
+   "failing": 4
+  },
+  "cards": {
+   "n": 35,
+   "failing": 7
+  },
+  "pawsFailing": 12,
+  "errors": 14,
+  "warnings": 0
+ }
+}

@@ -1,0 +1,585 @@
+{
+ "kit": {
+  "id": "fabio",
+  "version": "1.7.1",
+  "pawStyle": "detached"
+ },
+ "style": "detached",
+ "whitePaw": "royal",
+ "cases": [
+  {
+   "id": "look host",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 209
+  },
+  {
+   "id": "look safety",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 164
+  },
+  {
+   "id": "look explorer",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 124
+  },
+  {
+   "id": "look letter-carrier",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 144
+  },
+  {
+   "id": "look coach",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 117
+  },
+  {
+   "id": "look gardener",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 113
+  },
+  {
+   "id": "look night-owl",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 124
+  },
+  {
+   "id": "look conductor",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 99
+  },
+  {
+   "id": "look doorman",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 93
+  },
+  {
+   "id": "look pen-pal",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 111
+  },
+  {
+   "id": "look photographer",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 117
+  },
+  {
+   "id": "look calm",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 101
+  },
+  {
+   "id": "look researcher",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 92
+  },
+  {
+   "id": "look rainy-day",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 95
+  },
+  {
+   "id": "look party",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 88
+  },
+  {
+   "id": "look space",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 109
+  },
+  {
+   "id": "look cold-day",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 102
+  },
+  {
+   "id": "look sunny-day",
+   "kind": "look",
+   "problems": [],
+   "failing": false,
+   "ms": 83
+  },
+  {
+   "id": "pose rest",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 460
+  },
+  {
+   "id": "pose wave",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 1093
+  },
+  {
+   "id": "pose wave (letter-carrier)",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 5785
+  },
+  {
+   "id": "pose thumbs",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 813
+  },
+  {
+   "id": "pose thumbs (letter-carrier)",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 4091
+  },
+  {
+   "id": "pose present",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2613
+  },
+  {
+   "id": "pose present (letter-carrier)",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 6063
+  },
+  {
+   "id": "pose hold-up",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 1063
+  },
+  {
+   "id": "pose hold-up (letter-carrier)",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 5563
+  },
+  {
+   "id": "pose hop",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2566
+  },
+  {
+   "id": "pose tilt",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 956
+  },
+  {
+   "id": "pose blink",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 401
+  },
+  {
+   "id": "pose look-left",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2191
+  },
+  {
+   "id": "pose look-right",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2205
+  },
+  {
+   "id": "pose look-up",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2020
+  },
+  {
+   "id": "pose look-down",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2013
+  },
+  {
+   "id": "pose carry-both",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 740
+  },
+  {
+   "id": "pose carry-both (letter-carrier)",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 4952
+  },
+  {
+   "id": "pose celebrate",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 5471
+  },
+  {
+   "id": "pose celebrate (letter-carrier)",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 10138
+  },
+  {
+   "id": "pose carry-front",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 5130
+  },
+  {
+   "id": "pose carry-front (letter-carrier)",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 10051
+  },
+  {
+   "id": "pose you-did-it",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2299
+  },
+  {
+   "id": "pose no-worries",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 3074
+  },
+  {
+   "id": "pose go-on",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 2356
+  },
+  {
+   "id": "pose go-on (letter-carrier)",
+   "kind": "pose",
+   "problems": [],
+   "failing": false,
+   "ms": 6195
+  },
+  {
+   "id": "card host-present-kept-tape",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 251
+  },
+  {
+   "id": "card gardener-hold-mic",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 145
+  },
+  {
+   "id": "card photographer-carry-parcel",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 122
+  },
+  {
+   "id": "card space-present-cue-card",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 134
+  },
+  {
+   "id": "card explorer-hold-envelope",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 129
+  },
+  {
+   "id": "card calm-wave",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 89
+  },
+  {
+   "id": "card pen-pal-thumbs",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 100
+  },
+  {
+   "id": "card present mic",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2397
+  },
+  {
+   "id": "card present mic-off",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2365
+  },
+  {
+   "id": "card present cue-card",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2283
+  },
+  {
+   "id": "card present cue-card-blank",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2169
+  },
+  {
+   "id": "card present envelope",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2317
+  },
+  {
+   "id": "card present parcel",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2285
+  },
+  {
+   "id": "card present kept-tape",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2379
+  },
+  {
+   "id": "card present phone",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2236
+  },
+  {
+   "id": "card present camera",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2248
+  },
+  {
+   "id": "card present ticket",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2282
+  },
+  {
+   "id": "card present label-tag",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2227
+  },
+  {
+   "id": "card present value-pill",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2327
+  },
+  {
+   "id": "card present battery",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2268
+  },
+  {
+   "id": "card present battery-charging",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2192
+  },
+  {
+   "id": "card present watering-can",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2240
+  },
+  {
+   "id": "card present paper-plane",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2330
+  },
+  {
+   "id": "card present question-mark",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2333
+  },
+  {
+   "id": "card present singing-bowl",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2539
+  },
+  {
+   "id": "card present table-clock",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2240
+  },
+  {
+   "id": "card present popper",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2190
+  },
+  {
+   "id": "card present popper-burst",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2208
+  },
+  {
+   "id": "card present pennant",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2372
+  },
+  {
+   "id": "card present balloon",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2323
+  },
+  {
+   "id": "card present sealed-diary",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2300
+  },
+  {
+   "id": "card present mail-bag",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2251
+  },
+  {
+   "id": "card present stamp",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2243
+  },
+  {
+   "id": "card present umbrella",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2243
+  },
+  {
+   "id": "card present flower-pot",
+   "kind": "card",
+   "problems": [],
+   "failing": false,
+   "ms": 2291
+  }
+ ],
+ "summary": {
+  "all": {
+   "n": 79,
+   "failing": 0
+  },
+  "looks": {
+   "n": 18,
+   "failing": 0
+  },
+  "poses": {
+   "n": 26,
+   "failing": 0
+  },
+  "cards": {
+   "n": 35,
+   "failing": 0
+  },
+  "pawsFailing": 0,
+  "errors": 0,
+  "warnings": 0
+ }
+}

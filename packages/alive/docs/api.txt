@@ -1,0 +1,623 @@
+alive_core  AliveBubble: const AliveBubble(super.time, this.text, this.clip)
+alive_core  AliveBubble: final String clip
+alive_core  AliveBubble: final String? text
+alive_core  AliveCache: AliveCache({this.prepareSlice = const Duration(milliseconds: 4), this.keepArtTrees = false})
+alive_core  AliveCache: AliveSceneHandle? tryAcquire(AliveLibrary library, String scene)
+alive_core  AliveCache: Future<AliveSceneHandle> acquire(AliveLibrary library, String scene)
+alive_core  AliveCache: Future<List<AliveError>> preload(AliveLibrary library, Iterable<String> scenes, {Duration keep = const Duration(seconds: 30)})
+alive_core  AliveCache: List<String> get liveSceneIds
+alive_core  AliveCache: bool get isDisposed
+alive_core  AliveCache: bool get watchesMemoryPressure
+alive_core  AliveCache: bool isLoaded(AliveLibrary library, String scene)
+alive_core  AliveCache: final Duration prepareSlice
+alive_core  AliveCache: final bool keepArtTrees
+alive_core  AliveCache: int get liveScenes
+alive_core  AliveCache: int releasePreloads()
+alive_core  AliveCache: static Future<void> loadKitParts(AliveLibrary library, KitData kit, Iterable<String> ids)
+alive_core  AliveCache: static final AliveCache shared
+alive_core  AliveCache: void dispose()
+alive_core  AliveClipEnded: const AliveClipEnded(super.time, this.clip)
+alive_core  AliveClipEnded: final String clip
+alive_core  AliveClipStarted: const AliveClipStarted(super.time, this.clip, {this.pool, this.look})
+alive_core  AliveClipStarted: final String clip
+alive_core  AliveClipStarted: final String? look
+alive_core  AliveClipStarted: final String? pool
+alive_core  AliveController: AliveController({ required TickerProvider vsync, required String scene, AliveLibrary? library, AliveCache? cache, this.store, this.run, this.options = const AliveOptions(), this.onError, this.extensions = AliveExtensions.none, String? look, math.Random? random, })
+alive_core  AliveController: AliveError? get error
+alive_core  AliveController: AliveLook? kitLook({String? figure})
+alive_core  AliveController: AlivePlayer? get player
+alive_core  AliveController: AliveSceneData? get scene
+alive_core  AliveController: Future<void> dress(AliveLook look, {String? figure})
+alive_core  AliveController: Future<void> takeOff(String slot, {String? figure})
+alive_core  AliveController: Future<void> wear(String slot, String? part, {ui.Color? tint, AlivePartAdjust? adjust, String? figure})
+alive_core  AliveController: KitDef? kit({String? figure})
+alive_core  AliveController: Listenable get frame
+alive_core  AliveController: Object? channel(String name)
+alive_core  AliveController: Stream<AliveEvent> get events
+alive_core  AliveController: String? get appState
+alive_core  AliveController: String? get clip
+alive_core  AliveController: String? get look
+alive_core  AliveController: String? worn(String slot, {String? figure})
+alive_core  AliveController: ValueListenable<AliveStatus> get status
+alive_core  AliveController: bool get holding
+alive_core  AliveController: bool get isDisposed
+alive_core  AliveController: bool get paused
+alive_core  AliveController: bool get reducedMotion
+alive_core  AliveController: double get clipTime
+alive_core  AliveController: double get micLevel
+alive_core  AliveController: double? value(String layer, LayerProp prop)
+alive_core  AliveController: final AliveCache cache
+alive_core  AliveController: final AliveExtensions extensions
+alive_core  AliveController: final AliveLibrary library
+alive_core  AliveController: final AliveOptions options
+alive_core  AliveController: final AliveRunContext? run
+alive_core  AliveController: final AliveStore? store
+alive_core  AliveController: final List<void Function(AlivePlayer)
+alive_core  AliveController: final String sceneId
+alive_core  AliveController: final void Function(AliveError error)
+alive_core  AliveController: late final Future<void> ready
+alive_core  AliveController: set appState(String? s)
+alive_core  AliveController: set look(String? id)
+alive_core  AliveController: set micLevel(double v)
+alive_core  AliveController: static Future<List<AliveError>> preload(Iterable<String> scenes, {AliveLibrary? library, AliveCache? cache, Duration keep = const Duration(seconds: 30)})
+alive_core  AliveController: ui.Offset? anchor(String name)
+alive_core  AliveController: ui.Offset? worldToLocal(ui.Offset world, ui.Size size, {ui.Rect? viewport, BoxFit fit = BoxFit.contain, Alignment alignment = Alignment.center})
+alive_core  AliveController: void dispose()
+alive_core  AliveController: void lookAt(ui.Offset? world)
+alive_core  AliveController: void lookAtLocal(ui.Offset local, ui.Size size, {ui.Rect? viewport, BoxFit fit = BoxFit.contain, Alignment alignment = Alignment.center})
+alive_core  AliveController: void paintArt(ui.Canvas canvas, String art)
+alive_core  AliveController: void pause()
+alive_core  AliveController: void play(String clipOrPool, {String? then, String? holdAt, double from = 0})
+alive_core  AliveController: void proceed({String? holdAt})
+alive_core  AliveController: void reportRenderError(Object error, StackTrace stack)
+alive_core  AliveController: void resume()
+alive_core  AliveController: void seek(double seconds)
+alive_core  AliveController: void send(String event)
+alive_core  AliveController: void setInput(String name, double value)
+alive_core  AliveController: void setOffset(String layer, {double tx = 0, double ty = 0, double rot = 0, double sx = 1, double sy = 1, double opacity = 1, bool clear = false})
+alive_core  AliveController: void setSystemReducedMotion(bool value)
+alive_core  AliveController: void tap({String target = 'fabio'})
+alive_core  AliveCue: const AliveCue(super.time, this.name, this.clip)
+alive_core  AliveCue: final String clip
+alive_core  AliveCue: final String name
+alive_core  AliveError: String toString()
+alive_core  AliveError: const AliveError(this.message)
+alive_core  AliveError: final String message
+alive_core  AliveEvent: const AliveEvent(this.time)
+alive_core  AliveEvent: final double time
+alive_core  AliveExtensions: const AliveExtensions({this.nodes = const {}})
+alive_core  AliveExtensions: final Map<String, AlivePlugin> nodes
+alive_core  AliveExtensions: static const AliveExtensions none
+alive_core  AliveFailed: const AliveFailed(super.time, this.error)
+alive_core  AliveFailed: final AliveError error
+alive_core  AliveFonts: String? family(String key)
+alive_core  AliveFonts: bool operator =
+alive_core  AliveFonts: const AliveFonts({this.rubik = 'Rubik', this.vt323, this.pixelify, this.system, this.families = const {}})
+alive_core  AliveFonts: final Map<String, String> families
+alive_core  AliveFonts: final String rubik
+alive_core  AliveFonts: final String? pixelify
+alive_core  AliveFonts: final String? system
+alive_core  AliveFonts: final String? vt323
+alive_core  AliveFonts: int get hashCode
+alive_core  AliveFrame: Object? channel(String name)
+alive_core  AliveFrame: String? get clip
+alive_core  AliveFrame: bool get reducedMotion
+alive_core  AliveFrame: double get clipTime
+alive_core  AliveFrame: double get time
+alive_core  AliveFrame: double input(String name)
+alive_core  AliveFrame: double? value(String layer, LayerProp prop)
+alive_core  AliveLibrary: AliveFonts get fonts
+alive_core  AliveLibrary: Future<Object?> loadJson(String path)
+alive_core  AliveLibrary: Object get cacheKey
+alive_core  AliveLibrary: const factory AliveLibrary.assets({String root, AssetBundle? bundle, AliveFonts fonts, bool background, int backgroundMinBytes})
+alive_core  AliveLibrary: factory AliveLibrary.memory(Map<String, Object> files, {AliveFonts fonts})
+alive_core  AliveLoadError: const AliveLoadError(this.file, String message, [this.cause])
+alive_core  AliveLoadError: final Object? cause
+alive_core  AliveLoadError: final String file
+alive_core  AliveLoaded: const AliveLoaded(super.time, this.scene)
+alive_core  AliveLoaded: final String scene
+alive_core  AliveMemoryStore: AliveMemoryStore()
+alive_core  AliveMemoryStore: Future<String?> read(String key)
+alive_core  AliveMemoryStore: Future<void> write(String key, String value)
+alive_core  AliveMemoryStore: final Map<String, String> data
+alive_core  AliveMic: static double fromDecibels(double db, {double floor = 28, double range = 58})
+alive_core  AliveOptions: const AliveOptions({this.idleFrameRate = 30, this.maxStep = 0.1, this.reducedMotion = AliveReducedMotion.system, this.pauseInBackground = true})
+alive_core  AliveOptions: final AliveReducedMotion reducedMotion
+alive_core  AliveOptions: final bool pauseInBackground
+alive_core  AliveOptions: final double idleFrameRate
+alive_core  AliveOptions: final double maxStep
+alive_core  AlivePart: Widget build(BuildContext context)
+alive_core  AlivePart: const AlivePart({super.key, required this.controller, required this.art, this.viewport, this.fit = BoxFit.contain})
+alive_core  AlivePart: final AliveController controller
+alive_core  AlivePart: final BoxFit fit
+alive_core  AlivePart: final Rect? viewport
+alive_core  AlivePart: final String art
+alive_core  AlivePlacement: AlivePlacementSpec resolve()
+alive_core  AlivePlacement: Widget build(BuildContext context)
+alive_core  AlivePlacement: const AlivePlacement({ super.key, required this.controller, this.placement, this.viewport, this.fit, this.alignment, this.clip, this.passTaps, this.scale, this.maxScale, this.plane = 'main', this.placeholder, this.fallback, this.semanticsLabel, this.excludeFromSemantics, this.deferFirstPaint = true, })
+alive_core  AlivePlacement: final Alignment? alignment
+alive_core  AlivePlacement: final AliveController controller
+alive_core  AlivePlacement: final AliveFallbackBuilder? fallback
+alive_core  AlivePlacement: final AlivePlacementSpec? placement
+alive_core  AlivePlacement: final BoxFit? fit
+alive_core  AlivePlacement: final Rect? viewport
+alive_core  AlivePlacement: final String plane
+alive_core  AlivePlacement: final String? semanticsLabel
+alive_core  AlivePlacement: final Widget? placeholder
+alive_core  AlivePlacement: final bool deferFirstPaint
+alive_core  AlivePlacement: final bool? clip
+alive_core  AlivePlacement: final bool? excludeFromSemantics
+alive_core  AlivePlacement: final bool? passTaps
+alive_core  AlivePlacement: final double? maxScale
+alive_core  AlivePlacement: final double? scale
+alive_core  AlivePlacementSpec: AlivePlacementSpec copyWith({String? name, double? width, double? height, BoxFit? fit, Alignment? alignment, bool? clip, bool? passTaps, double? scale, double? maxScale})
+alive_core  AlivePlacementSpec: String toString()
+alive_core  AlivePlacementSpec: const AlivePlacementSpec({ required this.name, this.width, this.height, this.fit = BoxFit.contain, this.alignment = Alignment.center, this.clip = false, this.passTaps = false, this.scale = 1, this.maxScale = 1, })
+alive_core  AlivePlacementSpec: final Alignment alignment
+alive_core  AlivePlacementSpec: final BoxFit fit
+alive_core  AlivePlacementSpec: final String name
+alive_core  AlivePlacementSpec: final bool clip
+alive_core  AlivePlacementSpec: final bool passTaps
+alive_core  AlivePlacementSpec: final double maxScale
+alive_core  AlivePlacementSpec: final double scale
+alive_core  AlivePlacementSpec: final double? height
+alive_core  AlivePlacementSpec: final double? width
+alive_core  AlivePlacements: static AlivePlacementSpec? byName(String? name)
+alive_core  AlivePlacements: static const Map<String, AlivePlacementSpec> all
+alive_core  AlivePlacements: static const card
+alive_core  AlivePlacements: static const custom
+alive_core  AlivePlacements: static const dialog
+alive_core  AlivePlacements: static const double designWidth
+alive_core  AlivePlacements: static const inline
+alive_core  AlivePlacements: static const page
+alive_core  AlivePlacements: static const panel
+alive_core  AlivePlugin: const AlivePlugin(this.paint, {this.animates = false})
+alive_core  AlivePlugin: final AliveNodePainter paint
+alive_core  AlivePlugin: final bool animates
+alive_core  AliveProblem: String toString()
+alive_core  AliveProblem: const AliveProblem(this.path, this.message, [this.hint])
+alive_core  AliveProblem: final String message
+alive_core  AliveProblem: final String path
+alive_core  AliveProblem: final String? hint
+alive_core  AliveReducedMotion.always
+alive_core  AliveReducedMotion.never
+alive_core  AliveReducedMotion.system
+alive_core  AliveRenderError: const AliveRenderError(super.message, this.cause, [this.stack])
+alive_core  AliveRenderError: final Object cause
+alive_core  AliveRenderError: final StackTrace? stack
+alive_core  AliveRunContext: const AliveRunContext({this.diary, this.day, this.question, this.seed = 0})
+alive_core  AliveRunContext: final Object? question
+alive_core  AliveRunContext: final String? day
+alive_core  AliveRunContext: final String? diary
+alive_core  AliveRunContext: final int seed
+alive_core  AliveSceneHandle: AliveSceneData get data
+alive_core  AliveSceneHandle: void release()
+alive_core  AliveSchemaError: AliveSchemaError(this.file, this.problems)
+alive_core  AliveSchemaError: final List<AliveProblem> problems
+alive_core  AliveSchemaError: final String file
+alive_core  AliveStage: State<AliveStage> createState()
+alive_core  AliveStage: const AliveStage({ super.key, required this.controller, this.viewport, this.fit = BoxFit.contain, this.alignment = Alignment.center, this.plane = 'main', this.clip = false, this.placeholder, this.fallback, this.semanticsLabel, this.excludeFromSemantics, this.deferFirstPaint = true, })
+alive_core  AliveStage: final Alignment alignment
+alive_core  AliveStage: final AliveController controller
+alive_core  AliveStage: final AliveFallbackBuilder? fallback
+alive_core  AliveStage: final BoxFit fit
+alive_core  AliveStage: final Rect? viewport
+alive_core  AliveStage: final String plane
+alive_core  AliveStage: final String? semanticsLabel
+alive_core  AliveStage: final Widget? placeholder
+alive_core  AliveStage: final bool clip
+alive_core  AliveStage: final bool deferFirstPaint
+alive_core  AliveStage: final bool? excludeFromSemantics
+alive_core  AliveStateChanged: const AliveStateChanged(super.time, this.from, this.to)
+alive_core  AliveStateChanged: final String to
+alive_core  AliveStateChanged: final String? from
+alive_core  AliveStatus.disposed
+alive_core  AliveStatus.failed
+alive_core  AliveStatus.loading
+alive_core  AliveStatus.ready
+alive_core  AliveStore: Future<String?> read(String key)
+alive_core  AliveStore: Future<void> write(String key, String value)
+alive_core  AliveStoreError: const AliveStoreError(super.message, this.cause)
+alive_core  AliveStoreError: final Object cause
+alive_core  AliveUsageError: const AliveUsageError(super.message)
+alive_core  LayerProp.fill
+alive_core  LayerProp.h
+alive_core  LayerProp.kx
+alive_core  LayerProp.ky
+alive_core  LayerProp.opacity
+alive_core  LayerProp.r
+alive_core  LayerProp.rot
+alive_core  LayerProp.stroke
+alive_core  LayerProp.sx
+alive_core  LayerProp.sy
+alive_core  LayerProp.trimEnd
+alive_core  LayerProp.trimStart
+alive_core  LayerProp.tx
+alive_core  LayerProp.ty
+alive_core  LayerProp.w
+alive_core  LayerProp: bool get isColour
+alive_core  LayerProp: double get neutral
+alive_core  LayerProp: static LayerProp? byName(String name)
+alive_core  LayerProp: static const int numeric
+alive_core  PluginNode: bool get isDynamic
+alive_core  PluginNode: final Map<String, Object?> params
+alive_core  PluginNode: final String kind
+alive_core  PluginNode: final double w, h
+alive_core  Size? placementSize(AlivePlacementSpec spec, Rect? viewport, BoxConstraints box, double screenWidth, {double? screenHeight})
+alive_core  StageTransform stageTransform(ui.Size size, ui.Rect viewport, BoxFit fit, Alignment alignment)
+alive_core  StageTransform: const StageTransform(this.dx, this.dy, this.scaleX, this.scaleY)
+alive_core  StageTransform: final double dx, dy
+alive_core  StageTransform: final double scaleX, scaleY
+alive_core  abstract class AliveFrame
+alive_core  abstract class AliveLibrary
+alive_core  abstract class AliveStore
+alive_core  abstract final class AliveMic
+alive_core  abstract final class AlivePlacements
+alive_core  class AliveBubble extends AliveEvent
+alive_core  class AliveCache
+alive_core  class AliveClipEnded extends AliveEvent
+alive_core  class AliveClipStarted extends AliveEvent
+alive_core  class AliveController
+alive_core  class AliveCue extends AliveEvent
+alive_core  class AliveExtensions
+alive_core  class AliveFailed extends AliveEvent
+alive_core  class AliveFonts
+alive_core  class AliveLoadError extends AliveError
+alive_core  class AliveLoaded extends AliveEvent
+alive_core  class AliveMemoryStore implements AliveStore
+alive_core  class AliveOptions
+alive_core  class AlivePart extends StatelessWidget
+alive_core  class AlivePlacement extends StatelessWidget
+alive_core  class AlivePlacementSpec
+alive_core  class AlivePlugin
+alive_core  class AliveProblem
+alive_core  class AliveRenderError extends AliveError
+alive_core  class AliveRunContext
+alive_core  class AliveSceneHandle
+alive_core  class AliveSchemaError extends AliveError
+alive_core  class AliveStage extends StatefulWidget
+alive_core  class AliveStateChanged extends AliveEvent
+alive_core  class AliveStoreError extends AliveError
+alive_core  class AliveUsageError extends AliveError
+alive_core  class PluginNode extends ArtNode
+alive_core  class StageTransform
+alive_core  class _AssetLibrary implements AliveLibrary
+alive_core  class _MemoryLibrary implements AliveLibrary
+alive_core  class _PartPainter extends CustomPainter
+alive_core  class _Repaint extends ChangeNotifier
+alive_core  class _StagePainter extends CustomPainter
+alive_core  enum AliveReducedMotion
+alive_core  enum AliveStatus
+alive_core  enum LayerProp
+alive_core  sealed class AliveError implements Exception
+alive_core  sealed class AliveEvent
+alive_core  typedef AliveFallbackBuilder = Widget Function(BuildContext context, Object? error);
+alive_core  typedef AliveNodePainter = void Function(ui.Canvas canvas, PluginNode node, AliveFrame frame);
+alive_kit  AliveDress: AliveDress(Map<String, FigureRig> rigs, Map<String, AliveLook> looks)
+alive_kit  AliveDress: FigureDress? get first
+alive_kit  AliveDress: bool wears(String slot, bool alt)
+alive_kit  AliveDress: bool wearsFront(String slot)
+alive_kit  AliveDress: final Map<String, FigureDress> figures
+alive_kit  AliveDress: void paintPart(ui.Canvas canvas, String slot, bool alt)
+alive_kit  AliveLook: AliveLook copyWith({String? preset, Map<String, String?>? parts, Map<String, Color>? tints, Map<String, AlivePartAdjust>? adjust, String? skin})
+alive_kit  AliveLook: AliveLook wear(String slot, String? part, {Color? tint, AlivePartAdjust? adjust})
+alive_kit  AliveLook: String toString()
+alive_kit  AliveLook: const AliveLook({this.preset, this.parts = const {}, this.tints = const {}, this.adjust = const {}, this.skin})
+alive_kit  AliveLook: final Map<String, AlivePartAdjust> adjust
+alive_kit  AliveLook: final Map<String, Color> tints
+alive_kit  AliveLook: final Map<String, String?> parts
+alive_kit  AliveLook: final String? preset
+alive_kit  AliveLook: final String? skin
+alive_kit  AlivePartAdjust: String toString()
+alive_kit  AlivePartAdjust: bool get isNone
+alive_kit  AlivePartAdjust: bool operator =
+alive_kit  AlivePartAdjust: const AlivePartAdjust({this.scale = 1, this.dx = 0, this.dy = 0, this.rot = 0})
+alive_kit  AlivePartAdjust: final double dx, dy
+alive_kit  AlivePartAdjust: final double rot
+alive_kit  AlivePartAdjust: final double scale
+alive_kit  AlivePartAdjust: int get hashCode
+alive_kit  AlivePartAdjust: static const AlivePartAdjust none
+alive_kit  FigureDress: AliveLook get look
+alive_kit  FigureDress: FigureDress(this.rig, AliveLook look)
+alive_kit  FigureDress: Iterable<String> get needed
+alive_kit  FigureDress: ResolvedLook get resolved
+alive_kit  FigureDress: String? pillEyes()
+alive_kit  FigureDress: WornPart? designed(String slot)
+alive_kit  FigureDress: WornPart? worn(String slot)
+alive_kit  FigureDress: bool wears(String slot, bool alt)
+alive_kit  FigureDress: bool wearsFront(String slot)
+alive_kit  FigureDress: double time
+alive_kit  FigureDress: final FigureRig rig
+alive_kit  FigureDress: int version
+alive_kit  FigureDress: static const String neutralFace
+alive_kit  FigureDress: void clearClip()
+alive_kit  FigureDress: void clearLive()
+alive_kit  FigureDress: void clipSwap(String slot, String? name)
+alive_kit  FigureDress: void dress(AliveLook look)
+alive_kit  FigureDress: void liveSwap(String slot, String? name)
+alive_kit  FigureDress: void paint(ui.Canvas c, String slot)
+alive_kit  FigureDress: void setHem(String slot, double lagX, double energy)
+alive_kit  FigureRig: FigureRig(this.def, this.kit)
+alive_kit  FigureRig: Float64List placement(KitSlot s, WornPart w, String? grip)
+alive_kit  FigureRig: KitSlot? holderOf(KitSlot s)
+alive_kit  FigureRig: List<WornDef> worn()
+alive_kit  FigureRig: Map<String, Object?> artJson()
+alive_kit  FigureRig: String boneLayer(String bone)
+alive_kit  FigureRig: String get id
+alive_kit  FigureRig: String slotLayer(String slot)
+alive_kit  FigureRig: final FigureDef def
+alive_kit  FigureRig: final KitData kit
+alive_kit  KitBone: final String id
+alive_kit  KitBone: final String? parent
+alive_kit  KitBone: final double px, py
+alive_kit  KitData: CompiledArt? compiled(WornPart w)
+alive_kit  KitData: KitData(this.def, {this.fonts = const AliveFonts()})
+alive_kit  KitData: bool has(String part)
+alive_kit  KitData: final AliveFonts fonts
+alive_kit  KitData: final KitDef def
+alive_kit  KitData: final LayerState rest
+alive_kit  KitData: final Map<String, ArtDef> art
+alive_kit  KitData: void dispose()
+alive_kit  KitDef: List<String> tagged(String slotId, String tag)
+alive_kit  KitDef: String get rootBone
+alive_kit  KitDef: String? resolve(String slotId, String? name, {String? skin})
+alive_kit  KitDef: final Float64List? canvas
+alive_kit  KitDef: final List<KitSlot> slots
+alive_kit  KitDef: final List<String> skins
+alive_kit  KitDef: final Map<String, KitBone> bones
+alive_kit  KitDef: final Map<String, KitGrip> grips
+alive_kit  KitDef: final Map<String, KitPart> parts
+alive_kit  KitDef: final Map<String, KitToken> tokens
+alive_kit  KitDef: final Map<String, Map<String, String>> looks
+alive_kit  KitDef: final Map<String, Map<String, int>> lookTints
+alive_kit  KitDef: final Map<String, Object?> actions
+alive_kit  KitDef: final Map<String, Object?> pools
+alive_kit  KitDef: final Map<String, String> lookDefaults
+alive_kit  KitDef: final String defaultSkin
+alive_kit  KitDef: final String id
+alive_kit  KitDef: final String version
+alive_kit  KitDef: final String? name
+alive_kit  KitDef: final int? bodyColour
+alive_kit  KitDef: late final Map<String, KitSlot> slot
+alive_kit  KitDef: static KitDef parse(Object? doc, {String file = 'kit.json'})
+alive_kit  KitGrip: final String id
+alive_kit  KitGrip: final bool pawOver
+alive_kit  KitPart: bool get front
+alive_kit  KitPart: bool get retired
+alive_kit  KitPart: final Float64List frame
+alive_kit  KitPart: final List<String> tags
+alive_kit  KitPart: final List<String> tokens
+alive_kit  KitPart: final List<int> mainFamily
+alive_kit  KitPart: final Map<String, String> split
+alive_kit  KitPart: final String id
+alive_kit  KitPart: final String slot, category
+alive_kit  KitPart: final String? grip
+alive_kit  KitPart: final String? name
+alive_kit  KitPart: final String? of
+alive_kit  KitPart: final bool alt
+alive_kit  KitPart: final double ox, oy
+alive_kit  KitPart: final int? mainKey
+alive_kit  KitPhysics: final double stiffness, damping, mass, tilt, max
+alive_kit  KitRange: final (double, double)
+alive_kit  KitRange: static const KitRange fixed
+alive_kit  KitSlot: final KitHem? hem
+alive_kit  KitSlot: final KitPhysics? physics
+alive_kit  KitSlot: final KitRange range
+alive_kit  KitSlot: final List<String> accepts
+alive_kit  KitSlot: final String attach
+alive_kit  KitSlot: final String id
+alive_kit  KitSlot: final String place
+alive_kit  KitSlot: final double ax, ay, arot
+alive_kit  KitSlot: final double z
+alive_kit  KitSlot: final double? zAlt
+alive_kit  KitSlot: final double? zFront
+alive_kit  KitToken: final List<int> family
+alive_kit  KitToken: final String id
+alive_kit  KitToken: final int colour
+alive_kit  ResolvedLook resolveLook(KitDef kit, AliveLook look)
+alive_kit  ResolvedLook: ResolvedLook(this.slots, this.skin, this.problems)
+alive_kit  ResolvedLook: final List<String> problems
+alive_kit  ResolvedLook: final Map<String, WornPart> slots
+alive_kit  ResolvedLook: final String skin
+alive_kit  WornPart: WornPart(this.part, {this.alt = false, this.front = false, this.adjust = AlivePartAdjust.none, this.recolour = const {}})
+alive_kit  WornPart: final AlivePartAdjust adjust
+alive_kit  WornPart: final Map<int, int> recolour
+alive_kit  WornPart: final String part
+alive_kit  WornPart: final bool alt
+alive_kit  WornPart: final bool front
+alive_kit  WornPart: late final String cacheKey
+alive_kit  class AliveDress implements AliveDressing
+alive_kit  class AliveLook
+alive_kit  class AlivePartAdjust
+alive_kit  class FigureDress
+alive_kit  class FigureRig
+alive_kit  class KitBone
+alive_kit  class KitData
+alive_kit  class KitDef
+alive_kit  class KitGrip
+alive_kit  class KitPart
+alive_kit  class KitPhysics
+alive_kit  class KitRange
+alive_kit  class KitSlot
+alive_kit  class KitToken
+alive_kit  class ResolvedLook
+alive_kit  class WornPart
+alive_kit  int shiftColour(int c, int key, int target)
+alive_kit  typedef AliveKit = KitDef;
+alive_tools  AlivePlayer: AliveDress? dress
+alive_tools  AlivePlayer: AliveExtensions get extensions
+alive_tools  AlivePlayer: AliveLook? figureLook([String? figure])
+alive_tools  AlivePlayer: AlivePlayer(this.data, {VariantPicker? picker, this.maxStep = 0.1})
+alive_tools  AlivePlayer: List<AliveEvent> takeEvents()
+alive_tools  AlivePlayer: List<String> get activeArt
+alive_tools  AlivePlayer: List<double>? worldMatrix(String layer)
+alive_tools  AlivePlayer: Object? channel(String name)
+alive_tools  AlivePlayer: String? get appState
+alive_tools  AlivePlayer: String? get clip
+alive_tools  AlivePlayer: String? get look
+alive_tools  AlivePlayer: String? get pool
+alive_tools  AlivePlayer: bool dressFigure(String? figure, AliveLook look)
+alive_tools  AlivePlayer: bool get busy
+alive_tools  AlivePlayer: bool get holding
+alive_tools  AlivePlayer: bool get idleLife
+alive_tools  AlivePlayer: bool get inputsActive
+alive_tools  AlivePlayer: bool live
+alive_tools  AlivePlayer: bool play(String id, {String? then, String? holdAt, double from = 0})
+alive_tools  AlivePlayer: bool reducedMotion
+alive_tools  AlivePlayer: bool send(String event)
+alive_tools  AlivePlayer: bool setAppState(String s)
+alive_tools  AlivePlayer: bool setLook(String? id)
+alive_tools  AlivePlayer: bool setOffset(String layer, {double tx = 0, double ty = 0, double rot = 0, double sx = 1, double sy = 1, double opacity = 1, bool clear = false})
+alive_tools  AlivePlayer: double get clipTime
+alive_tools  AlivePlayer: double get time
+alive_tools  AlivePlayer: double input(String name)
+alive_tools  AlivePlayer: double now
+alive_tools  AlivePlayer: double? cueTime(String cue)
+alive_tools  AlivePlayer: double? value(String layer, LayerProp prop)
+alive_tools  AlivePlayer: final AliveSceneData data
+alive_tools  AlivePlayer: final LayerState state
+alive_tools  AlivePlayer: final VariantPicker picker
+alive_tools  AlivePlayer: final double maxStep
+alive_tools  AlivePlayer: int get poseVersion
+alive_tools  AlivePlayer: set extensions(AliveExtensions e)
+alive_tools  AlivePlayer: void advance(double dt)
+alive_tools  AlivePlayer: void evaluate()
+alive_tools  AlivePlayer: void lookAt(double? x, double? y)
+alive_tools  AlivePlayer: void paintPlugin(ui.Canvas canvas, PluginNode node)
+alive_tools  AlivePlayer: void proceed({String? holdAt})
+alive_tools  AlivePlayer: void seek(double t)
+alive_tools  AlivePlayer: void setInput(String name, double v)
+alive_tools  AlivePlayer: void start()
+alive_tools  AliveSceneData: bool get disposed
+alive_tools  AliveSceneData: factory AliveSceneData(SceneDef def, Map<String, ArtDef> arts, {AliveFonts fonts = const AliveFonts(), String file = 'scene.json', Map<String, KitData> kits = const {}, Map<String, FigureRig> figures = const {}})
+alive_tools  AliveSceneData: final Float64List pivotX, pivotY
+alive_tools  AliveSceneData: final Int32List parent
+alive_tools  AliveSceneData: final LayerState rest
+alive_tools  AliveSceneData: final List<String> layerIds
+alive_tools  AliveSceneData: final Map<String, ArtDef> arts
+alive_tools  AliveSceneData: final Map<String, CompiledArt> compiled
+alive_tools  AliveSceneData: final Map<String, FigureRig> figures
+alive_tools  AliveSceneData: final Map<String, KitData> kits
+alive_tools  AliveSceneData: final Map<String, int> layerIndex
+alive_tools  AliveSceneData: final SceneDef def
+alive_tools  AliveSceneData: late final List<WornDef> worn
+alive_tools  AliveSceneData: late final Map<String, PoolDef> pools
+alive_tools  AliveSceneData: static ({List<String> ids, Map<String, int> index, Int32List parent, Float64List px, Float64List py, LayerState rest, Set<String> trimmed})
+alive_tools  AliveSceneData: static Future<AliveSceneData> prepare(SceneDef def, Map<String, ArtDef> arts, {AliveFonts fonts = const AliveFonts(), String file = 'scene.json', Map<String, KitData> kits = const {}, Map<String, FigureRig> figures = const {}, Duration slice = const Duration(milliseconds: 4), Future<void>? Function()? pause})
+alive_tools  AliveSceneData: void dispose()
+alive_tools  AliveSceneData: void releaseArtTrees()
+alive_tools  ArtDef: ArtDef header()
+alive_tools  ArtDef: final List<ArtNode> roots
+alive_tools  ArtDef: final Map<String, FilterDef> filters
+alive_tools  ArtDef: final Map<String, List<ClipShapeDef>> clips
+alive_tools  ArtDef: final Map<String, PaintDef> paints
+alive_tools  ArtDef: final String id
+alive_tools  ArtDef: final double offsetX, offsetY
+alive_tools  ArtDef: final double width, height
+alive_tools  ArtDef: static ArtDef parse(Object? doc, {String file = 'art.json', bool prepare = false})
+alive_tools  ArtDef: static Object? splice(Object? doc, Map<String, Object?> fragments, {String file = 'art.json'})
+alive_tools  ClipDef: List<LayerTracks> get tracks
+alive_tools  ClipDef: Object? channelAt(String name, double t)
+alive_tools  ClipDef: final List<BubbleCue> bubble
+alive_tools  ClipDef: final List<Cue> cues
+alive_tools  ClipDef: final List<String>? art
+alive_tools  ClipDef: final String id
+alive_tools  ClipDef: final String? note
+alive_tools  ClipDef: final bool loop
+alive_tools  ClipDef: final double duration
+alive_tools  ClipDef: final double still
+alive_tools  CompiledArt: ArtDef get def
+alive_tools  CompiledArt: CompiledArt(ArtDef def, Map<String, int> layerIndex, {this.fonts = const AliveFonts(), this.recolour = const {}, Set<String> trimmed = const {}})
+alive_tools  CompiledArt: Iterable<String> get planes
+alive_tools  CompiledArt: Set<String> get pluginKinds
+alive_tools  CompiledArt: bool get disposed
+alive_tools  CompiledArt: final AliveFonts fonts
+alive_tools  CompiledArt: final Map<int, int> recolour
+alive_tools  CompiledArt: int get pictureBytes
+alive_tools  CompiledArt: int get pictureCount
+alive_tools  CompiledArt: static Future<CompiledArt> prepare(ArtDef def, Map<String, int> layerIndex, {AliveFonts fonts = const AliveFonts(), Map<int, int> recolour = const {}, Set<String> trimmed = const {}, Duration slice = const Duration(milliseconds: 4), Future<void>? Function()? pause})
+alive_tools  CompiledArt: void dispose()
+alive_tools  CompiledArt: void paint(ui.Canvas c, LayerState values, {String plane = 'main'})
+alive_tools  CompiledArt: void releaseTree()
+alive_tools  Ease: String toString()
+alive_tools  Ease: double at(double u, double span)
+alive_tools  Ease: factory Ease.bezier(double x1, double y1, double x2, double y2)
+alive_tools  Ease: factory Ease.named(String name)
+alive_tools  Ease: factory Ease.spring(double mass, double stiffness, double damping)
+alive_tools  Ease: final double a, b, c, d
+alive_tools  Ease: final int kind
+alive_tools  Ease: static Ease? parse(Object? spec)
+alive_tools  Ease: static const Ease hold
+alive_tools  Ease: static const Ease linear
+alive_tools  Ease: static const List<String> names
+alive_tools  FigureDef: final Map<String, String?> parts
+alive_tools  FigureDef: final String id
+alive_tools  FigureDef: final String kit
+alive_tools  FigureDef: final String? look
+alive_tools  FigureDef: final bool flip
+alive_tools  FigureDef: final bool physics
+alive_tools  FigureDef: final double x, y, scale
+alive_tools  Geometry: PathCommands? commands
+alive_tools  Geometry: final Float64List? v
+alive_tools  Geometry: final String kind
+alive_tools  Geometry: final String? d
+alive_tools  Geometry: final bool closed
+alive_tools  Geometry: static const List<String> kinds
+alive_tools  Geometry: void prepare()
+alive_tools  PathCommands: factory PathCommands.parse(String d)
+alive_tools  PathCommands: final Float32List data
+alive_tools  PathCommands: void replay(PathProxy proxy)
+alive_tools  PathOp: static const int close
+alive_tools  PathOp: static const int cubic
+alive_tools  PathOp: static const int line
+alive_tools  PathOp: static const int move
+alive_tools  SceneDef: final List<BindingDef> bindings
+alive_tools  SceneDef: final List<LayerDef> layers
+alive_tools  SceneDef: final List<String> art
+alive_tools  SceneDef: final List<String> shared
+alive_tools  SceneDef: final LiveDef? live
+alive_tools  SceneDef: final Map<String, ActionDef> on
+alive_tools  SceneDef: final Map<String, AnchorDef> anchors
+alive_tools  SceneDef: final Map<String, ClipDef> clips
+alive_tools  SceneDef: final Map<String, FigureDef> figures
+alive_tools  SceneDef: final Map<String, List<String>> roles
+alive_tools  SceneDef: final Map<String, LookDef> looks
+alive_tools  SceneDef: final Map<String, Object?> meta
+alive_tools  SceneDef: final Map<String, PoolDef> pools
+alive_tools  SceneDef: final Map<String, StateDef> states
+alive_tools  SceneDef: final Map<String, WornDef> worn
+alive_tools  SceneDef: final Map<String, double> inputSmoothing
+alive_tools  SceneDef: final Map<String, int> layerIndex
+alive_tools  SceneDef: final Object? fabioSize
+alive_tools  SceneDef: final SemanticsDef semantics
+alive_tools  SceneDef: final String id
+alive_tools  SceneDef: final String? initialClip, initialState
+alive_tools  SceneDef: final String? name
+alive_tools  SceneDef: final String? placement
+alive_tools  SceneDef: final double width, height
+alive_tools  SceneDef: static SceneDef parse(Object? doc, {String file = 'scene.json'})
+alive_tools  VariantPicker: Future<void> preload(Iterable<String> pools)
+alive_tools  VariantPicker: String keyOf(String pool)
+alive_tools  VariantPicker: String? lastOf(String pool)
+alive_tools  VariantPicker: Variant pick(PoolDef pool)
+alive_tools  VariantPicker: VariantPicker(this.scope, {this.store, this.run, math.Random? random, this.onError})
+alive_tools  VariantPicker: final AliveRunContext? run
+alive_tools  VariantPicker: final AliveStore? store
+alive_tools  VariantPicker: final String scope
+alive_tools  VariantPicker: final void Function(AliveError error)
+alive_tools  abstract final class PathOp
+alive_tools  class AlivePlayer implements AlivePluginHost, AliveFrame
+alive_tools  class AliveSceneData
+alive_tools  class ArtDef
+alive_tools  class ClipDef
+alive_tools  class CompiledArt
+alive_tools  class Ease
+alive_tools  class FigureDef
+alive_tools  class Geometry
+alive_tools  class PathCommands
+alive_tools  class SceneDef
+alive_tools  class VariantPicker
+alive_tools  const String aliveSchema
+alive_tools  const String aliveVersion
+alive_tools  const double aliveStep
+alive_tools  int compareVersions(String a, String b)

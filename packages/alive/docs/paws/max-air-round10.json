@@ -1,0 +1,1803 @@
+{
+ "what": "The largest air (kit units from the paw outline to his body outline) of the 97 placements audited at the round 10 lock (6 Oct 02:45; hands-v3/audit.json), measured again with the audit's own geometry (kit-refit/hands3/audit_lib.py) without its 80-unit search cap, to set the detached style's MAX_AIR.",
+ "method": "audit.py run as on 6 Oct with kit3 REST at the round 10 values (160, 98, -8) and (-16, 102, 8); measure() bisects the grown body over 0..160 units (pathops breaks on a stroke of 2 x 200 units round his body), 12 steps; every row under the old cap agrees with the 6 Oct table to 0.3 units.",
+ "checked": 97,
+ "relations": {
+  "clear": 64,
+  "in front": 8,
+  "STRADDLES": 25
+ },
+ "largest_all": {
+  "air": 150.04,
+  "where": "desk arrangement (actions/take_set_down): take set down",
+  "paw": "near"
+ },
+ "largest_figure": {
+  "air": 38.24,
+  "where": "poses-v3 (carrier): Carrier holding a bubble",
+  "paw": "near"
+ },
+ "nearest_desk_reach_above_it": {
+  "air": 42.93,
+  "where": "desk arrangement (actions/tape_toss): tape toss",
+  "paw": "near"
+ },
+ "bound": {
+  "max_air": 40,
+  "tolerance": 1.76,
+  "why": "The figure placements (the kit rest, the hands guide and its animation, poses-v3, the actions page, the clothes page: no desk) top out at the carrier holding a bubble overhead, 38.2. The desk arrangement's raised-paw reaches (the tape flown to a paw in the clear zone, 42.9 to 150) are the holding and picking-up trips the design rule of 7 Oct retired; a bound over all 97 (150) would allow every one of them. 40 = 38.2 plus 1.8 units of tolerance; it stays under the nearest retired desk reach (42.9)."
+ },
+ "check_vs_audit": "The pixel check measures the rest spots on the bare figure at 9.25 (near) and 8.31 (far); the audit's path geometry gives 9.14 and 8.24.",
+ "rows": [
+  {
+   "file": "kit3 (every figure)",
+   "where": "rest",
+   "paw": "near",
+   "kind": "edge",
+   "at": [
+    160,
+    98,
+    -8
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 9.14,
+   "air_6oct": 9.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "kit3 (every figure)",
+   "where": "rest",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    -16,
+    102,
+    8
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 8.24,
+   "air_6oct": 8.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide (hands-v3.html)",
+   "where": "wave",
+   "paw": "near",
+   "kind": "wave",
+   "at": [
+    153,
+    40,
+    14
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 14.34,
+   "air_6oct": 14.2,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide (hands-v3.html)",
+   "where": "thumbs up",
+   "paw": "near",
+   "kind": "thumbs",
+   "at": [
+    157,
+    72,
+    0
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 11.72,
+   "air_6oct": 11.7,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide (hands-v3.html)",
+   "where": "hold the mic",
+   "paw": "near",
+   "kind": "hold",
+   "at": [
+    162.0,
+    84.0,
+    -8
+   ],
+   "holds": "mic",
+   "relation": "clear",
+   "air": 8.95,
+   "air_6oct": 8.9,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide (hands-v3.html)",
+   "where": "hold a tape",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    171.9,
+    94.3,
+    -4
+   ],
+   "holds": "tape",
+   "relation": "clear",
+   "air": 29.02,
+   "air_6oct": 28.9,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide (hands-v3.html)",
+   "where": "hold a phone",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    170.9,
+    86.8,
+    -6
+   ],
+   "holds": "phone",
+   "relation": "clear",
+   "air": 30.43,
+   "air_6oct": 30.3,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide (hands-v3.html)",
+   "where": "carry the parcel",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    102,
+    106,
+    0
+   ],
+   "holds": "parcel",
+   "relation": "in front",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (in front of him)",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide (hands-v3.html)",
+   "where": "carry the parcel",
+   "paw": "far",
+   "kind": "carry",
+   "at": [
+    50,
+    106,
+    0
+   ],
+   "holds": "parcel",
+   "relation": "in front",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (in front of him)",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide (hands-v3.html)",
+   "where": "present a letter",
+   "paw": "near",
+   "kind": "present",
+   "at": [
+    167.9,
+    96.6,
+    -4
+   ],
+   "holds": "letter",
+   "relation": "clear",
+   "air": 13.52,
+   "air_6oct": 13.4,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide (hands-v3.html)",
+   "where": "point",
+   "paw": "near",
+   "kind": "point",
+   "at": [
+    160,
+    76,
+    -6
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 16.13,
+   "air_6oct": 16.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide animation",
+   "where": "rest",
+   "paw": "near",
+   "kind": "edge",
+   "at": [
+    160,
+    98,
+    -8
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 9.14,
+   "air_6oct": 9.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide animation",
+   "where": "reach",
+   "paw": "near",
+   "kind": "edge",
+   "at": [
+    170,
+    86,
+    -6
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 21.91,
+   "air_6oct": 21.9,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide animation",
+   "where": "holding the mic",
+   "paw": "near",
+   "kind": "hold",
+   "at": [
+    158,
+    80,
+    -6
+   ],
+   "holds": "mic",
+   "relation": "clear",
+   "air": 6.25,
+   "air_6oct": 6.2,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide animation",
+   "where": "thumbs up",
+   "paw": "near",
+   "kind": "thumbs",
+   "at": [
+    158,
+    68,
+    0
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 13.95,
+   "air_6oct": 13.9,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide animation",
+   "where": "wave",
+   "paw": "near",
+   "kind": "wave",
+   "at": [
+    154,
+    42,
+    10
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 14.53,
+   "air_6oct": 14.5,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "hands guide animation",
+   "where": "rest",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    -16,
+    102,
+    8
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 8.24,
+   "air_6oct": 8.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (drained)",
+   "where": "Drained",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    171,
+    104,
+    0
+   ],
+   "holds": "battery",
+   "relation": "clear",
+   "air": 8.95,
+   "air_6oct": 8.9,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (drained)",
+   "where": "Drained",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    -21,
+    112,
+    14
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 8.95,
+   "air_6oct": 8.9,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (relieved)",
+   "where": "Relieved",
+   "paw": "near",
+   "kind": "thumbs",
+   "at": [
+    152,
+    58,
+    0
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 14.14,
+   "air_6oct": 14.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (relieved)",
+   "where": "Relieved",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    -17,
+    102,
+    8
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 9.92,
+   "air_6oct": 9.8,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (worried)",
+   "where": "Worried",
+   "paw": "near",
+   "kind": "wave",
+   "at": [
+    152,
+    44,
+    12
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 18.12,
+   "air_6oct": 18.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (worried)",
+   "where": "Worried",
+   "paw": "far",
+   "kind": "wave",
+   "at": [
+    -21,
+    50,
+    -12
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 9.14,
+   "air_6oct": 9.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (puzzled)",
+   "where": "Puzzled",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    169.3,
+    76.0,
+    -14
+   ],
+   "holds": "paper plane",
+   "relation": "clear",
+   "air": 22.03,
+   "air_6oct": 22.0,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (puzzled)",
+   "where": "Puzzled",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    -25,
+    14,
+    150
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 9.53,
+   "air_6oct": 9.5,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (overwhelmed)",
+   "where": "Overwhelmed",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    101.8,
+    111.6,
+    3
+   ],
+   "holds": "parcels",
+   "relation": "in front",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (in front of him)",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (overwhelmed)",
+   "where": "Overwhelmed",
+   "paw": "far",
+   "kind": "carry",
+   "at": [
+    49.9,
+    108.8,
+    3
+   ],
+   "holds": "parcels",
+   "relation": "in front",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (in front of him)",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (carrier)",
+   "where": "Carrier holding a bubble",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    122,
+    -30,
+    0
+   ],
+   "holds": "bubble",
+   "relation": "clear",
+   "air": 38.24,
+   "air_6oct": 38.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (carrier)",
+   "where": "Carrier holding a bubble",
+   "paw": "far",
+   "kind": "carry",
+   "at": [
+    26,
+    -30,
+    0
+   ],
+   "holds": "bubble",
+   "relation": "clear",
+   "air": 25.74,
+   "air_6oct": 25.6,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (pen-pal)",
+   "where": "Pen pal holding a letter",
+   "paw": "near",
+   "kind": "present",
+   "at": [
+    168.9,
+    95.3,
+    -4
+   ],
+   "holds": "letter",
+   "relation": "clear",
+   "air": 14.92,
+   "air_6oct": 14.8,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (pen-pal)",
+   "where": "Pen pal holding a letter",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    -17,
+    102,
+    8
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 9.22,
+   "air_6oct": 9.2,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (archivist)",
+   "where": "Archivist holding a label",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    172.0,
+    82.9,
+    -4
+   ],
+   "holds": "label",
+   "relation": "clear",
+   "air": 32.54,
+   "air_6oct": 32.5,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (archivist)",
+   "where": "Archivist holding a label",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    -17,
+    102,
+    8
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 9.22,
+   "air_6oct": 9.2,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (keeper)",
+   "where": "Keeper holding a parcel",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    103.5,
+    106.1,
+    0
+   ],
+   "holds": "parcel",
+   "relation": "in front",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (in front of him)",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "poses-v3 (keeper)",
+   "where": "Keeper holding a parcel",
+   "paw": "far",
+   "kind": "carry",
+   "at": [
+    48.9,
+    106.1,
+    0
+   ],
+   "holds": "parcel",
+   "relation": "in front",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (in front of him)",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/rest)",
+   "where": "rest",
+   "paw": "near",
+   "kind": "edge",
+   "at": [
+    182,
+    170,
+    -8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/rest)",
+   "where": "rest",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/talk)",
+   "where": "talk",
+   "paw": "near",
+   "kind": "edge",
+   "at": [
+    182,
+    170,
+    -8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/talk)",
+   "where": "talk",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/wave)",
+   "where": "wave",
+   "paw": "near",
+   "kind": "wave",
+   "at": [
+    214,
+    58,
+    10
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 37.81,
+   "air_6oct": 37.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/wave)",
+   "where": "wave",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/tape_grab)",
+   "where": "tape grab",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    211,
+    176,
+    0
+   ],
+   "holds": "cassette",
+   "relation": "clear",
+   "air": 16.13,
+   "air_6oct": 16.1,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": [
+    "on_desk"
+   ]
+  },
+  {
+   "file": "desk arrangement (actions/tape_grab)",
+   "where": "tape grab",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": [
+    "on_desk"
+   ]
+  },
+  {
+   "file": "desk arrangement (actions/tape_lift)",
+   "where": "tape lift",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    278,
+    66,
+    0
+   ],
+   "holds": "cassette",
+   "relation": "clear",
+   "air": 109.41,
+   "air_6oct": 79.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/tape_lift)",
+   "where": "tape lift",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/tape_toss)",
+   "where": "tape toss",
+   "paw": "near",
+   "kind": "wave",
+   "at": [
+    232,
+    96,
+    34
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 42.93,
+   "air_6oct": 42.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/tape_toss)",
+   "where": "tape toss",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/tape_release)",
+   "where": "tape release",
+   "paw": "near",
+   "kind": "wave",
+   "at": [
+    292,
+    104,
+    24
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 94.14,
+   "air_6oct": 79.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/tape_release)",
+   "where": "tape release",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/carry_catch)",
+   "where": "carry catch",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    290,
+    102,
+    -4
+   ],
+   "holds": "cassette",
+   "relation": "clear",
+   "air": 109.53,
+   "air_6oct": 79.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/carry_catch)",
+   "where": "carry catch",
+   "paw": "far",
+   "kind": "carry",
+   "at": [
+    234,
+    102,
+    -4
+   ],
+   "holds": "cassette",
+   "relation": "clear",
+   "air": 42.93,
+   "air_6oct": 42.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/carry_handover)",
+   "where": "carry handover",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    296,
+    96,
+    8
+   ],
+   "holds": "cassette",
+   "relation": "clear",
+   "air": 117.03,
+   "air_6oct": 79.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/carry_handover)",
+   "where": "carry handover",
+   "paw": "far",
+   "kind": "carry",
+   "at": [
+    240,
+    88,
+    8
+   ],
+   "holds": "cassette",
+   "relation": "clear",
+   "air": 54.22,
+   "air_6oct": 54.2,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/card_grip)",
+   "where": "card grip",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    273,
+    152,
+    0
+   ],
+   "holds": "card on desk",
+   "relation": "clear",
+   "air": 79.73,
+   "air_6oct": 79.7,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": [
+    "on_desk"
+   ]
+  },
+  {
+   "file": "desk arrangement (actions/card_grip)",
+   "where": "card grip",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": [
+    "on_desk"
+   ]
+  },
+  {
+   "file": "desk arrangement (actions/card_show)",
+   "where": "card show",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    276.9,
+    79.4,
+    -6
+   ],
+   "holds": "card",
+   "relation": "clear",
+   "air": 104.02,
+   "air_6oct": 79.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/card_show)",
+   "where": "card show",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/thumbs)",
+   "where": "thumbs",
+   "paw": "near",
+   "kind": "thumbs",
+   "at": [
+    210,
+    82,
+    0
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 29.84,
+   "air_6oct": 29.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/thumbs)",
+   "where": "thumbs",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/take_your_time)",
+   "where": "take your time",
+   "paw": "near",
+   "kind": "wave",
+   "at": [
+    214,
+    96,
+    18
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 24.92,
+   "air_6oct": 24.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/take_your_time)",
+   "where": "take your time",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/last10_up)",
+   "where": "last10 up",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    272,
+    92,
+    0
+   ],
+   "holds": "cassette last10",
+   "relation": "clear",
+   "air": 95.43,
+   "air_6oct": 79.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/last10_up)",
+   "where": "last10 up",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/tape_up)",
+   "where": "tape up",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    272,
+    92,
+    0
+   ],
+   "holds": "cassette",
+   "relation": "clear",
+   "air": 95.43,
+   "air_6oct": 79.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/tape_up)",
+   "where": "tape up",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/last10_back)",
+   "where": "last10 back",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    210,
+    176,
+    0
+   ],
+   "holds": "cassette last10",
+   "relation": "clear",
+   "air": 15.12,
+   "air_6oct": 15.0,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/last10_back)",
+   "where": "last10 back",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/mic_off)",
+   "where": "mic off",
+   "paw": "near",
+   "kind": "point",
+   "at": [
+    214,
+    113,
+    0
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 13.83,
+   "air_6oct": 13.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/mic_off)",
+   "where": "mic off",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/startle)",
+   "where": "startle",
+   "paw": "near",
+   "kind": "edge",
+   "at": [
+    182,
+    170,
+    -8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/startle)",
+   "where": "startle",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/window_grip)",
+   "where": "window grip",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    288,
+    234,
+    0
+   ],
+   "holds": "cassette",
+   "relation": "clear",
+   "air": 109.92,
+   "air_6oct": 79.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": [
+    "docked_only",
+    "on_desk"
+   ]
+  },
+  {
+   "file": "desk arrangement (actions/window_grip)",
+   "where": "window grip",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": [
+    "docked_only",
+    "on_desk"
+   ]
+  },
+  {
+   "file": "desk arrangement (actions/window_lift)",
+   "where": "window lift",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    288,
+    186,
+    0
+   ],
+   "holds": "cassette",
+   "relation": "clear",
+   "air": 93.63,
+   "air_6oct": 79.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": [
+    "docked_only",
+    "on_desk"
+   ]
+  },
+  {
+   "file": "desk arrangement (actions/window_lift)",
+   "where": "window lift",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": [
+    "docked_only",
+    "on_desk"
+   ]
+  },
+  {
+   "file": "desk arrangement (actions/take_set_down)",
+   "where": "take set down",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    345,
+    176,
+    0
+   ],
+   "holds": "cassette",
+   "relation": "clear",
+   "air": 150.04,
+   "air_6oct": 79.8,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": [
+    "on_desk"
+   ]
+  },
+  {
+   "file": "desk arrangement (actions/take_set_down)",
+   "where": "take set down",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": [
+    "on_desk"
+   ]
+  },
+  {
+   "file": "desk arrangement (actions/present_record)",
+   "where": "present record",
+   "paw": "near",
+   "kind": "wave",
+   "at": [
+    228,
+    122,
+    46
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 32.34,
+   "air_6oct": 32.3,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/present_record)",
+   "where": "present record",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/present_tape)",
+   "where": "present tape",
+   "paw": "near",
+   "kind": "present",
+   "at": [
+    236,
+    100,
+    0
+   ],
+   "holds": "cassette",
+   "relation": "clear",
+   "air": 47.15,
+   "air_6oct": 47.0,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/present_tape)",
+   "where": "present tape",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/point_record)",
+   "where": "point record",
+   "paw": "near",
+   "kind": "point",
+   "at": [
+    210,
+    98,
+    38
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 28.12,
+   "air_6oct": 28.1,
+   "verdict_6oct": "ok",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "desk arrangement (actions/point_record)",
+   "where": "point record",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    50,
+    170,
+    8
+   ],
+   "holds": "",
+   "relation": "STRADDLES",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (tucked, hidden)",
+   "family": "desk",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "rest",
+   "paw": "near",
+   "kind": "edge",
+   "at": [
+    160,
+    98,
+    -8
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 9.14,
+   "air_6oct": 9.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "rest",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    -16,
+    102,
+    8
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 8.24,
+   "air_6oct": 8.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "slider: carrying the value",
+   "paw": "near",
+   "kind": "carry",
+   "at": [
+    94,
+    91,
+    0
+   ],
+   "holds": "value pill",
+   "relation": "in front",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (in front of him)",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "slider: carrying the value",
+   "paw": "far",
+   "kind": "carry",
+   "at": [
+    50,
+    91,
+    0
+   ],
+   "holds": "value pill",
+   "relation": "in front",
+   "air": null,
+   "air_6oct": null,
+   "verdict_6oct": "ok (in front of him)",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "slider: thumbs up",
+   "paw": "near",
+   "kind": "thumbs",
+   "at": [
+    157,
+    70,
+    0
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 12.34,
+   "air_6oct": 12.3,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "battery: plug picked up",
+   "paw": "near",
+   "kind": "hold",
+   "at": [
+    158,
+    96,
+    90
+   ],
+   "holds": "plug",
+   "relation": "clear",
+   "air": 10.55,
+   "air_6oct": 10.5,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "battery: plug pushed in",
+   "paw": "near",
+   "kind": "hold",
+   "at": [
+    162,
+    114,
+    90
+   ],
+   "holds": "plug",
+   "relation": "clear",
+   "air": 9.02,
+   "air_6oct": 8.9,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "battery: thumbs up",
+   "paw": "near",
+   "kind": "thumbs",
+   "at": [
+    152,
+    60,
+    0
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 10.82,
+   "air_6oct": 10.8,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "flag: lift",
+   "paw": "near",
+   "kind": "hold",
+   "at": [
+    164,
+    92,
+    0
+   ],
+   "holds": "flag",
+   "relation": "clear",
+   "air": 8.12,
+   "air_6oct": 8.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "flag: raised",
+   "paw": "near",
+   "kind": "hold",
+   "at": [
+    168,
+    68,
+    -6
+   ],
+   "holds": "flag",
+   "relation": "clear",
+   "air": 19.53,
+   "air_6oct": 19.5,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "flag: planted",
+   "paw": "near",
+   "kind": "hold",
+   "at": [
+    176,
+    101,
+    0
+   ],
+   "holds": "flag",
+   "relation": "clear",
+   "air": 16.91,
+   "air_6oct": 16.9,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "actions page (fabio-actions.html)",
+   "where": "flag: wave",
+   "paw": "near",
+   "kind": "wave",
+   "at": [
+    154,
+    42,
+    10
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 14.53,
+   "air_6oct": 14.5,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "clothes in motion (outfits-motion.html)",
+   "where": "rest",
+   "paw": "near",
+   "kind": "edge",
+   "at": [
+    160,
+    98,
+    -8
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 9.14,
+   "air_6oct": 9.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  },
+  {
+   "file": "clothes in motion (outfits-motion.html)",
+   "where": "rest",
+   "paw": "far",
+   "kind": "edge",
+   "at": [
+    -16,
+    102,
+    8
+   ],
+   "holds": "",
+   "relation": "clear",
+   "air": 8.24,
+   "air_6oct": 8.1,
+   "verdict_6oct": "ok",
+   "family": "figure",
+   "flags": []
+  }
+ ]
+}

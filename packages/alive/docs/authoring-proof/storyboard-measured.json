@@ -1,0 +1,168 @@
+{
+ "note": "alive storyboard (Halfway Express, 7 frames of section 104:3, timing from examples/storyboard/halfway-express.timing.json) against the approved film (Figma MP4 export of the Express frame 108:69982, <boards>/motion/encouragement/halfway-express.mp4). Metric of tools/figma-proof.mjs: the share of pixels whose largest channel difference is over 40 of 255. \"cuts\": the same frames switched by a cut at the start of each beat instead of eased (a baseline). Measured 22 Oct 2026 with test/figma_proof_test.dart (the runtime).",
+ "sets": {
+  "six (the figma-proof instants)": {
+   "average": 0.0147,
+   "worst": 0.0474,
+   "instants": [
+    {
+     "t": 0.6,
+     "differs": 0.0021
+    },
+    {
+     "t": 1.767,
+     "differs": 0.0204
+    },
+    {
+     "t": 2.967,
+     "differs": 0.0474
+    },
+    {
+     "t": 4.133,
+     "differs": 0.011
+    },
+    {
+     "t": 5.333,
+     "differs": 0.0048
+    },
+    {
+     "t": 6.5,
+     "differs": 0.0025
+    }
+   ]
+  },
+  "arrivals (each frame arrives)": {
+   "average": 0.0197,
+   "worst": 0.0537,
+   "instants": [
+    {
+     "t": 0.0,
+     "differs": 0.0021
+    },
+    {
+     "t": 0.967,
+     "differs": 0.0087
+    },
+    {
+     "t": 1.4,
+     "differs": 0.0089
+    },
+    {
+     "t": 2.0,
+     "differs": 0.0136
+    },
+    {
+     "t": 2.9,
+     "differs": 0.0484
+    },
+    {
+     "t": 3.6,
+     "differs": 0.0537
+    },
+    {
+     "t": 6.6,
+     "differs": 0.0024
+    }
+   ]
+  },
+  "mid-transition": {
+   "average": 0.0562,
+   "worst": 0.109,
+   "instants": [
+    {
+     "t": 0.867,
+     "differs": 0.0508
+    },
+    {
+     "t": 1.2,
+     "differs": 0.0146
+    },
+    {
+     "t": 1.867,
+     "differs": 0.0174
+    },
+    {
+     "t": 2.6,
+     "differs": 0.0611
+    },
+    {
+     "t": 3.3,
+     "differs": 0.0846
+    },
+    {
+     "t": 6.267,
+     "differs": 0.109
+    }
+   ]
+  },
+  "cuts at the six instants": {
+   "average": 0.0143,
+   "worst": 0.0474,
+   "instants": [
+    {
+     "t": 0.6,
+     "differs": 0.0021
+    },
+    {
+     "t": 1.767,
+     "differs": 0.0183
+    },
+    {
+     "t": 2.967,
+     "differs": 0.0474
+    },
+    {
+     "t": 4.133,
+     "differs": 0.011
+    },
+    {
+     "t": 5.333,
+     "differs": 0.0048
+    },
+    {
+     "t": 6.5,
+     "differs": 0.0025
+    }
+   ]
+  },
+  "cuts at mid-transition": {
+   "average": 0.046,
+   "worst": 0.1196,
+   "instants": [
+    {
+     "t": 0.867,
+     "differs": 0.0473
+    },
+    {
+     "t": 1.2,
+     "differs": 0.0148
+    },
+    {
+     "t": 1.867,
+     "differs": 0.0151
+    },
+    {
+     "t": 2.6,
+     "differs": 0.053
+    },
+    {
+     "t": 3.3,
+     "differs": 0.1196
+    },
+    {
+     "t": 6.267,
+     "differs": 0.0262
+    }
+   ]
+  }
+ },
+ "reference": {
+  "alive figma on the keyframed Express frame (docs/figma-proof.md)": {
+   "average": 0.0038,
+   "worst": 0.0054
+  },
+  "procedural import (docs/figma-proof.md)": {
+   "average": 0.015
+  }
+ }
+}

@@ -373,7 +373,7 @@ SPEC CHECKSUMS:
   FirebaseMessaging: 341004946fa7ffc741344b20f1b667514fc93e31
   FirebaseRemoteConfigInterop: 23996ab7397494722df4fdd1fd398024389d5da8
   FirebaseSessions: 804bd321f2d2f2ddafe74ef7856062aa19f179c2
-  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
   flutter_fgbg: d3da78df78454b1808f0829a5da9cd17dfe16444
   flutter_foreground_task: ff24d2fb1aefdcde8ed192e8b0574348aab3a30e
   flutter_keyboard_visibility: 4625131e43015dbbe759d9b20daaf77e0e3f6619
@@ -409,4 +409,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: cff03a73953c5b9d07c2d057746601c1ef0682f4
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0
