@@ -23,6 +23,7 @@ import '../../data/prompt.dart';
 import '../../domain/repository/diary_repository.dart';
 import '../cubit/prompt/prompt_cubit.dart';
 import 'diarysummary.dart';
+import 'package:audio_diaries_flutter/services/diary_progress_live_activity_service.dart';
 import '../../../../core/utils/recording_answer_gate.dart';
 
 /// This class holds and manages all the pages in the page view
@@ -50,6 +51,31 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   // Functions to run before moving to the next page
   List<Function> preFunctions = [];
   final List<GlobalKey<_QuestionPageState>> _questionPageKeys = [];
+  late final DiaryProgressLiveActivityService _liveActivity =
+      DiaryProgressLiveActivityService(
+          questionCount: widget.diary.prompts.length,
+          closesAt: widget.diary.due.isAfter(DateTime.now())
+              ? widget.diary.due
+              : null);
+
+  /// A diary still being filled in, as opposed to one opened to review.
+  bool get _inProgress =>
+      widget.diary.status == DiaryStatus.idle ||
+      widget.diary.status == DiaryStatus.ongoing;
+
+  /// Puts the open question on the Lock Screen and Dynamic Island, or the
+  /// next one once this one is answered ("Next question waiting").
+  void _syncLiveActivity() {
+    if (!_inProgress) return;
+    final prompt = widget.diary.prompts[currentPage];
+    // ableToContinue also unlocks optional questions and instructions
+    // straight away, so only a required, answered question counts.
+    final answered = ableToContinue &&
+        prompt.required &&
+        prompt.responseType != ResponseType.instruction;
+    _liveActivity.show(currentPage + 1,
+        waiting: answered && !isCurrentPageLast);
+  }
 
   //get page => currentPage = widget.diary.prompts.length;
 
@@ -74,6 +100,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
           controller.jumpToPage(currentPage);
         }
       }
+      _syncLiveActivity();
     });
   }
 
@@ -106,6 +133,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         widget.diary.status = DiaryStatus.complete;
         repository.updateDiary(widget.diary);
         diaryEnd(diaryID: widget.diary.id.toString());
+        _liveActivity.end();
         track(timer.stop(), "Finished");
         Navigator.push(
             context,
@@ -147,6 +175,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   @override
   void dispose() {
+    _liveActivity.end();
     controller.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -318,6 +347,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
             setState(() {
               ableToContinue = value;
             });
+            _syncLiveActivity();
           }
         },
         previousPage: previousPage,
@@ -338,6 +368,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
           setState(() {
             currentPage = controller.page!.round();
           });
+          _syncLiveActivity();
         }
       }
     });

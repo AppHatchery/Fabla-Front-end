@@ -17,6 +17,9 @@ import AVFoundation
   private static var currentTimerActivity: Activity<DiaryTimerActivityAttributes>?
 
   @available(iOS 17.0, *)
+  private static var currentDiaryActivity: Activity<DiaryProgressActivityAttributes>?
+
+  @available(iOS 17.0, *)
   private static var currentRecordingActivity: Activity<DiaryRecordingActivityAttributes>?
 
   private var liveActivityChannel: FlutterMethodChannel?
@@ -189,6 +192,13 @@ import AVFoundation
         result(nil)
       }
 
+    case "diaryStart", "diaryUpdate", "diaryEnd":
+      guard #available(iOS 17.0, *) else {
+        result(FlutterError(code: "UNAVAILABLE", message: "Diary Live Activity requires iOS 17+", details: nil))
+        return
+      }
+      handleDiaryCall(call.method, args: args, result: result)
+
     case "recordingStart", "recordingUpdate", "recordingEnd", "recordingSaved":
       guard #available(iOS 17.0, *) else {
         result(FlutterError(code: "UNAVAILABLE", message: "Recording Live Activity requires iOS 17+", details: nil))
@@ -266,6 +276,46 @@ import AVFoundation
         AppDelegate.currentRecordingActivity = nil
         result(nil)
       }
+    }
+  }
+
+  /// 15 minutes before the diary closes, when the system marks its activity
+  /// stale and the view turns to "Diary closes soon" with no app running.
+  private static func closingSoonDate(_ closesAt: Date?) -> Date? {
+    closesAt?.addingTimeInterval(-15 * 60)
+  }
+
+  @available(iOS 17.0, *)
+  private func handleDiaryCall(_ method: String, args: [String: Any]?, result: @escaping FlutterResult) {
+    let state = DiaryProgressActivityAttributes.ContentState(
+      questionNumber: args?["questionNumber"] as? Int ?? 1,
+      waiting: args?["waiting"] as? Bool ?? false)
+    Task {
+      switch method {
+      case "diaryStart":
+        if let existing = AppDelegate.currentDiaryActivity {
+          await existing.end(nil, dismissalPolicy: .immediate)
+        }
+        let closesAt = (args?["closesAtMillis"] as? Double).map { Date(timeIntervalSince1970: $0 / 1000) }
+        do {
+          AppDelegate.currentDiaryActivity = try Activity.request(
+            attributes: DiaryProgressActivityAttributes(
+              questionCount: args?["questionCount"] as? Int ?? 1,
+              closesAt: closesAt),
+            content: .init(state: state, staleDate: AppDelegate.closingSoonDate(closesAt)))
+        } catch {
+          return result(FlutterError(code: "START_FAILED", message: error.localizedDescription, details: nil))
+        }
+      case "diaryUpdate":
+        if let activity = AppDelegate.currentDiaryActivity {
+          await activity.update(.init(
+            state: state, staleDate: AppDelegate.closingSoonDate(activity.attributes.closesAt)))
+        }
+      default:
+        await AppDelegate.currentDiaryActivity?.end(nil, dismissalPolicy: .immediate)
+        AppDelegate.currentDiaryActivity = nil
+      }
+      result(nil)
     }
   }
 

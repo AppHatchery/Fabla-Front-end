@@ -54,6 +54,21 @@ struct DiaryRecordingActivityAttributes: ActivityAttributes {
     var hardLimit: TimeInterval?
 }
 
+/// A diary the participant left part-way: "Diary in progress, Q3 of 8".
+struct DiaryProgressActivityAttributes: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        // The open question, from 1.
+        var questionNumber: Int
+        // True once the last question is answered and this one waits.
+        var waiting: Bool?
+    }
+
+    var questionCount: Int
+    // When the diary closes; nil without a known close time. The activity
+    // goes stale 15 minutes before it, which shows "Diary closes soon".
+    var closesAt: Date?
+}
+
 /// Bridges the Live Activity's button into the app process. AppDelegate sets
 /// [togglePause]; the extension never does, so the intent is a no-op there.
 /// It throws when the toggle has to finish with the app in the foreground.
