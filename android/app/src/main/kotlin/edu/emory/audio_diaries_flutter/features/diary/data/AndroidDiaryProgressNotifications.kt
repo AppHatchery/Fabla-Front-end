@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -13,6 +14,8 @@ import androidx.core.app.NotificationManagerCompat
 import edu.emory.audio_diaries_flutter.MainActivity
 import edu.emory.audio_diaries_flutter.R
 import edu.emory.audio_diaries_flutter.core.notification.applyProgressBar
+import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryAction
+import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryArt
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressContent
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressFactory
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressNotifications
@@ -20,16 +23,19 @@ import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressNotifi
 /**
  * Posts the "Diary in progress" notification. A regular, dismissible notification rather than a
  * Live Update: nothing is running while the participant is away, it's a reminder to come back.
- * It alerts (the channel's default sound) so the reminder is noticed. Continue and a tap both
- * reopen the app, which is still on the diary.
+ * It alerts (the channel's default sound) so the reminder is noticed.
+ *
+ * Continue (and a tap on "Diary in progress") reopens the app, which is still on the diary. Answer
+ * (and a tap on "Next question waiting") reopens it through MainActivity, which hands the intent
+ * to [handleLaunchIntent] so the diary moves on to the waiting question.
  */
 class AndroidDiaryProgressNotifications(private val context: Context) : DiaryProgressNotifications {
 
     private val notificationManager = NotificationManagerCompat.from(context)
 
-    private val largeIcon by lazy {
-        BitmapFactory.decodeResource(context.resources, R.drawable.diary_in_progress_large_icon)
-    }
+    private val largeIcons = mutableMapOf<DiaryArt, Bitmap>()
+
+    private var answerListener: (() -> Unit)? = null
 
     /** Creates the channel. Call once, before [show]. */
     fun start() {
@@ -43,14 +49,27 @@ class AndroidDiaryProgressNotifications(private val context: Context) : DiaryPro
         )
     }
 
+    override fun setAnswerListener(listener: (() -> Unit)?) {
+        answerListener = listener
+    }
+
+    /** Routes the Answer action, which arrives as an activity intent. Returns whether it was ours. */
+    fun handleLaunchIntent(intent: Intent?): Boolean {
+        if (intent?.action != ACTION_ANSWER) return false
+        answerListener?.invoke()
+        return true
+    }
+
     @SuppressLint("MissingPermission")
     override fun show(content: DiaryProgressContent) {
         if (!notificationManager.areNotificationsEnabled()) return
 
-        val openApp = openAppIntent()
+        val openApp = openAppIntent(
+            action = if (content.action == DiaryAction.ANSWER) ACTION_ANSWER else null,
+        )
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_fabla)
-            .setLargeIcon(largeIcon)
+            .setLargeIcon(largeIconFor(content.art))
             .setContentTitle(content.title)
             .setContentText(content.text)
             .setContentIntent(openApp)
@@ -62,7 +81,7 @@ class AndroidDiaryProgressNotifications(private val context: Context) : DiaryPro
             .setOnlyAlertOnce(true)
             .setLocalOnly(true)
             .setShowWhen(false)
-            .addAction(0, content.actionLabel, openApp)
+            .addAction(0, content.action.label, openApp)
 
         builder.applyProgressBar(context, content.progress)
 
@@ -73,10 +92,21 @@ class AndroidDiaryProgressNotifications(private val context: Context) : DiaryPro
         notificationManager.cancel(NOTIFICATION_ID)
     }
 
-    private fun openAppIntent(): PendingIntent = PendingIntent.getActivity(
+    private fun largeIconFor(art: DiaryArt): Bitmap = largeIcons.getOrPut(art) {
+        BitmapFactory.decodeResource(
+            context.resources,
+            when (art) {
+                DiaryArt.IN_PROGRESS -> R.drawable.diary_in_progress_large_icon
+                DiaryArt.NEXT_QUESTION -> R.drawable.diary_next_question_large_icon
+            },
+        )
+    }
+
+    private fun openAppIntent(action: String?): PendingIntent = PendingIntent.getActivity(
         context,
         NOTIFICATION_ID,
         Intent(context, MainActivity::class.java)
+            .setAction(action)
             .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
@@ -89,5 +119,7 @@ class AndroidDiaryProgressNotifications(private val context: Context) : DiaryPro
         const val CHANNEL_ID = "diary_in_progress_alerts"
         const val CHANNEL_NAME = "Diary in progress"
         const val NOTIFICATION_ID = 4203
+
+        const val ACTION_ANSWER = "edu.emory.audio_diaries_flutter.diary.ANSWER"
     }
 }

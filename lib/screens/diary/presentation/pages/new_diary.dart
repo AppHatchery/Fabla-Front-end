@@ -51,8 +51,12 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   // Functions to run before moving to the next page
   List<Function> preFunctions = [];
   final List<GlobalKey<_QuestionPageState>> _questionPageKeys = [];
-  final DiaryProgressNotificationService _progressNotification =
-      DiaryProgressNotificationService();
+  late final DiaryProgressNotificationService _progressNotification =
+      DiaryProgressNotificationService(
+          onAnswerNext: _answerNextFromNotification);
+
+  bool get _appInForeground =>
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
 
   //get page => currentPage = widget.diary.prompts.length;
 
@@ -92,11 +96,13 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     }
   }
 
-  /// Leaves a "Diary in progress" notification for a diary the participant
-  /// walked away from. Not while a recording or timer sheet is on top: those
-  /// post their own notification. Nor for a finished diary, or one with the
-  /// summary page showing.
+  /// Leaves a notification for a diary the participant walked away from:
+  /// "Next question waiting" once the current question is answered, else
+  /// "Diary in progress". Not while a recording or timer sheet is on top:
+  /// those post their own notification. Nor for a finished diary, or one with
+  /// the summary page showing.
   void _showProgressNotification() {
+    if (!mounted) return;
     final unfinished = widget.diary.status == DiaryStatus.idle ||
         widget.diary.status == DiaryStatus.ongoing;
     final onScreen = ModalRoute.of(context)?.isCurrent ?? false;
@@ -105,7 +111,23 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     _progressNotification.show(
       questionNumber: currentPage + 1,
       questionCount: widget.diary.prompts.length,
+      currentAnswered: ableToContinue,
     );
+  }
+
+  /// An answer saved with the app away, e.g. Save on the recording
+  /// notification. Deferred a turn so the closing sheet is off the stack and
+  /// this page counts as on screen.
+  void _onAnswerSavedInBackground() {
+    if (_appInForeground) return;
+    Future<void>.delayed(Duration.zero, _showProgressNotification);
+  }
+
+  /// Answer on "Next question waiting": the app is reopening on the answered
+  /// question, so move on to the one the notification named.
+  void _answerNextFromNotification() {
+    if (!mounted || !ableToContinue || isCurrentPageLast) return;
+    nextPage();
   }
 
   void nextPage() {
@@ -168,7 +190,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   @override
   void dispose() {
-    _progressNotification.hide();
+    _progressNotification.dispose();
     controller.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -340,6 +362,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
             setState(() {
               ableToContinue = value;
             });
+            if (value) _onAnswerSavedInBackground();
           }
         },
         previousPage: previousPage,

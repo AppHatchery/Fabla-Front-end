@@ -9,13 +9,16 @@ import io.flutter.plugin.common.MethodChannel
 /**
  * The Flutter side of the diary progress notification:
  * lib/services/diary_progress_notification_service.dart. "show" takes the question the
- * participant is on; "hide" removes it.
+ * participant is on and whether it's answered; "hide" removes it. Answer is sent back as
+ * "answerNext".
  */
 class DiaryProgressChannel(private val notifications: DiaryProgressNotifications) {
 
     private var methodChannel: MethodChannel? = null
 
     fun attach(messenger: BinaryMessenger) {
+        notifications.setAnswerListener { methodChannel?.invokeMethod("answerNext", null) }
+
         methodChannel = MethodChannel(messenger, CHANNEL_NAME).apply {
             setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -23,6 +26,7 @@ class DiaryProgressChannel(private val notifications: DiaryProgressNotifications
                         val state = DiaryProgressState(
                             questionNumber = call.argument<Int>("questionNumber") ?: 0,
                             questionCount = call.argument<Int>("questionCount") ?: 0,
+                            currentAnswered = call.argument<Boolean>("currentAnswered") ?: false,
                         )
                         if (state.isShowable) {
                             notifications.show(DiaryProgressFactory.contentFor(state))
@@ -45,6 +49,7 @@ class DiaryProgressChannel(private val notifications: DiaryProgressNotifications
 
     fun detach() {
         notifications.hide()
+        notifications.setAnswerListener(null)
         methodChannel?.setMethodCallHandler(null)
         methodChannel = null
     }

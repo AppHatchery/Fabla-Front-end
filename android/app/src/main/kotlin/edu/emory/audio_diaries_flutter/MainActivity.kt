@@ -26,6 +26,7 @@ class MainActivity : FlutterFragmentActivity() {
     private var recordingNotifications: AndroidRecordingNotifications? = null
     private var recordingChannel: RecordingChannel? = null
 
+    private var diaryProgressNotifications: AndroidDiaryProgressNotifications? = null
     private var diaryProgressChannel: DiaryProgressChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -46,13 +47,18 @@ class MainActivity : FlutterFragmentActivity() {
             .also { it.attach(messenger) }
 
         val diaryProgress = AndroidDiaryProgressNotifications(appContext).also { it.start() }
+        diaryProgressNotifications = diaryProgress
         diaryProgressChannel = DiaryProgressChannel(diaryProgress).also { it.attach(messenger) }
     }
 
-    /** The recording notification's Resume and Record again actions reopen the app through here. */
+    /**
+     * Notification actions that reopen the app arrive here (singleTop): the recording's Resume and
+     * Record again, and the diary's Answer.
+     */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        recordingNotifications?.handleLaunchIntent(intent)
+        if (recordingNotifications?.handleLaunchIntent(intent) == true) return
+        diaryProgressNotifications?.handleLaunchIntent(intent)
     }
 
     override fun onDestroy() {

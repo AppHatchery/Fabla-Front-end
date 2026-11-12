@@ -15,7 +15,9 @@ class DiaryProgressFactoryTest {
 
         assertEquals("Diary in progress", content.title)
         assertEquals("Q3 of 8", content.text)
-        assertEquals("Continue", content.actionLabel)
+        assertEquals(DiaryAction.CONTINUE, content.action)
+        assertEquals("Continue", content.action.label)
+        assertEquals(DiaryArt.IN_PROGRESS, content.art)
     }
 
     @Test fun `one bar per question, filled up to the current one`() {
@@ -43,6 +45,29 @@ class DiaryProgressFactoryTest {
     @Test fun `past the segment limit, one filled and one unfilled bar`() {
         val bar = DiaryProgressFactory.contentFor(DiaryProgressState(4, 12)).progress
         assertEquals(listOf(Segment(3, FILLED_COLOR), Segment(9, UNFILLED_COLOR)), bar.segments)
+    }
+
+    @Test fun `an answered question points at the next one`() {
+        val content = DiaryProgressFactory.contentFor(DiaryProgressState(3, 8, currentAnswered = true))
+
+        assertEquals("Next question waiting", content.title)
+        assertEquals("Q4 of 8", content.text)
+        assertEquals(DiaryAction.ANSWER, content.action)
+        assertEquals("Answer", content.action.label)
+        assertEquals(DiaryArt.NEXT_QUESTION, content.art)
+        assertEquals(3, content.progress.progress)
+        assertEquals(
+            List(3) { Segment(1, FILLED_COLOR) } + List(5) { Segment(1, UNFILLED_COLOR) },
+            content.progress.segments,
+        )
+    }
+
+    @Test fun `an answered last question has nothing waiting`() {
+        val content = DiaryProgressFactory.contentFor(DiaryProgressState(8, 8, currentAnswered = true))
+
+        assertEquals("Diary in progress", content.title)
+        assertEquals("Q8 of 8", content.text)
+        assertEquals(DiaryAction.CONTINUE, content.action)
     }
 
     @Test fun `out-of-range positions are not shown`() {

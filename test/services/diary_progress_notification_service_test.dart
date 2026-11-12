@@ -25,13 +25,48 @@ void main() {
 
   tearDown(() => setHandler(null));
 
+  Future<void> sendFromPlatform(String method) async {
+    await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .handlePlatformMessage(
+            channel.name,
+            const StandardMethodCodec().encodeMethodCall(MethodCall(method)),
+            (_) {});
+  }
+
   test('show sends the question position', () async {
     await DiaryProgressNotificationService(isAndroid: true)
         .show(questionNumber: 3, questionCount: 8);
 
     expect(calls.single.method, 'show');
-    expect(calls.single.arguments,
-        <String, dynamic>{'questionNumber': 3, 'questionCount': 8});
+    expect(calls.single.arguments, <String, dynamic>{
+      'questionNumber': 3,
+      'questionCount': 8,
+      'currentAnswered': false,
+    });
+  });
+
+  test('show forwards whether the current question is answered', () async {
+    await DiaryProgressNotificationService(isAndroid: true)
+        .show(questionNumber: 3, questionCount: 8, currentAnswered: true);
+
+    expect(calls.single.arguments['currentAnswered'], isTrue);
+  });
+
+  test('Answer reaches the callback, even after a hide', () async {
+    var answers = 0;
+    final service = DiaryProgressNotificationService(
+        isAndroid: true, onAnswerNext: () => answers++);
+
+    await service.show(
+        questionNumber: 3, questionCount: 8, currentAnswered: true);
+    // The app reopening hides the notification before the action lands.
+    await service.hide();
+    await sendFromPlatform('answerNext');
+    expect(answers, 1);
+
+    await service.dispose();
+    await sendFromPlatform('answerNext');
+    expect(answers, 1, reason: 'a closed diary stops listening');
   });
 
   test('hide sends hide with no arguments', () async {
