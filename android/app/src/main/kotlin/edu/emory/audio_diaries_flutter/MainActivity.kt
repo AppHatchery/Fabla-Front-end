@@ -3,6 +3,8 @@ package edu.emory.audio_diaries_flutter
 import android.content.Intent
 import edu.emory.audio_diaries_flutter.core.notification.isNightMode
 import edu.emory.audio_diaries_flutter.features.battery.presentation.BatteryChannel
+import edu.emory.audio_diaries_flutter.features.diary.data.AndroidDiaryProgressNotifications
+import edu.emory.audio_diaries_flutter.features.diary.presentation.DiaryProgressChannel
 import edu.emory.audio_diaries_flutter.features.recording.data.AndroidRecordingNotifications
 import edu.emory.audio_diaries_flutter.features.recording.presentation.RecordingChannel
 import edu.emory.audio_diaries_flutter.features.timer.data.AndroidTimerNotifications
@@ -24,6 +26,8 @@ class MainActivity : FlutterFragmentActivity() {
     private var recordingNotifications: AndroidRecordingNotifications? = null
     private var recordingChannel: RecordingChannel? = null
 
+    private var diaryProgressChannel: DiaryProgressChannel? = null
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
@@ -40,6 +44,9 @@ class MainActivity : FlutterFragmentActivity() {
         recordingNotifications = recording
         recordingChannel = RecordingChannel(recording, isNightMode = { appContext.isNightMode() })
             .also { it.attach(messenger) }
+
+        val diaryProgress = AndroidDiaryProgressNotifications(appContext).also { it.start() }
+        diaryProgressChannel = DiaryProgressChannel(diaryProgress).also { it.attach(messenger) }
     }
 
     /** The recording notification's Resume and Record again actions reopen the app through here. */
@@ -55,5 +62,6 @@ class MainActivity : FlutterFragmentActivity() {
         timerNotifications?.stop()
         recordingChannel?.detach()
         recordingNotifications?.stop()
+        diaryProgressChannel?.detach()
     }
 }

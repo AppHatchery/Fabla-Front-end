@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_quiestions_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
+import 'package:audio_diaries_flutter/services/diary_progress_notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 // import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
@@ -50,6 +51,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   // Functions to run before moving to the next page
   List<Function> preFunctions = [];
   final List<GlobalKey<_QuestionPageState>> _questionPageKeys = [];
+  final DiaryProgressNotificationService _progressNotification =
+      DiaryProgressNotificationService();
 
   //get page => currentPage = widget.diary.prompts.length;
 
@@ -82,9 +85,27 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     if (state == AppLifecycleState.paused) {
       trackExit("Paused");
       track(timer.stop(), "Paused");
+      _showProgressNotification();
     } else if (state == AppLifecycleState.resumed) {
       timer.start();
+      _progressNotification.hide();
     }
+  }
+
+  /// Leaves a "Diary in progress" notification for a diary the participant
+  /// walked away from. Not while a recording or timer sheet is on top: those
+  /// post their own notification. Nor for a finished diary, or one with the
+  /// summary page showing.
+  void _showProgressNotification() {
+    final unfinished = widget.diary.status == DiaryStatus.idle ||
+        widget.diary.status == DiaryStatus.ongoing;
+    final onScreen = ModalRoute.of(context)?.isCurrent ?? false;
+    if (!unfinished || !onScreen) return;
+
+    _progressNotification.show(
+      questionNumber: currentPage + 1,
+      questionCount: widget.diary.prompts.length,
+    );
   }
 
   void nextPage() {
@@ -147,6 +168,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   @override
   void dispose() {
+    _progressNotification.hide();
     controller.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
