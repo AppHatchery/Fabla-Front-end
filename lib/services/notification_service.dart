@@ -3,12 +3,13 @@ import 'dart:math';
 
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:audio_diaries_flutter/services/battery_service.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:flutter/foundation.dart' show ValueNotifier, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:permission_handler/permission_handler.dart'
-    show Permission, PermissionCheckShortcuts, openAppSettings;
+    show Permission, PermissionActions, openAppSettings;
 
 import '../theme/custom_colors.dart';
 
@@ -24,6 +25,7 @@ class NotificationService {
   /// Whether exact ("precise") alarms may be used. When the system denies
   /// them we fall back to inexact scheduling instead of failing.
   static bool _preciseAlarmsAllowed = true;
+  static bool get preciseAlarmsAllowed => _preciseAlarmsAllowed;
 
   /// Re-reads exact-alarm and battery-optimization state (Android only) and
   /// updates [reliabilityIssue]. Cheap; call before scheduling and on resume.
@@ -35,7 +37,13 @@ class NotificationService {
           permissions: [NotificationPermission.PreciseAlarms]);
       _preciseAlarmsAllowed =
           allowed.contains(NotificationPermission.PreciseAlarms);
-      final batteryOk = await Permission.ignoreBatteryOptimizations.isGranted;
+      // permission_handler can't read this without a manifest entry Play
+      // restricts, so ask PowerManager directly. Not available in the
+      // background isolate; assume fine there.
+      bool batteryOk = true;
+      try {
+        batteryOk = await BatteryService().isBatteryOptimizationDisabled();
+      } catch (_) {}
       reliabilityIssue.value = !_preciseAlarmsAllowed
           ? ReminderReliabilityIssue.exactAlarmsOff
           : !batteryOk
@@ -50,9 +58,8 @@ class NotificationService {
   static Future<void> openReliabilitySettings() async {
     switch (reliabilityIssue.value) {
       case ReminderReliabilityIssue.exactAlarmsOff:
-        await _awesomeNotifications.requestPermissionToSendNotifications(
-            channelKey: 'audio-diaries',
-            permissions: [NotificationPermission.PreciseAlarms]);
+        // Special-access permission: opens the "Alarms & reminders" screen.
+        await Permission.scheduleExactAlarm.request();
       case ReminderReliabilityIssue.batteryOptimized:
         await openAppSettings();
       case null:

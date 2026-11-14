@@ -124,6 +124,7 @@ class NotificationManager {
         planDiaryNotifications(diaryRepository.getAllDiaries(), DateTime.now());
     final plannedById = {for (final p in planned) p.id: p};
     final track = page != backgroundPage;
+    final precise = NotificationService.preciseAlarmsAllowed;
 
     final scheduled = (await NotificationService.getScheduledNotifications())
         .where((n) => n.content?.payload?['diary'] != null)
@@ -136,7 +137,13 @@ class NotificationManager {
       final id = n.content?.id;
       if (id == null) continue;
       final want = plannedById[id];
-      if (want != null && (n.content?.payload?['last'] == '1') == want.isLast) {
+      // Also re-create reminders scheduled with the other alarm type (exact
+      // alarms granted or revoked since). Untagged ones predate the fallback
+      // and were exact.
+      final scheduledPrecise = (n.content?.payload?['precise'] ?? '1') == '1';
+      if (scheduledPrecise == precise &&
+          want != null &&
+          (n.content?.payload?['last'] == '1') == want.isLast) {
         scheduledIds.add(id);
       } else {
         await NotificationService.cancelNotification(id);
@@ -152,7 +159,7 @@ class NotificationManager {
         title: p.title,
         body: p.body,
         date: p.date.toUtc(),
-        payload: p.payload,
+        payload: {...p.payload, 'precise': precise ? '1' : '0'},
       );
       if (!ok) {
         failed++;
