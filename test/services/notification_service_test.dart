@@ -54,6 +54,8 @@ void main() {
       // Arrange
       when(mockAwesome.setListeners(
         onActionReceivedMethod: anyNamed('onActionReceivedMethod'),
+        onNotificationDisplayedMethod:
+            anyNamed('onNotificationDisplayedMethod'),
         onDismissActionReceivedMethod:
             anyNamed('onDismissActionReceivedMethod'),
       )).thenAnswer((_) async => true);
@@ -64,6 +66,8 @@ void main() {
       // Assert
       verify(mockAwesome.setListeners(
         onActionReceivedMethod: anyNamed('onActionReceivedMethod'),
+        onNotificationDisplayedMethod:
+            anyNamed('onNotificationDisplayedMethod'),
         onDismissActionReceivedMethod:
             anyNamed('onDismissActionReceivedMethod'),
       ));

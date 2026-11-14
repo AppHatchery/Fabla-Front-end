@@ -2,7 +2,8 @@ import 'dart:math';
 
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:flutter/foundation.dart' show ValueNotifier;
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:flutter/foundation.dart' show ValueNotifier, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
 
@@ -63,7 +64,7 @@ class NotificationService {
               enableVibration: true,
               importance: NotificationImportance.Max)
         ],
-        debug: true);
+        debug: kDebugMode);
   }
 
   /// Sets up listeners to handle notification actions and dismiss actions.
@@ -78,6 +79,7 @@ class NotificationService {
   static Future<void> setListeners() async =>
       await _awesomeNotifications.setListeners(
           onActionReceivedMethod: onActionReceivedMethod,
+          onNotificationDisplayedMethod: onNotificationDisplayedMethod,
           onDismissActionReceivedMethod: onDismissActionReceivedMethod);
 
   /// Callback method invoked when an action associated with a notification is received.
@@ -226,6 +228,8 @@ class NotificationService {
       debugPrint(
           'createNotification failed: code=${e.code} message=${e.message}');
       channelDisabled.value = true;
+      CrashlyticsService().log(
+          'createNotification failed: code=${e.code} message=${e.message}');
       return false;
     }
   }
@@ -300,6 +304,7 @@ class NotificationService {
     await _awesomeNotifications.cancelSchedule(id);
 
     return await createNotification(
+        id: id,
         title: title, body: body, date: date, payload: payload);
   }
 
