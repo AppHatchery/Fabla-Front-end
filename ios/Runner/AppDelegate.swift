@@ -6,6 +6,7 @@ import FirebaseMessaging
 import UserNotifications
 import alarm
 import flutter_foreground_task
+import workmanager_apple
 import ActivityKit
 import AVFoundation
 
@@ -23,10 +24,14 @@ import AVFoundation
 
     UNUserNotificationCenter.current().delegate = self
     application.registerForRemoteNotifications()
-    if #available(iOS 10.0, *) {
-      UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
-    }
     SwiftAlarmPlugin.registerBackgroundTasks()
+    // Background top-up of scheduled reminders (see NotificationRefreshService).
+    WorkmanagerPlugin.setPluginRegistrantCallback { registry in
+      GeneratedPluginRegistrant.register(with: registry)
+    }
+    WorkmanagerPlugin.registerPeriodicTask(
+      withIdentifier: "edu.emory.audio_diaries.refreshNotifications",
+      earliestBeginInSeconds: NSNumber(value: 6 * 60 * 60))
     SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback { registry in
                 GeneratedPluginRegistrant.register(with: registry)
                 }

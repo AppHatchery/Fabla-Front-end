@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -6,10 +7,59 @@ import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:flutter/foundation.dart' show ValueNotifier, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
+import 'package:permission_handler/permission_handler.dart'
+    show Permission, PermissionCheckShortcuts, openAppSettings;
 
 import '../theme/custom_colors.dart';
 
+/// Android conditions that make scheduled reminders late or missing even
+/// though notifications are allowed.
+enum ReminderReliabilityIssue { exactAlarmsOff, batteryOptimized }
+
 class NotificationService {
+  /// Reliability problem to surface to the participant, if any (Android only).
+  static final ValueNotifier<ReminderReliabilityIssue?> reliabilityIssue =
+      ValueNotifier<ReminderReliabilityIssue?>(null);
+
+  /// Whether exact ("precise") alarms may be used. When the system denies
+  /// them we fall back to inexact scheduling instead of failing.
+  static bool _preciseAlarmsAllowed = true;
+
+  /// Re-reads exact-alarm and battery-optimization state (Android only) and
+  /// updates [reliabilityIssue]. Cheap; call before scheduling and on resume.
+  static Future<void> refreshReliability() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final allowed = await _awesomeNotifications.checkPermissionList(
+          channelKey: 'audio-diaries',
+          permissions: [NotificationPermission.PreciseAlarms]);
+      _preciseAlarmsAllowed =
+          allowed.contains(NotificationPermission.PreciseAlarms);
+      final batteryOk = await Permission.ignoreBatteryOptimizations.isGranted;
+      reliabilityIssue.value = !_preciseAlarmsAllowed
+          ? ReminderReliabilityIssue.exactAlarmsOff
+          : !batteryOk
+              ? ReminderReliabilityIssue.batteryOptimized
+              : null;
+    } catch (e) {
+      debugPrint('refreshReliability failed: $e');
+    }
+  }
+
+  /// Opens the system screen that fixes the current [reliabilityIssue].
+  static Future<void> openReliabilitySettings() async {
+    switch (reliabilityIssue.value) {
+      case ReminderReliabilityIssue.exactAlarmsOff:
+        await _awesomeNotifications.requestPermissionToSendNotifications(
+            channelKey: 'audio-diaries',
+            permissions: [NotificationPermission.PreciseAlarms]);
+      case ReminderReliabilityIssue.batteryOptimized:
+        await openAppSettings();
+      case null:
+        return;
+    }
+    await refreshReliability();
+  }
 
   /// if channel is disabled show the user a card
   static final ValueNotifier<bool> channelDisabled = ValueNotifier<bool>(false);
@@ -22,8 +72,7 @@ class NotificationService {
   /// Bind this to the "Open Settings" button on NoNotificationCard.
   static Future<void> openChannelSettings() async {
     await _awesomeNotifications.showNotificationConfigPage(
-      channelKey: 'audio-diaries'
-    );
+        channelKey: 'audio-diaries');
   }
 
   /// Sets a custom AwesomeNotifications instance for testing.
@@ -62,6 +111,14 @@ class NotificationService {
               defaultColor: CustomColors.fillWhite,
               playSound: true,
               enableVibration: true,
+              importance: NotificationImportance.Max),
+          // Firebase push messages shown while the app is open.
+          NotificationChannel(
+              channelKey: "high_importance_channel",
+              channelName: "High Importance Notifications",
+              channelDescription:
+                  "This channel is used for important notifications.",
+              defaultColor: CustomColors.fillWhite,
               importance: NotificationImportance.Max)
         ],
         debug: kDebugMode);
@@ -217,8 +274,10 @@ class NotificationService {
                 actionType: ActionType.DismissAction,
                 isDangerousOption: true)
           ],
-          schedule:
-              NotificationCalendar.fromDate(date: date, preciseAlarm: true));
+          schedule: NotificationCalendar.fromDate(
+              date: date,
+              allowWhileIdle: true,
+              preciseAlarm: _preciseAlarmsAllowed));
 
       // Success resets the flag so the card disappears.
       if (channelDisabled.value) channelDisabled.value = false;
@@ -304,8 +363,7 @@ class NotificationService {
     await _awesomeNotifications.cancelSchedule(id);
 
     return await createNotification(
-        id: id,
-        title: title, body: body, date: date, payload: payload);
+        id: id, title: title, body: body, date: date, payload: payload);
   }
 
   /// Retrieves a list of all scheduled notifications.

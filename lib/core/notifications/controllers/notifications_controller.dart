@@ -1,96 +1,62 @@
 import 'dart:developer';
-import 'dart:io';
-import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
-    as http_client_factory;
-import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'dart:math' show Random;
+
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 
+/// Channel for Firebase push messages shown while the app is in the
+/// foreground. Registered in [NotificationService.init].
+const pushChannelKey = 'high_importance_channel';
+
+/// Handles Firebase Cloud Messaging.
+///
+/// Push messages that arrive while the app is in the background are shown by
+/// the OS. On Android, messages that arrive in the foreground are not, so
+/// [messageHandler] shows them through awesome_notifications, the app's only
+/// local notification library.
 class NotificationsController {
-  // Modified to support dependency injection for better testability
-  // Added constructor parameters for messaging, local notifications, and http client
-  // Default values maintain backward compatibility
-  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
   final FirebaseMessaging _messaging;
-  final http.Client _client;
+  final AwesomeNotifications _notifications;
 
-  // Constructor with optional dependency injection
-  // If not provided, uses default implementations for production use
   NotificationsController({
     FirebaseMessaging? messaging,
-    FlutterLocalNotificationsPlugin? localNotifications,
-    http.Client? client,
+    AwesomeNotifications? notifications,
   })  : _messaging = messaging ?? FirebaseMessaging.instance,
-        _client = client ??
-            http_client_factory.httpClient(
-              timeout: http_client_factory.kImageDownloadTimeout,
-              // No retries: the notification waits on this download, and two
-              // retries of a timeout would stretch 15s to ~46s.
-              retries: 0,
-            ) {
-    // Initialize the local notifications plugin with injected or default instance
-    flutterLocalNotificationsPlugin =
-        localNotifications ?? FlutterLocalNotificationsPlugin();
-  }
+        _notifications = notifications ?? AwesomeNotifications();
 
   Future<void> initialize() async {
-    // Updated to use injected messaging instance instead of static FirebaseMessaging.instance
     await _messaging.getInitialMessage();
-    // await requestPermission();
-    await setupNotificationPlugin();
-    //await getToken();
-
-    // Note: onMessage is a static property so we use FirebaseMessaging.onMessage
-    // but we can still use the injected messaging instance for other methods
-    FirebaseMessaging.onMessage.listen((RemoteMessage event) {
-      messageHandler(event);
-    });
+    FirebaseMessaging.onMessage.listen(messageHandler);
   }
 
+  /// Shows a foreground push message (Android only; iOS foreground display
+  /// is governed by FCM's presentation options).
   Future<void> messageHandler(RemoteMessage message) async {
     final notification = message.notification;
-    final androidNotification = notification?.android;
+    final android = notification?.android;
+    if (notification == null || android == null) return;
 
-    if (notification != null && androidNotification != null) {
-      String? imagePath;
-      StyleInformation notificationStyle =
-          const DefaultStyleInformation(true, true);
-
-      if (androidNotification.imageUrl != null &&
-          androidNotification.imageUrl!.isNotEmpty) {
-        imagePath = await _downloadAndSaveFile(
-            androidNotification.imageUrl!, 'bigPicture');
-
-        if (imagePath != null) {
-          notificationStyle = BigPictureStyleInformation(
-            FilePathAndroidBitmap(imagePath),
-            contentTitle: '<b>${notification.title}</b>',
-            htmlFormatContentTitle: true,
-            summaryText: '${notification.body}',
-            htmlFormatSummaryText: true,
-          );
-        }
-      }
-
-      await flutterLocalNotificationsPlugin.show(
-        id: message.hashCode,
-        title: notification.title,
-        body: notification.body,
-        notificationDetails:  NotificationDetails(
-          android: AndroidNotificationDetails(
-            'high_importance_channel', // Channel ID
-            'High Importance Notifications', // Channel Name
-            channelDescription:
-                'This channel is used for important notifications.',
-            importance: Importance.max,
-            styleInformation: notificationStyle,
-            largeIcon:
-                imagePath != null ? FilePathAndroidBitmap(imagePath) : null,
-          ),
+    final image = android.imageUrl;
+    final hasImage = image != null && image.isNotEmpty;
+    try {
+      await _notifications.createNotification(
+        content: NotificationContent(
+          id: (message.messageId?.hashCode ?? Random().nextInt(1 << 30)) &
+              0x7FFFFFFF,
+          channelKey: pushChannelKey,
+          title: notification.title,
+          body: notification.body,
+          // awesome_notifications downloads the image itself and still shows
+          // the notification if that fails.
+          bigPicture: hasImage ? image : null,
+          largeIcon: hasImage ? image : null,
+          notificationLayout: hasImage
+              ? NotificationLayout.BigPicture
+              : NotificationLayout.Default,
         ),
       );
+    } catch (e) {
+      log('Showing push message failed: $e', name: 'NotificationsController');
     }
   }
 
@@ -120,51 +86,5 @@ class NotificationsController {
     // Updated to use injected messaging instance instead of static FirebaseMessaging.instance
     final token = await _messaging.getToken();
     log("Firebase Token: $token");
-  }
-
-  Future<void> setupNotificationPlugin() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    final DarwinInitializationSettings initializationSettingsDarwin =
-        DarwinInitializationSettings(
-      requestSoundPermission: false,
-      requestBadgePermission: false,
-      requestAlertPermission: false,
-    );
-
-    final InitializationSettings initializationSettings =
-        InitializationSettings(
-            android: initializationSettingsAndroid,
-            iOS: initializationSettingsDarwin);
-    await flutterLocalNotificationsPlugin.initialize(settings:  initializationSettings,
-        onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
-  }
-
-  void onDidReceiveNotificationResponse(NotificationResponse response) async {
-    if (response.payload != null) {
-      log('Notification payload: ${response.payload}');
-    }
-  }
-
-  /// Downloads the notification's big-picture image to the documents directory.
-  /// Returns `null` on failure, so the notification still shows without it.
-  Future<String?> _downloadAndSaveFile(String url, String fileName) async {
-    final Directory directory = await getApplicationDocumentsDirectory();
-    final String filePath = '${directory.path}/$fileName';
-    // Updated to use injected http client instead of static http.get
-    try {
-      final http.Response response = await _client.get(Uri.parse(url));
-      final File file = File(filePath);
-      await file.writeAsBytes(response.bodyBytes);
-      return filePath;
-    } catch (e, stackTrace) {
-      log("Failed to download notification image from $url: $e",
-          name: "NotificationsController");
-      CrashlyticsService().recordApiError(e, url,
-          stackTrace: stackTrace,
-          method: 'GET',
-          requestData: {'file_name': fileName});
-      return null;
-    }
   }
 }

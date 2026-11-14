@@ -171,6 +171,28 @@ void main() {
       }
     });
 
+    test('last reminder asks to open the app only when more are pending', () {
+      final d = diary(
+        id: 1,
+        start: now,
+        end: now.add(const Duration(days: 30)),
+        notifications: [
+          for (var i = 1; i <= 6; i++) note(now.add(Duration(days: i))),
+        ],
+      );
+
+      final cut =
+          NotificationManager.planDiaryNotifications([d], now, limit: 5);
+      expect(cut.last.isLast, isTrue);
+      expect(cut.last.body, endsWith(lastReminderNote));
+      expect(cut.last.payload['last'], '1');
+      expect(cut.take(4).any((p) => p.isLast), isFalse);
+
+      final all =
+          NotificationManager.planDiaryNotifications([d], now, limit: 6);
+      expect(all.any((p) => p.isLast), isFalse);
+    });
+
     test('two diaries at the same time both get scheduled', () {
       final at = now.add(const Duration(hours: 3));
       final planned = NotificationManager.planDiaryNotifications([

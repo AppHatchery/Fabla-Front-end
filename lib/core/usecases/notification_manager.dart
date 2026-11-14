@@ -33,6 +33,10 @@ class PlannedNotification {
   /// Local fire time.
   final DateTime date;
 
+  /// Last one scheduled while more are still to come: its body asks the
+  /// participant to open the app so the window can be refilled.
+  final bool isLast;
+
   const PlannedNotification({
     required this.id,
     required this.diaryId,
@@ -40,14 +44,29 @@ class PlannedNotification {
     required this.title,
     required this.body,
     required this.date,
+    this.isLast = false,
   });
+
+  PlannedNotification asLast() => PlannedNotification(
+        id: id,
+        diaryId: diaryId,
+        diaryName: diaryName,
+        title: title,
+        body: '$body $lastReminderNote',
+        date: date,
+        isLast: true,
+      );
 
   Map<String, String> get payload => {
         'id': id.toString(),
         'date': date.toUtc().toIso8601String(),
         'diary': diaryId.toString(),
+        if (isLast) 'last': '1',
       };
 }
+
+/// Appended to the final scheduled reminder when more are pending.
+const lastReminderNote = 'Open Fabla to keep your reminders coming.';
 
 /// Owns the set of scheduled local notifications.
 ///
@@ -60,6 +79,10 @@ class NotificationManager {
   final DiaryRepository diaryRepository = DiaryRepository();
   static final AwesomeNotifications _awesomeNotifications =
       AwesomeNotifications();
+
+  /// `page` value for syncs run by the background refresh task, where
+  /// analytics are not available.
+  static const backgroundPage = 'background';
 
   /// Tail of the job queue; shared by all instances.
   static Future<void> _queue = Future.value();
@@ -91,6 +114,7 @@ class NotificationManager {
           dev.log('Notifications not allowed; skipping sync.');
           return;
         }
+        await NotificationService.refreshReliability();
         await _syncDiaryNotifications(page);
         await _syncUserReminders();
       });
@@ -98,7 +122,8 @@ class NotificationManager {
   Future<void> _syncDiaryNotifications(String page) async {
     final planned =
         planDiaryNotifications(diaryRepository.getAllDiaries(), DateTime.now());
-    final plannedIds = planned.map((p) => p.id).toSet();
+    final plannedById = {for (final p in planned) p.id: p};
+    final track = page != backgroundPage;
 
     final scheduled = (await NotificationService.getScheduledNotifications())
         .where((n) => n.content?.payload?['diary'] != null)
@@ -110,7 +135,8 @@ class NotificationManager {
     for (final n in scheduled) {
       final id = n.content?.id;
       if (id == null) continue;
-      if (plannedIds.contains(id)) {
+      final want = plannedById[id];
+      if (want != null && (n.content?.payload?['last'] == '1') == want.isLast) {
         scheduledIds.add(id);
       } else {
         await NotificationService.cancelNotification(id);
@@ -133,26 +159,31 @@ class NotificationManager {
         continue;
       }
       created++;
-      await PendoService.track('ScheduleReminder', {
-        'status': 'scheduled',
-        'page': page,
-        'notification_type': 'diary',
-        'notification_id': p.id,
-        'content': 'Diary: ${p.diaryName}, Title: ${p.title}, Body: ${p.body}',
-        'scheduled_time': p.date.toUtc().toIso8601String(),
-      });
+      if (track) {
+        await PendoService.track('ScheduleReminder', {
+          'status': 'scheduled',
+          'page': page,
+          'notification_type': 'diary',
+          'notification_id': p.id,
+          'content':
+              'Diary: ${p.diaryName}, Title: ${p.title}, Body: ${p.body}',
+          'scheduled_time': p.date.toUtc().toIso8601String(),
+        });
+      }
     }
 
     dev.log(
         'Diary notifications: planned ${planned.length}, kept ${scheduledIds.length}, '
         'cancelled ${scheduled.length - scheduledIds.length}, created $created, failed $failed',
         name: 'NotificationManager');
-    await PendoService.track('ScheduledNotifications', {
-      'status': 'scheduled',
-      'page': page,
-      'scheduled_count': scheduledIds.length + created,
-      'failed_count': failed,
-    });
+    if (track) {
+      await PendoService.track('ScheduledNotifications', {
+        'status': 'scheduled',
+        'page': page,
+        'scheduled_count': scheduledIds.length + created,
+        'failed_count': failed,
+      });
+    }
     if (failed > 0) {
       await CrashlyticsService().log(
           'NotificationManager: $failed of ${planned.length} diary notifications failed to schedule');
@@ -207,7 +238,10 @@ class NotificationManager {
     // Same diary + same minute means the same notification.
     final seen = <int>{};
     planned.retainWhere((p) => seen.add(p.id));
-    return planned.take(limit).toList();
+    if (planned.length <= limit) return planned;
+    final window = planned.take(limit).toList();
+    window[limit - 1] = window[limit - 1].asLast();
+    return window;
   }
 
   /// Stable, positive 31-bit ID for a diary notification at [date].

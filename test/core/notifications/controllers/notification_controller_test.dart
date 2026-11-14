@@ -1,219 +1,99 @@
-import 'dart:io';
-import 'package:audio_diaries_flutter/core/network/http_client_factory.dart'
-    show debugPlatformClientBuilder;
 import 'package:audio_diaries_flutter/core/notifications/controllers/notifications_controller.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:flutter/services.dart';
 import '../../../firebase_mock.dart';
-import '../../../dummy_data.dart';
 
 class MockFirebaseMessaging extends Mock implements FirebaseMessaging {}
 
-class MockFlutterLocalNotificationsPlugin extends Mock
-    implements FlutterLocalNotificationsPlugin {}
-
-class MockHttpClient extends Mock implements http.Client {}
-
-class MockDirectory extends Mock
-    implements
-        Directory {} 
-
-class MockFile extends Mock implements File {}
+class MockAwesomeNotifications extends Mock implements AwesomeNotifications {}
 
 void main() {
   late NotificationsController controller;
   late MockFirebaseMessaging mockFirebaseMessaging;
-  late MockFlutterLocalNotificationsPlugin mockLocalNotifications;
-  late MockHttpClient mockHttpClient;
-  late MockFile mockFile;
+  late MockAwesomeNotifications mockNotifications;
 
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUpAll(() async {
+  setUpAll(() {
     setupFirebaseMocks();
-
-    const MethodChannel('plugins.flutter.io/path_provider')
-        .setMockMethodCallHandler((MethodCall methodCall) async {
-      if (methodCall.method == 'getApplicationDocumentsDirectory') {
-        return '/test/path';
-      }
-      return null;
-    });
-
-    const MethodChannel('dexterous.com/flutter_local_notifications')
-        .setMockMethodCallHandler((MethodCall methodCall) async => null);
-
-    registerFallbackValue(Uri.parse(TestValues.testUrl));
-    registerFallbackValue(
-        const AndroidInitializationSettings('@mipmap/ic_launcher'));
-    registerFallbackValue(const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher')));
-    registerFallbackValue(NotificationDetails(
-      android: AndroidNotificationDetails('channelId', 'channelName'),
-    ));
-    registerFallbackValue(FileMode.write);
+    registerFallbackValue(NotificationContent(id: 0, channelKey: 'x'));
   });
 
   setUp(() {
     mockFirebaseMessaging = MockFirebaseMessaging();
-    mockLocalNotifications = MockFlutterLocalNotificationsPlugin();
-    mockHttpClient = MockHttpClient();
-
-    mockFile = MockFile();
-
+    mockNotifications = MockAwesomeNotifications();
+    when(() => mockNotifications.createNotification(
+        content: any(named: 'content'))).thenAnswer((_) async => true);
     controller = NotificationsController(
       messaging: mockFirebaseMessaging,
-      localNotifications: mockLocalNotifications,
-      client: mockHttpClient,
+      notifications: mockNotifications,
     );
   });
 
+  NotificationContent shown() => verify(() => mockNotifications
+          .createNotification(content: captureAny(named: 'content')))
+      .captured
+      .single as NotificationContent;
+
   group('NotificationsController Tests', () {
-    test('initialize sets up Firebase messaging and notifications', () async {
+    test('initialize reads the initial message', () async {
       when(() => mockFirebaseMessaging.getInitialMessage())
           .thenAnswer((_) async => null);
-
-      when(() => mockLocalNotifications.initialize(
-            settings: any(named: 'settings'),
-            onDidReceiveNotificationResponse:
-                any(named: 'onDidReceiveNotificationResponse'),
-          )).thenAnswer((_) async => true);
 
       await controller.initialize();
 
       verify(() => mockFirebaseMessaging.getInitialMessage()).called(1);
-      verify(() => mockLocalNotifications.initialize(
-            settings: any(named: 'settings'),
-            onDidReceiveNotificationResponse:
-                any(named: 'onDidReceiveNotificationResponse'),
-          )).called(1);
     });
 
-    test('the image download is not re-sent, and the reminder still shows',
+    test('messageHandler shows an Android message on the push channel',
         () async {
-      // No injected client, so the constructor's own `retries: 0` client runs.
-      var sends = 0;
-      debugPlatformClientBuilder = () => MockClient((_) {
-            sends++;
-            throw http.ClientException('connection closed');
-          });
-      addTearDown(() => debugPlatformClientBuilder = null);
-
-      final ownClientController = NotificationsController(
-        messaging: mockFirebaseMessaging,
-        localNotifications: mockLocalNotifications,
-      );
-
-      when(() => mockLocalNotifications.show(
-            id: any(named: 'id'),
-            title: any(named: 'title'),
-            body: any(named: 'body'),
-            notificationDetails: any(named: 'notificationDetails'),
-          )).thenAnswer((_) async => {});
-
-      await ownClientController.messageHandler(RemoteMessage(
+      await controller.messageHandler(const RemoteMessage(
+        messageId: 'm1',
         notification: RemoteNotification(
-          title: TestValues.testName,
-          body: TestValues.testResponse,
-          android: AndroidNotification(imageUrl: TestValues.testImagePath),
-        ),
+            title: 'Hello', body: 'World', android: AndroidNotification()),
       ));
 
-      expect(sends, 1);
-      // A dead image CDN must not cost the notification itself.
-      verify(() => mockLocalNotifications.show(
-            id: any(named: 'id'),
-            title: any(named: 'title'),
-            body: any(named: 'body'),
-            notificationDetails: any(named: 'notificationDetails'),
-          )).called(1);
+      final content = shown();
+      expect(content.channelKey, pushChannelKey);
+      expect(content.title, 'Hello');
+      expect(content.body, 'World');
+      expect(content.notificationLayout, NotificationLayout.Default);
+      expect(content.id, greaterThanOrEqualTo(0));
     });
 
-    test('messageHandler shows notification with image', () async {
-      var imageUrl = TestValues.testImagePath;
-      const title = TestValues.testName;
-      const body = TestValues.testResponse;
-      var expectedImagePath = TestValues.testImagePath;
-
-      final message = RemoteMessage(
+    test('messageHandler uses the big-picture layout for an image', () async {
+      await controller.messageHandler(const RemoteMessage(
         notification: RemoteNotification(
-          title: title,
-          body: body,
-          android: AndroidNotification(imageUrl: imageUrl),
-        ),
-      );
+            title: 'Hello',
+            body: 'World',
+            android:
+                AndroidNotification(imageUrl: 'https://example.com/a.png')),
+      ));
 
-      // Mock for http.get call
-      when(() => mockHttpClient.get(Uri.parse(imageUrl))).thenAnswer(
-          (_) async => http.Response('fake_image_bytes', 200,
-              headers: {'content-type': 'image/jpeg'}));
+      final content = shown();
+      expect(content.notificationLayout, NotificationLayout.BigPicture);
+      expect(content.bigPicture, 'https://example.com/a.png');
+    });
 
-      // Configure mockFile instance
-      when(() => mockFile.path).thenReturn(expectedImagePath);
-      when(() => mockFile.writeAsBytes(
-            any(that: isA<List<int>>()),
-            mode: any(named: 'mode', that: isA<FileMode>()),
-            flush: any(named: 'flush', that: isA<bool>()),
-          )).thenAnswer((_) async => mockFile);
+    test('messageHandler ignores data-only and non-Android messages', () async {
+      await controller.messageHandler(const RemoteMessage(data: {'a': 'b'}));
+      await controller.messageHandler(const RemoteMessage(
+          notification: RemoteNotification(title: 't', body: 'b')));
 
-      when(() => mockLocalNotifications.show(
-            id: any(named: 'id'),
-            title: any(named: 'title'),
-            body: any(named: 'body'),
-            notificationDetails: any(named: 'notificationDetails'),
-          )).thenAnswer((_) async => {});
+      verifyNever(() =>
+          mockNotifications.createNotification(content: any(named: 'content')));
+    });
 
-      // Use IOOverrides to intercept File creation
-      await IOOverrides.runZoned(() async {
-        await controller.messageHandler(message);
-      }, createFile: (String path) {
-        if (path == expectedImagePath) {
-          return mockFile;
-        }
-        // Throw an error for any unexpected file creation attempts
-        throw StateError(
-            'Unexpected attempt to create/access file at $path during this test.');
-      });
+    test('messageHandler does not throw when showing fails', () async {
+      when(() => mockNotifications.createNotification(
+          content: any(named: 'content'))).thenThrow(Exception('boom'));
 
-      verify(() => mockHttpClient.get(Uri.parse(imageUrl))).called(1);
-
-      // Verify that writeAsBytes was called on the mockFile
-      verify(() => mockFile.writeAsBytes(
-            any(that: isA<List<int>>()),
-            mode: FileMode.write, // Assuming default mode
-            flush: false, // Assuming default flush
-          )).called(1);
-
-      verify(() => mockLocalNotifications.show(
-            id: any(named: 'id'),
-            title: title,
-            body: body,
-            notificationDetails: any(named: 'notificationDetails', that: predicate<NotificationDetails>((details) {
-              final androidDetails = details.android!;
-              // Check largeIcon
-              expect(androidDetails.largeIcon, isA<FilePathAndroidBitmap>());
-              expect((androidDetails.largeIcon as FilePathAndroidBitmap).data,
-                  expectedImagePath);
-              // Check styleInformation (BigPictureStyle)
-              expect(androidDetails.styleInformation,
-                  isA<BigPictureStyleInformation>());
-              final styleInfo =
-                  androidDetails.styleInformation as BigPictureStyleInformation;
-              expect(styleInfo.bigPicture, isA<FilePathAndroidBitmap>());
-              expect((styleInfo.bigPicture as FilePathAndroidBitmap).data,
-                  expectedImagePath);
-              expect(styleInfo.contentTitle, '<b>$title</b>');
-              expect(styleInfo.htmlFormatContentTitle, isTrue);
-              expect(styleInfo.summaryText, body);
-              expect(styleInfo.htmlFormatSummaryText, isTrue);
-              return true;
-            })),
-          )).called(1);
+      await controller.messageHandler(const RemoteMessage(
+        notification: RemoteNotification(
+            title: 't', body: 'b', android: AndroidNotification()),
+      ));
     });
 
     test('requestPermission requests notification permissions', () async {
@@ -275,33 +155,6 @@ void main() {
       await controller.getToken();
 
       verify(() => mockFirebaseMessaging.getToken()).called(1);
-    });
-
-    test('setupNotificationPlugin initializes local notifications', () async {
-      when(() => mockLocalNotifications.initialize(
-            settings: any(named: 'settings'),
-            onDidReceiveNotificationResponse:
-                any(named: 'onDidReceiveNotificationResponse'),
-          )).thenAnswer((_) async => true);
-
-      await controller.setupNotificationPlugin();
-
-      verify(() => mockLocalNotifications.initialize(
-            settings: any(named: 'settings'),
-            onDidReceiveNotificationResponse:
-                any(named: 'onDidReceiveNotificationResponse'),
-          )).called(1);
-    });
-
-    test('onDidReceiveNotificationResponse handles notification response',
-        () async {
-      const payload = 'test-payload';
-      final response = NotificationResponse(
-        notificationResponseType: NotificationResponseType.selectedNotification,
-        payload: payload,
-      );
-
-      controller.onDidReceiveNotificationResponse(response);
     });
   });
 }

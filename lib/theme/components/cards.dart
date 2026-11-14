@@ -1672,9 +1672,14 @@ class WebViewErrorCard extends StatelessWidget {
 
 class NoNotificationCard extends StatelessWidget {
   final VoidCallback openSettings;
+  final String title;
+  final String message;
 
   const NoNotificationCard({
     required this.openSettings,
+    this.title = "Notification permission required",
+    this.message =
+        "Notifications for Fabla are turned off. Enable them in Settings so you don't miss diary reminders.",
     super.key,
   });
 
@@ -1712,12 +1717,12 @@ class NoNotificationCard extends StatelessWidget {
                     spacing: 8,
                     children: [
                       Text(
-                        "Notification permission required",
+                        title,
                         style:
                             CustomTypography().titleSmallCustom(color: accent),
                       ),
                       Text(
-                        "Notifications for Fabla are turned off. Enable them in Settings so you don't miss diary reminders.",
+                        message,
                         style: CustomTypography().bodyLarge(color: accent),
                       ),
                     ],

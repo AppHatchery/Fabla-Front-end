@@ -48,6 +48,7 @@ import 'dart:io' show Platform;
 
 import 'core/database/object_box.dart';
 import 'firebase_options.dart';
+import 'services/notification_refresh_service.dart';
 import 'screens/diary/data/diary.dart';
 import 'screens/diary/presentation/pages/diaries.dart';
 import 'screens/diary/presentation/pages/diarysummary.dart';
@@ -90,16 +91,19 @@ void main() async {
   // the batch above completes.
   final route = await RouteService().getRoute();
 
+  // Keep reminders topped up even if the app isn't opened for a while.
+  unawaited(NotificationRefreshService.register());
+
   runApp(MyApp(
     route: route,
   ));
   FlutterNativeSplash.remove(); // Close Splash Screen
 }
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  notificationController = NotificationsController();
-  await notificationController.messageHandler(message);
-}
+/// Background/terminated push messages are displayed by the OS; showing them
+/// here too would duplicate them.
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
 Future<void> _configureFirebase() async {
   await notificationController.initialize();
