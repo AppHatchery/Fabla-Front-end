@@ -10,6 +10,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/audio_recording_service.dart';
+import 'package:audio_diaries_flutter/services/recording_live_update_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart'
     show PendoService;
 import 'package:audio_diaries_flutter/theme/components/waveform.dart';
@@ -44,6 +45,11 @@ class BottomRecordingModal extends StatefulWidget {
   final ValueChanged<String?>? onSave;
   final String? subtitle;
 
+  /// 1-based position of this question and the diary's question count, shown
+  /// as "Q3 of 8" on the Android Live Update notification.
+  final int? questionNumber;
+  final int? questionCount;
+
   const BottomRecordingModal(
       {super.key,
       required this.promptId,
@@ -52,6 +58,8 @@ class BottomRecordingModal extends StatefulWidget {
       this.suggested,
       this.limit,
       this.hint,
+      this.questionNumber,
+      this.questionCount,
       required this.subtitle});
 
   @override
@@ -64,6 +72,13 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   /// the foreground service, the wakelock, the elapsed timer, the file. This
   /// modal only renders what the service publishes and forwards taps to it.
   late final AudioRecordingService _recordingService;
+
+  /// Mirrors the take onto the Android Live Update notification.
+  late final RecordingLiveUpdateService _liveUpdate;
+
+  /// Last phase pushed to [_liveUpdate], null when hidden. The native side
+  /// ticks elapsed time itself, so only phase changes need sending.
+  RecordingLiveUpdatePhase? _liveUpdatePhase;
 
   /// Clears the waveform. Purely a display concern — the service has no
   /// opinion on it — so it stays here.
@@ -111,9 +126,89 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       onLimitReached: () => unawaited(save()),
     );
     unawaited(_recordingService.initialize());
+    _liveUpdate = RecordingLiveUpdateService(
+      onPause: () => _onLiveUpdateAction(pause: true),
+      onResume: () => _onLiveUpdateAction(pause: false),
+      onSave: () {
+        if (mounted && _recordingService.state.value.hasCompletedTake) {
+          unawaited(save());
+        }
+      },
+      onRecordAgain: () {
+        final state = _recordingService.state.value;
+        final idle = !state.isRecording && !state.isPaused && !state.hasTake;
+        if (mounted && idle) unawaited(record());
+      },
+    );
+    _recordingService.state.addListener(_syncLiveUpdate);
     WidgetsBinding.instance.addObserver(this);
     _loadRive();
     super.initState();
+  }
+
+  /// Whether Fabla is on screen. Outcomes the sheet already shows ("Saved",
+  /// "Recording stopped") only get a notification when it isn't.
+  static bool get _appInForeground =>
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+
+  /// Null when there is nothing to show: no take, or one that was discarded.
+  /// "Saved" is not derived here: the state can't tell a saved take from a
+  /// discarded one, so [save] posts it.
+  static RecordingLiveUpdatePhase? _phaseOf(AudioRecordingState state) {
+    if (state.isRecording) return RecordingLiveUpdatePhase.recording;
+    if (state.isPaused) {
+      if (state.microphoneUnavailable) {
+        return RecordingLiveUpdatePhase.couldNotResume;
+      }
+      return state.isInterrupted
+          ? RecordingLiveUpdatePhase.pausedByCall
+          : RecordingLiveUpdatePhase.paused;
+    }
+    if (state.hasCompletedTake) return RecordingLiveUpdatePhase.readyToSave;
+    if (state.takeWasEmpty && !_appInForeground) {
+      return RecordingLiveUpdatePhase.recordingStopped;
+    }
+    return null;
+  }
+
+  /// "Saved" and "Recording stopped" outlive the sheet: they report how the
+  /// take ended, so closing the sheet must not take them down.
+  bool get _showingFinalNotice =>
+      _liveUpdatePhase == RecordingLiveUpdatePhase.saved ||
+      _liveUpdatePhase == RecordingLiveUpdatePhase.recordingStopped;
+
+  void _syncLiveUpdate() {
+    final state = _recordingService.state.value;
+    _pushLiveUpdate(_phaseOf(state), state.elapsed);
+  }
+
+  void _pushLiveUpdate(RecordingLiveUpdatePhase? phase, Duration elapsed) {
+    if (phase == _liveUpdatePhase) return;
+    _liveUpdatePhase = phase;
+
+    if (phase == null) {
+      unawaited(_liveUpdate.hide());
+      return;
+    }
+
+    unawaited(_liveUpdate.show(
+      elapsed: elapsed,
+      phase: phase,
+      // Same length the in-app timer and bar measure against.
+      limit: _displayedDuration,
+      questionNumber: widget.questionNumber,
+      questionCount: widget.questionCount,
+    ));
+  }
+
+  /// Pause/Resume tapped on the notification. `record()` toggles, so check
+  /// the take is in the state the button was drawn for: a stale tap must not
+  /// flip it the other way.
+  void _onLiveUpdateAction({required bool pause}) {
+    if (!mounted) return;
+    final state = _recordingService.state.value;
+    if (pause ? !state.isRecording : !state.isPaused) return;
+    unawaited(_recordingService.record());
   }
 
   Future<void> _loadRive() async {
@@ -145,6 +240,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     // Fire-and-forget: the teardown inside awaits platform calls, and the
     // service marks itself spent synchronously so nothing it publishes can
     // reach this modal afterwards.
+    _recordingService.state.removeListener(_syncLiveUpdate);
+    if (!_showingFinalNotice) unawaited(_liveUpdate.hide());
     unawaited(_recordingService.dispose());
     _riveController?.dispose();
     _riveFile?.dispose();
@@ -303,8 +400,11 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   }
 
   Widget _sheetNotice(String title, String body) {
+    // Start-aligned: centered, a title shorter than the line sat indented
+    // while the wrapped body ran full width.
     return Column(
       spacing: 10,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title, style: CustomTypography().headlineMedium()),
         Text(body, style: CustomTypography().bodyLarge()),
@@ -649,6 +749,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     if (!mounted || _completingTake) return;
     _completingTake = true;
 
+    // Read before saving: the save resets the take.
+    final kept = _recordingService.state.value.elapsed;
+
     try {
       final result = await _recordingService.save();
 
@@ -657,6 +760,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       switch (result.outcome) {
         case RecordingSaveOutcome.saved:
           widget.onSave?.call(basePath(result.path!));
+          // Saved from the shade, or by the limit with the app away.
+          if (!_appInForeground) {
+            _pushLiveUpdate(RecordingLiveUpdatePhase.saved, kept);
+          }
           if (mounted) Navigator.pop(context);
           break;
         case RecordingSaveOutcome.emptyFile:

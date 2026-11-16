@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/audio_quiestions_widget.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
+import 'package:audio_diaries_flutter/services/diary_progress_notification_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 // import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
@@ -50,6 +51,12 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   // Functions to run before moving to the next page
   List<Function> preFunctions = [];
   final List<GlobalKey<_QuestionPageState>> _questionPageKeys = [];
+  late final DiaryProgressNotificationService _progressNotification =
+      DiaryProgressNotificationService(
+          onAnswerNext: _answerNextFromNotification);
+
+  bool get _appInForeground =>
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
 
   //get page => currentPage = widget.diary.prompts.length;
 
@@ -82,9 +89,62 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     if (state == AppLifecycleState.paused) {
       trackExit("Paused");
       track(timer.stop(), "Paused");
+      _showProgressNotification();
     } else if (state == AppLifecycleState.resumed) {
       timer.start();
+      _progressNotification.hide();
     }
+  }
+
+  /// Leaves a notification for a diary the participant walked away from:
+  /// "Next question waiting" once the current question is answered, else
+  /// "Diary in progress". Not while a recording or timer sheet is on top:
+  /// those post their own notification. Nor for a finished diary, or one with
+  /// the summary page showing.
+  void _showProgressNotification() {
+    if (!mounted) return;
+    final onScreen = ModalRoute.of(context)?.isCurrent ?? false;
+    if (!_unfinished || !onScreen) return;
+
+    _progressNotification.show(
+      questionNumber: currentPage + 1,
+      questionCount: widget.diary.prompts.length,
+      currentAnswered: ableToContinue,
+      closesAt: widget.diary.due,
+    );
+    _scheduleClosingReminder();
+  }
+
+  bool get _unfinished =>
+      widget.diary.status == DiaryStatus.idle ||
+      widget.diary.status == DiaryStatus.ongoing;
+
+  /// Arms "Diary closes soon" with where the participant is now. Called each
+  /// time they leave the diary, so the reminder carries their latest place.
+  void _scheduleClosingReminder() {
+    if (!_unfinished) return;
+    _progressNotification.scheduleClosingReminder(
+      diaryId: widget.diary.id,
+      closesAt: widget.diary.due,
+      questionNumber: currentPage + 1,
+      questionCount: widget.diary.prompts.length,
+      currentAnswered: ableToContinue,
+    );
+  }
+
+  /// An answer saved with the app away, e.g. Save on the recording
+  /// notification. Deferred a turn so the closing sheet is off the stack and
+  /// this page counts as on screen.
+  void _onAnswerSavedInBackground() {
+    if (_appInForeground) return;
+    Future<void>.delayed(Duration.zero, _showProgressNotification);
+  }
+
+  /// Answer on "Next question waiting": the app is reopening on the answered
+  /// question, so move on to the one the notification named.
+  void _answerNextFromNotification() {
+    if (!mounted || !ableToContinue || isCurrentPageLast) return;
+    nextPage();
   }
 
   void nextPage() {
@@ -104,6 +164,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       } else {
         DiaryRepository repository = DiaryRepository();
         widget.diary.status = DiaryStatus.complete;
+        _progressNotification.cancelClosingReminder(widget.diary.id);
         repository.updateDiary(widget.diary);
         diaryEnd(diaryID: widget.diary.id.toString());
         track(timer.stop(), "Finished");
@@ -147,6 +208,9 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   @override
   void dispose() {
+    // Leaving an unfinished diary: the reminder keeps its place for later.
+    _scheduleClosingReminder();
+    _progressNotification.dispose();
     controller.dispose();
     timer.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -318,6 +382,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
             setState(() {
               ableToContinue = value;
             });
+            if (value) _onAnswerSavedInBackground();
           }
         },
         previousPage: previousPage,
@@ -624,6 +689,9 @@ class _QuestionPageState extends State<QuestionPage>
         time: prompt.option?.timerLength ?? Duration(seconds: 30),
         userInteraction: prompt.option?.userInteraction ?? false,
         playbackControls: prompt.option?.playbackControl ?? false,
+        questionNumber:
+            widget.diary.prompts.indexWhere((p) => p.id == prompt.id) + 1,
+        questionCount: widget.diary.prompts.length,
         respond: (answer) {
           final completed = completedTimes ?? [];
           completed.add(answer);
@@ -834,6 +902,9 @@ class _QuestionPageState extends State<QuestionPage>
                     subtitle: prompt.subtitle,
                     hint: hint,
                     limit: prompt.option?.maxLength,
+                    questionNumber:
+                        widget.diary.prompts.indexWhere((p) => p.id == prompt.id) + 1,
+                    questionCount: widget.diary.prompts.length,
                     suggested: prompt.option?.suggestedLength,
                     onSave: (value) {
                       save(prompt, value.toString(), "audio", null);
