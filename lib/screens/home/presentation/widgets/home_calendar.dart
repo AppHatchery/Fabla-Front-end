@@ -8,8 +8,8 @@ import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:popover/popover.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -581,9 +581,8 @@ class HelpButton extends StatelessWidget {
                 ),
             direction: PopoverDirection.top,
             constraints: BoxConstraints(maxWidth: 220),
-            arrowHeight: 0,
-            arrowWidth: 0,
-            barrierColor: Colors.transparent),
+            arrowDyOffset: 0,
+            arrowDxOffset: 0,),
         icon: Icon(Icons.help_outline_rounded));
   }
 }

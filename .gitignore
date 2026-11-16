@@ -85,3 +85,6 @@ Desktop.ini
 .env
 
 coverage/
+
+# FVM Version Cache
+.fvm/

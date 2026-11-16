@@ -1,5 +1,5 @@
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:rive/rive.dart';
 
 class GhostCompletionWidget extends StatefulWidget {

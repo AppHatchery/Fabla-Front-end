@@ -1,7 +1,7 @@
 import 'package:audio_diaries_flutter/screens/diary/data/option.dart';
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../screens/diary/data/diary.dart';
 import '../../screens/diary/data/prompt.dart';

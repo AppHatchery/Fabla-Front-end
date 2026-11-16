@@ -2,7 +2,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/noti
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/list_active_times.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'dart:io' show Platform;
 
 import '../../../../services/pendo_service.dart';

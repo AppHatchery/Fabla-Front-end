@@ -7,7 +7,7 @@ import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart'
     show NoInternetCard, PendingSubmissionCard;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class PendingSubmissionWidget extends StatefulWidget {

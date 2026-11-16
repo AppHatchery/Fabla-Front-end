@@ -24,7 +24,7 @@
 // The channel contract itself is covered in
 // test/services/timer_live_update_service_test.dart.
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';

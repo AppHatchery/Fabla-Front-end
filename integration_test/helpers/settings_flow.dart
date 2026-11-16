@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 
 Future<void> settingsFlow(WidgetTester tester) async {

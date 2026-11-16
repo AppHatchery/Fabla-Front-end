@@ -1,5 +1,5 @@
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:rive/rive.dart';
 
 class VideoLoadingIndicator extends StatefulWidget {

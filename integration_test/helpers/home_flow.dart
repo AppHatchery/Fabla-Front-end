@@ -4,7 +4,7 @@ import 'package:audio_diaries_flutter/screens/home/presentation/widgets/today_go
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/todays_diary_list.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/weekly_goal.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Future<void> homeFlow(WidgetTester tester) async {

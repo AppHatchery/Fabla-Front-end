@@ -1,7 +1,7 @@
 
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../theme/custom_colors.dart';

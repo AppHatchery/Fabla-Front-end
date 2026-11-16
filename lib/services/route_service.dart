@@ -14,7 +14,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/presentation/pages/welc
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart'
     show CrashlyticsService;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 // import '../screens/onboarding/presentation/pages/login.dart';
 import '../screens/onboarding/presentation/pages/mic_access.dart';

@@ -1,5 +1,5 @@
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/diary_list.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Future<void> historyFlow(WidgetTester tester) async {
