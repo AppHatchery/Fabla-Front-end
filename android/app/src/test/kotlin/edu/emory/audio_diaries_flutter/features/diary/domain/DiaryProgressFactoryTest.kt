@@ -1,6 +1,7 @@
 package edu.emory.audio_diaries_flutter.features.diary.domain
 
 import edu.emory.audio_diaries_flutter.core.domain.Segment
+import edu.emory.audio_diaries_flutter.core.domain.halfAlpha
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressFactory.FILLED_COLOR
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressFactory.UNFILLED_COLOR
 import org.junit.Assert.assertEquals
@@ -75,5 +76,56 @@ class DiaryProgressFactoryTest {
         assertFalse(DiaryProgressState(9, 8).isShowable)
         assertFalse(DiaryProgressState(1, 0).isShowable)
         assertTrue(DiaryProgressState(8, 8).isShowable)
+    }
+
+    @Test fun `closes soon keeps the position and counts down in amber`() {
+        val closesAt = 1_700_000_000_000L
+        val content = DiaryProgressFactory.closingSoonContent(
+            DiaryProgressState(6, 8), closesAt, isNightMode = false,
+        )
+
+        assertEquals("Diary closes soon", content.title)
+        assertEquals("Q6 of 8", content.text)
+        assertEquals(DiaryArt.CLOSES_SOON, content.art)
+        assertEquals(DiaryAction.CONTINUE, content.action)
+        assertEquals(closesAt, content.countdownToMillis)
+        assertTrue(content.isLiveUpdate)
+
+        val amber = DiaryProgressFactory.CLOSING_COLOR_LIGHT
+        assertEquals(
+            List(5) { Segment(1, amber) } + List(3) { Segment(1, halfAlpha(amber)) },
+            content.progress.segments,
+        )
+    }
+
+    @Test fun `closes soon is brighter amber in dark mode`() {
+        val content = DiaryProgressFactory.closingSoonContent(
+            DiaryProgressState(2, 4), 0L, isNightMode = true,
+        )
+        assertEquals(DiaryProgressFactory.CLOSING_COLOR_DARK, content.progress.segments.first().color)
+    }
+
+    @Test fun `closes soon on an answered question continues to the next`() {
+        val content = DiaryProgressFactory.closingSoonContent(
+            DiaryProgressState(3, 8, currentAnswered = true), 0L, isNightMode = false,
+        )
+        assertEquals("Q4 of 8", content.text)
+        assertEquals("Continue", content.action.label)
+        assertTrue(content.action.advances)
+    }
+
+    @Test fun `the other titles have no countdown`() {
+        assertFalse(DiaryProgressFactory.contentFor(DiaryProgressState(3, 8)).isLiveUpdate)
+    }
+
+    @Test fun `the reminder fires 15 minutes before the close and lasts until it`() {
+        val closesAt = 10_000_000L
+        val reminder = DiaryClosingReminder(1, closesAt, DiaryProgressState(1, 2))
+
+        assertEquals(closesAt - 15 * 60_000L, reminder.remindAtMillis)
+        assertFalse(reminder.isClosingSoon(reminder.remindAtMillis - 1))
+        assertTrue(reminder.isClosingSoon(reminder.remindAtMillis))
+        assertTrue(reminder.isClosingSoon(closesAt - 1))
+        assertFalse(reminder.isClosingSoon(closesAt))
     }
 }

@@ -103,12 +103,29 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   /// the summary page showing.
   void _showProgressNotification() {
     if (!mounted) return;
-    final unfinished = widget.diary.status == DiaryStatus.idle ||
-        widget.diary.status == DiaryStatus.ongoing;
     final onScreen = ModalRoute.of(context)?.isCurrent ?? false;
-    if (!unfinished || !onScreen) return;
+    if (!_unfinished || !onScreen) return;
 
     _progressNotification.show(
+      questionNumber: currentPage + 1,
+      questionCount: widget.diary.prompts.length,
+      currentAnswered: ableToContinue,
+      closesAt: widget.diary.due,
+    );
+    _scheduleClosingReminder();
+  }
+
+  bool get _unfinished =>
+      widget.diary.status == DiaryStatus.idle ||
+      widget.diary.status == DiaryStatus.ongoing;
+
+  /// Arms "Diary closes soon" with where the participant is now. Called each
+  /// time they leave the diary, so the reminder carries their latest place.
+  void _scheduleClosingReminder() {
+    if (!_unfinished) return;
+    _progressNotification.scheduleClosingReminder(
+      diaryId: widget.diary.id,
+      closesAt: widget.diary.due,
       questionNumber: currentPage + 1,
       questionCount: widget.diary.prompts.length,
       currentAnswered: ableToContinue,
@@ -147,6 +164,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       } else {
         DiaryRepository repository = DiaryRepository();
         widget.diary.status = DiaryStatus.complete;
+        _progressNotification.cancelClosingReminder(widget.diary.id);
         repository.updateDiary(widget.diary);
         diaryEnd(diaryID: widget.diary.id.toString());
         track(timer.stop(), "Finished");
@@ -190,6 +208,8 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   @override
   void dispose() {
+    // Leaving an unfinished diary: the reminder keeps its place for later.
+    _scheduleClosingReminder();
     _progressNotification.dispose();
     controller.dispose();
     timer.dispose();

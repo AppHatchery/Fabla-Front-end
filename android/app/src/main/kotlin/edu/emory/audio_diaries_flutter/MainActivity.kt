@@ -3,6 +3,7 @@ package edu.emory.audio_diaries_flutter
 import android.content.Intent
 import edu.emory.audio_diaries_flutter.core.notification.isNightMode
 import edu.emory.audio_diaries_flutter.features.battery.presentation.BatteryChannel
+import edu.emory.audio_diaries_flutter.features.diary.data.AndroidDiaryClosingReminders
 import edu.emory.audio_diaries_flutter.features.diary.data.AndroidDiaryProgressNotifications
 import edu.emory.audio_diaries_flutter.features.diary.presentation.DiaryProgressChannel
 import edu.emory.audio_diaries_flutter.features.recording.data.AndroidRecordingNotifications
@@ -48,7 +49,11 @@ class MainActivity : FlutterFragmentActivity() {
 
         val diaryProgress = AndroidDiaryProgressNotifications(appContext).also { it.start() }
         diaryProgressNotifications = diaryProgress
-        diaryProgressChannel = DiaryProgressChannel(diaryProgress).also { it.attach(messenger) }
+        diaryProgressChannel = DiaryProgressChannel(
+            diaryProgress,
+            AndroidDiaryClosingReminders(appContext),
+            isNightMode = { appContext.isNightMode() },
+        ).also { it.attach(messenger) }
     }
 
     /**

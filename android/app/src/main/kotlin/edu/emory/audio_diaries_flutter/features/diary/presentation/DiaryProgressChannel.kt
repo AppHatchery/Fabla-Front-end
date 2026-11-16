@@ -1,18 +1,31 @@
 package edu.emory.audio_diaries_flutter.features.diary.presentation
 
+import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryClosingReminder
+import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryClosingReminders
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressFactory
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressNotifications
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressState
 import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 /**
- * The Flutter side of the diary progress notification:
- * lib/services/diary_progress_notification_service.dart. "show" takes the question the
- * participant is on and whether it's answered; "hide" removes it. Answer is sent back as
- * "answerNext".
+ * The Flutter side of the diary notification: lib/services/diary_progress_notification_service.dart.
+ *
+ * - "show": the diary as the participant left it. Inside the last 15 minutes before
+ *   `closesAtMillis` that's "Diary closes soon"; otherwise "Diary in progress" or "Next question
+ *   waiting".
+ * - "hide": removes it.
+ * - "scheduleClosingReminder" / "cancelClosingReminder": arm or disarm the alarm that posts
+ *   "Diary closes soon" with the app closed.
+ *
+ * An advancing action is sent back as "answerNext".
  */
-class DiaryProgressChannel(private val notifications: DiaryProgressNotifications) {
+class DiaryProgressChannel(
+    private val notifications: DiaryProgressNotifications,
+    private val closingReminders: DiaryClosingReminders,
+    private val isNightMode: () -> Boolean,
+) {
 
     private var methodChannel: MethodChannel? = null
 
@@ -23,21 +36,27 @@ class DiaryProgressChannel(private val notifications: DiaryProgressNotifications
             setMethodCallHandler { call, result ->
                 when (call.method) {
                     "show" -> {
-                        val state = DiaryProgressState(
-                            questionNumber = call.argument<Int>("questionNumber") ?: 0,
-                            questionCount = call.argument<Int>("questionCount") ?: 0,
-                            currentAnswered = call.argument<Boolean>("currentAnswered") ?: false,
-                        )
-                        if (state.isShowable) {
-                            notifications.show(DiaryProgressFactory.contentFor(state))
-                        } else {
-                            notifications.hide()
-                        }
+                        show(call.toProgressState(), call.argument<Number>("closesAtMillis")?.toLong())
                         result.success(null)
                     }
 
                     "hide" -> {
                         notifications.hide()
+                        result.success(null)
+                    }
+
+                    "scheduleClosingReminder" -> {
+                        val diaryId = call.argument<Int>("diaryId")
+                        val closesAt = call.argument<Number>("closesAtMillis")?.toLong()
+                        val progress = call.toProgressState()
+                        if (diaryId != null && closesAt != null && progress.isShowable) {
+                            closingReminders.schedule(DiaryClosingReminder(diaryId, closesAt, progress))
+                        }
+                        result.success(null)
+                    }
+
+                    "cancelClosingReminder" -> {
+                        call.argument<Int>("diaryId")?.let(closingReminders::cancel)
                         result.success(null)
                     }
 
@@ -53,6 +72,30 @@ class DiaryProgressChannel(private val notifications: DiaryProgressNotifications
         methodChannel?.setMethodCallHandler(null)
         methodChannel = null
     }
+
+    private fun show(state: DiaryProgressState, closesAtMillis: Long?) {
+        if (!state.isShowable) {
+            notifications.hide()
+            return
+        }
+
+        val closingSoon = closesAtMillis != null &&
+            DiaryClosingReminder(0, closesAtMillis, state).isClosingSoon(System.currentTimeMillis())
+
+        notifications.show(
+            if (closingSoon) {
+                DiaryProgressFactory.closingSoonContent(state, closesAtMillis!!, isNightMode())
+            } else {
+                DiaryProgressFactory.contentFor(state)
+            }
+        )
+    }
+
+    private fun MethodCall.toProgressState() = DiaryProgressState(
+        questionNumber = argument<Int>("questionNumber") ?: 0,
+        questionCount = argument<Int>("questionCount") ?: 0,
+        currentAnswered = argument<Boolean>("currentAnswered") ?: false,
+    )
 
     private companion object {
         const val CHANNEL_NAME = "edu.emory.audio_diaries_flutter/diary_progress"

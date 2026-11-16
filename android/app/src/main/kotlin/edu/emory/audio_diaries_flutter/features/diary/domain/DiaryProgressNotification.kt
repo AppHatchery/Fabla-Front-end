@@ -20,48 +20,88 @@ data class DiaryProgressState(
 
     /** The current question is done and another one follows it. */
     val nextQuestionWaiting get() = currentAnswered && questionNumber < questionCount
+
+    /** The question the notification points at: the waiting one, or the current one. */
+    val shownQuestion get() = if (nextQuestionWaiting) questionNumber + 1 else questionNumber
+}
+
+/**
+ * A started, unfinished diary that closes at [closesAtMillis] (wall clock). "Diary closes soon"
+ * fires [DiaryProgressFactory.CLOSING_WINDOW_MILLIS] before then.
+ */
+data class DiaryClosingReminder(
+    val diaryId: Int,
+    val closesAtMillis: Long,
+    val progress: DiaryProgressState,
+) {
+    val remindAtMillis get() = closesAtMillis - DiaryProgressFactory.CLOSING_WINDOW_MILLIS
+
+    /** Inside the last stretch before closing, when "Diary closes soon" is the one to show. */
+    fun isClosingSoon(nowMillis: Long) = nowMillis in remindAtMillis until closesAtMillis
 }
 
 /** The image beside the text. */
-enum class DiaryArt { IN_PROGRESS, NEXT_QUESTION }
+enum class DiaryArt { IN_PROGRESS, NEXT_QUESTION, CLOSES_SOON }
 
 /**
- * The notification's action. [ANSWER] also moves the diary on to the waiting question, so Dart
- * hears about it; [CONTINUE] only reopens the app.
+ * The notification's action. One that [advances] also moves the diary on to the waiting
+ * question, so Dart hears about it; the others only reopen the app.
  */
-enum class DiaryAction(val label: String) {
-    CONTINUE("Continue"),
-    ANSWER("Answer"),
+enum class DiaryAction(val label: String, val advances: Boolean) {
+    CONTINUE("Continue", advances = false),
+    ANSWER("Answer", advances = true),
+    CONTINUE_TO_NEXT("Continue", advances = true),
 }
 
-/** Everything the diary progress notification shows, independent of how Android draws it. */
+/** Everything the diary notification shows, independent of how Android draws it. */
 data class DiaryProgressContent(
     val title: String,
     val text: String?,
     val art: DiaryArt,
     val progress: ProgressBar,
     val action: DiaryAction,
-)
+    /** Wall-clock close time for a countdown in the header and status chip; null for none. */
+    val countdownToMillis: Long? = null,
+) {
+    /** A countdown is time-sensitive and ongoing, so it's promoted to a Live Update. */
+    val isLiveUpdate get() = countdownToMillis != null
+}
 
-/** Posts and removes the diary progress notification. Implemented by the Android layer. */
+/** Posts and removes the diary notification. Implemented by the Android layer. */
 interface DiaryProgressNotifications {
     fun show(content: DiaryProgressContent)
     fun hide()
 
-    /** Called when the notification opens the app for [DiaryAction.ANSWER]. */
+    /** Called when the notification opens the app with an action that [DiaryAction.advances]. */
     fun setAnswerListener(listener: (() -> Unit)?)
 }
 
+/** Arms and disarms the "Diary closes soon" alarm per diary. Implemented by the Android layer. */
+interface DiaryClosingReminders {
+    /** Arms (or re-arms with fresh progress) [reminder]'s alarm. A past time arms nothing. */
+    fun schedule(reminder: DiaryClosingReminder)
+
+    fun cancel(diaryId: Int)
+}
+
 /**
- * Maps a [DiaryProgressState] to what the notification shows, with one bar per question:
+ * Maps a diary's state to what the notification shows, with one bar per question:
  *
  * - Diary in progress: "Q3 of 8", Q1–Q2 filled, the ghost at Q3, Continue.
  * - Next question waiting (Q3 answered): "Q4 of 8", Q1–Q3 filled, the ghost at Q4, Answer.
+ * - Diary closes soon (the last 15 minutes): the same position in amber, counting down to the
+ *   close in the header and status chip, Continue.
  */
 object DiaryProgressFactory {
 
     const val FILLED_COLOR = 0xFFA449FF.toInt()
     val UNFILLED_COLOR = halfAlpha(FILLED_COLOR)
+
+    /** "Closes soon" amber; brighter on the dark notification surface, per the design. */
+    const val CLOSING_COLOR_LIGHT = 0xFFB5790E.toInt()
+    const val CLOSING_COLOR_DARK = 0xFFFEB954.toInt()
+
+    const val CLOSING_WINDOW_MILLIS = 15 * 60 * 1_000L
 
     /**
      * Android's ProgressStyle draws at most this many segments (MAX_PROGRESS_SEGMENT_LIMIT); past
@@ -70,30 +110,47 @@ object DiaryProgressFactory {
      */
     const val MAX_SEGMENTS = 10
 
+    /** "Diary in progress" or "Next question waiting". */
     fun contentFor(state: DiaryProgressState): DiaryProgressContent {
         val waiting = state.nextQuestionWaiting
-        // The question the notification points at, and how many before it are done.
-        val shownQuestion = if (waiting) state.questionNumber + 1 else state.questionNumber
-        val answered = shownQuestion - 1
-
         return DiaryProgressContent(
             title = if (waiting) "Next question waiting" else "Diary in progress",
-            text = questionPosition(shownQuestion, state.questionCount),
+            text = questionPosition(state.shownQuestion, state.questionCount),
             art = if (waiting) DiaryArt.NEXT_QUESTION else DiaryArt.IN_PROGRESS,
-            progress = ProgressBar(
-                max = state.questionCount,
-                progress = answered,
-                segments = segmentsFor(answered, state.questionCount),
-            ),
+            progress = progressFor(state, FILLED_COLOR),
             action = if (waiting) DiaryAction.ANSWER else DiaryAction.CONTINUE,
         )
     }
 
-    /** O(n) in the question count, which is capped at [MAX_SEGMENTS] for the per-question bar. */
-    private fun segmentsFor(answered: Int, count: Int): List<Segment> =
-        if (count <= MAX_SEGMENTS) {
-            List(count) { index -> Segment(1, if (index < answered) FILLED_COLOR else UNFILLED_COLOR) }
+    /** "Diary closes soon", counting down to [closesAtMillis]. */
+    fun closingSoonContent(
+        state: DiaryProgressState,
+        closesAtMillis: Long,
+        isNightMode: Boolean,
+    ): DiaryProgressContent = DiaryProgressContent(
+        title = "Diary closes soon",
+        text = questionPosition(state.shownQuestion, state.questionCount),
+        art = DiaryArt.CLOSES_SOON,
+        progress = progressFor(state, if (isNightMode) CLOSING_COLOR_DARK else CLOSING_COLOR_LIGHT),
+        action = if (state.nextQuestionWaiting) DiaryAction.CONTINUE_TO_NEXT else DiaryAction.CONTINUE,
+        countdownToMillis = closesAtMillis,
+    )
+
+    /**
+     * The questions before the shown one are filled. O(n) in the question count, which is capped
+     * at [MAX_SEGMENTS] for the per-question bar.
+     */
+    private fun progressFor(state: DiaryProgressState, color: Int): ProgressBar {
+        val answered = state.shownQuestion - 1
+        val count = state.questionCount
+        val unfilled = halfAlpha(color)
+
+        val segments = if (count <= MAX_SEGMENTS) {
+            List(count) { index -> Segment(1, if (index < answered) color else unfilled) }
         } else {
-            splitSegment(0, count, answered, FILLED_COLOR, UNFILLED_COLOR)
+            splitSegment(0, count, answered, color, unfilled)
         }
+
+        return ProgressBar(max = count, progress = answered, segments = segments)
+    }
 }

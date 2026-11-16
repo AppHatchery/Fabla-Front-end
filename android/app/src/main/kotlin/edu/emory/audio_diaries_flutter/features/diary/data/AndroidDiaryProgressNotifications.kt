@@ -14,20 +14,23 @@ import androidx.core.app.NotificationManagerCompat
 import edu.emory.audio_diaries_flutter.MainActivity
 import edu.emory.audio_diaries_flutter.R
 import edu.emory.audio_diaries_flutter.core.notification.applyProgressBar
-import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryAction
+import edu.emory.audio_diaries_flutter.core.notification.requestLiveUpdate
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryArt
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressContent
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressFactory
 import edu.emory.audio_diaries_flutter.features.diary.domain.DiaryProgressNotifications
 
 /**
- * Posts the "Diary in progress" notification. A regular, dismissible notification rather than a
- * Live Update: nothing is running while the participant is away, it's a reminder to come back.
- * It alerts (the channel's default sound) so the reminder is noticed.
+ * Posts the diary notification. It alerts (the channel's default sound) so the reminder is noticed.
  *
- * Continue (and a tap on "Diary in progress") reopens the app, which is still on the diary. Answer
- * (and a tap on "Next question waiting") reopens it through MainActivity, which hands the intent
- * to [handleLaunchIntent] so the diary moves on to the waiting question.
+ * "Diary in progress" and "Next question waiting" are regular, dismissible notifications: nothing
+ * is running while the participant is away. "Diary closes soon" counts down to the close, so it's
+ * an ongoing Live Update with the countdown in the status chip, and removes itself at the close.
+ *
+ * Every action reopens the app. One that advances (Answer, or Continue on a waiting question)
+ * goes through MainActivity, which hands it to [handleLaunchIntent] so the diary moves on.
+ *
+ * Also used by [DiaryClosingReceiver], with no Flutter engine running.
  */
 class AndroidDiaryProgressNotifications(private val context: Context) : DiaryProgressNotifications {
 
@@ -37,13 +40,14 @@ class AndroidDiaryProgressNotifications(private val context: Context) : DiaryPro
 
     private var answerListener: (() -> Unit)? = null
 
-    /** Creates the channel. Call once, before [show]. */
+    /** Creates the channel. Call before [show]; repeat calls are harmless. */
     fun start() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
         notificationManager.createNotificationChannel(
             NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT).apply {
-                description = "Reminds you of a diary you left part-way through."
+                description = "Reminds you of a diary you left part-way through, and when it's " +
+                    "about to close."
                 setShowBadge(false)
             }
         )
@@ -53,7 +57,7 @@ class AndroidDiaryProgressNotifications(private val context: Context) : DiaryPro
         answerListener = listener
     }
 
-    /** Routes the Answer action, which arrives as an activity intent. Returns whether it was ours. */
+    /** Routes an advancing action, which arrives as an activity intent. Returns whether it was ours. */
     fun handleLaunchIntent(intent: Intent?): Boolean {
         if (intent?.action != ACTION_ANSWER) return false
         answerListener?.invoke()
@@ -64,9 +68,9 @@ class AndroidDiaryProgressNotifications(private val context: Context) : DiaryPro
     override fun show(content: DiaryProgressContent) {
         if (!notificationManager.areNotificationsEnabled()) return
 
-        val openApp = openAppIntent(
-            action = if (content.action == DiaryAction.ANSWER) ACTION_ANSWER else null,
-        )
+        val openApp = openAppIntent(action = if (content.action.advances) ACTION_ANSWER else null)
+        val countdownTo = content.countdownToMillis
+
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_fabla)
             .setLargeIcon(largeIconFor(content.art))
@@ -77,11 +81,22 @@ class AndroidDiaryProgressNotifications(private val context: Context) : DiaryPro
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setAutoCancel(true)
+            .setOngoing(content.isLiveUpdate)
+            .setAutoCancel(!content.isLiveUpdate)
             .setOnlyAlertOnce(true)
             .setLocalOnly(true)
-            .setShowWhen(false)
+            .setShowWhen(countdownTo != null)
+            .setUsesChronometer(countdownTo != null)
+            .setChronometerCountDown(countdownTo != null)
             .addAction(0, content.action.label, openApp)
+
+        if (countdownTo != null) {
+            // The chronometer, and the status chip, count down to the close natively.
+            builder.setWhen(countdownTo)
+            builder.requestLiveUpdate()
+            // Gone once the diary closes: there's nothing left to continue.
+            builder.setTimeoutAfter((countdownTo - System.currentTimeMillis()).coerceAtLeast(1))
+        }
 
         builder.applyProgressBar(context, content.progress)
 
@@ -98,6 +113,7 @@ class AndroidDiaryProgressNotifications(private val context: Context) : DiaryPro
             when (art) {
                 DiaryArt.IN_PROGRESS -> R.drawable.diary_in_progress_large_icon
                 DiaryArt.NEXT_QUESTION -> R.drawable.diary_next_question_large_icon
+                DiaryArt.CLOSES_SOON -> R.drawable.diary_closes_soon_large_icon
             },
         )
     }
@@ -118,6 +134,8 @@ class AndroidDiaryProgressNotifications(private val context: Context) : DiaryPro
          */
         const val CHANNEL_ID = "diary_in_progress_alerts"
         const val CHANNEL_NAME = "Diary in progress"
+
+        /** Shared by all three titles, so a newer one replaces the last. */
         const val NOTIFICATION_ID = 4203
 
         const val ACTION_ANSWER = "edu.emory.audio_diaries_flutter.diary.ANSWER"

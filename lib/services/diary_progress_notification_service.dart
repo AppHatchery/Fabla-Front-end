@@ -4,9 +4,10 @@ import 'dart:io' show Platform;
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:flutter/services.dart';
 
-/// Drives the Android "Diary in progress" / "Next question waiting"
-/// notification (android/.../features/diary), which alerts with the
-/// channel's default sound. A no-op on other platforms.
+/// Drives the Android diary notification (android/.../features/diary):
+/// "Diary in progress", "Next question waiting", and "Diary closes soon",
+/// which an alarm posts 15 minutes before a started diary closes. It alerts
+/// with the channel's default sound. A no-op on other platforms.
 ///
 /// Best-effort, like the other notification services: a failure here must
 /// never get in the way of the diary itself.
@@ -24,12 +25,14 @@ class DiaryProgressNotificationService {
 
   /// Shows the diary as left on [questionNumber] (1-based) of
   /// [questionCount]: "Diary in progress", or "Next question waiting" when
-  /// [currentAnswered] and another question follows. The native side ignores
-  /// an out-of-range position.
+  /// [currentAnswered] and another question follows. Inside the last 15
+  /// minutes before [closesAt], "Diary closes soon" instead. The native side
+  /// ignores an out-of-range position.
   Future<void> show({
     required int questionNumber,
     required int questionCount,
     bool currentAnswered = false,
+    DateTime? closesAt,
   }) {
     // Left in place by [hide]: Answer reopens the app, and the resume that
     // follows hides the notification, possibly before "answerNext" arrives.
@@ -39,8 +42,32 @@ class DiaryProgressNotificationService {
       'questionNumber': questionNumber,
       'questionCount': questionCount,
       'currentAnswered': currentAnswered,
+      'closesAtMillis': closesAt?.millisecondsSinceEpoch,
     });
   }
+
+  /// Arms "Diary closes soon" for diary [diaryId], 15 minutes before
+  /// [closesAt], with the participant's position as it is now. Calling it
+  /// again re-arms it with fresher progress. Nothing is armed for a time
+  /// already past.
+  Future<void> scheduleClosingReminder({
+    required int diaryId,
+    required DateTime closesAt,
+    required int questionNumber,
+    required int questionCount,
+    bool currentAnswered = false,
+  }) =>
+      _invoke('scheduleClosingReminder', <String, dynamic>{
+        'diaryId': diaryId,
+        'closesAtMillis': closesAt.millisecondsSinceEpoch,
+        'questionNumber': questionNumber,
+        'questionCount': questionCount,
+        'currentAnswered': currentAnswered,
+      });
+
+  /// Disarms [diaryId]'s "Diary closes soon", e.g. once it's finished.
+  Future<void> cancelClosingReminder(int diaryId) =>
+      _invoke('cancelClosingReminder', <String, dynamic>{'diaryId': diaryId});
 
   /// Removes the notification. Safe to call when nothing is showing.
   Future<void> hide() => _invoke('hide', null);

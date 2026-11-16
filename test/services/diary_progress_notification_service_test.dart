@@ -42,7 +42,44 @@ void main() {
       'questionNumber': 3,
       'questionCount': 8,
       'currentAnswered': false,
+      'closesAtMillis': null,
     });
+  });
+
+  test('show forwards the closing time', () async {
+    final closesAt = DateTime.fromMillisecondsSinceEpoch(1700000000000);
+    await DiaryProgressNotificationService(isAndroid: true)
+        .show(questionNumber: 3, questionCount: 8, closesAt: closesAt);
+
+    expect(calls.single.arguments['closesAtMillis'], 1700000000000);
+  });
+
+  test('scheduleClosingReminder sends the diary, close time and place',
+      () async {
+    await DiaryProgressNotificationService(isAndroid: true)
+        .scheduleClosingReminder(
+      diaryId: 42,
+      closesAt: DateTime.fromMillisecondsSinceEpoch(1700000000000),
+      questionNumber: 6,
+      questionCount: 8,
+    );
+
+    expect(calls.single.method, 'scheduleClosingReminder');
+    expect(calls.single.arguments, <String, dynamic>{
+      'diaryId': 42,
+      'closesAtMillis': 1700000000000,
+      'questionNumber': 6,
+      'questionCount': 8,
+      'currentAnswered': false,
+    });
+  });
+
+  test('cancelClosingReminder names the diary', () async {
+    await DiaryProgressNotificationService(isAndroid: true)
+        .cancelClosingReminder(42);
+
+    expect(calls.single.method, 'cancelClosingReminder');
+    expect(calls.single.arguments, <String, dynamic>{'diaryId': 42});
   });
 
   test('show forwards whether the current question is answered', () async {
