@@ -58,7 +58,8 @@ const Map<String, dynamic> _commonInfo = {
   'device': 'device', 'display': 'display', 'fingerprint': 'fingerprint',
   'hardware': 'hardware', 'host': 'host', 'id': 'id',
   'manufacturer': 'manufacturer', 'product': 'product', 'tags': 'tags',
-  'type': 'user', 'isLowRamDevice': false, 'totalDiskSize': 64000000000,
+  'type': 'user', 'time': 0, 'isLowRamDevice': false,
+  'totalDiskSize': 64000000000,
   // iOS
   'name': 'name', 'systemName': 'iOS', 'systemVersion': '17.0',
   'localizedModel': 'iPhone', 'modelName': 'iPhone 15',
