@@ -1,5 +1,5 @@
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 class CustomKeyboardOverlay extends StatelessWidget {
   const CustomKeyboardOverlay({super.key});

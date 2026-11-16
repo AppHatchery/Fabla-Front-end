@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../main.dart';
 import '../../../../theme/components/buttons.dart';

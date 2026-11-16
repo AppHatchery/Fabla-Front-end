@@ -2,7 +2,7 @@ import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/ghost_widget.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart'
     show FailedSubmissionCard;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../../../theme/components/buttons.dart';

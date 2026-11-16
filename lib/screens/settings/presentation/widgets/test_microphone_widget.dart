@@ -1,6 +1,6 @@
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/settings_mic_test.dart';
 import 'package:audio_session/audio_session.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 

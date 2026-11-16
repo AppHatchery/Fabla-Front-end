@@ -1,8 +1,8 @@
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:camera/camera.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 
 class CustomCameraPreview extends StatefulWidget {

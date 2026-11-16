@@ -6,7 +6,7 @@ import 'package:audio_diaries_flutter/screens/settings/presentation/cubit/settin
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/update_widgets.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SettingsOnboarding extends StatefulWidget {

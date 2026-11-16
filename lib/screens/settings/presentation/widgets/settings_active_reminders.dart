@@ -1,5 +1,5 @@
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../services/pendo_service.dart';
 import '../../../../services/preference_service.dart';

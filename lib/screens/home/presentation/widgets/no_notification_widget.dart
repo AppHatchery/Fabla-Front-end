@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../../../../services/notification_service.dart';
 import '../../../../theme/components/cards.dart';

@@ -1,5 +1,5 @@
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 
 import '../../../../theme/custom_colors.dart';

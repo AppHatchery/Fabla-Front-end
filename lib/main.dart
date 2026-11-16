@@ -34,8 +34,8 @@ import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart'
     show StudyUpdatePopUp;
 import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart'
     show SystemChrome, SystemUiOverlayStyle, SystemUiMode;
 import 'package:flutter_bloc/flutter_bloc.dart';

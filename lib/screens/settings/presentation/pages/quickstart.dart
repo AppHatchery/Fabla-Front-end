@@ -1,7 +1,7 @@
 import 'package:audio_diaries_flutter/screens/settings/presentation/pages/quickstart_video.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class QuickstartPage extends StatelessWidget {
   const QuickstartPage({super.key});

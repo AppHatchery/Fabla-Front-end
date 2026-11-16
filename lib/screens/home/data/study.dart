@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:audio_diaries_flutter/screens/home/data/incentive.dart';
 import 'package:audio_diaries_flutter/screens/home/domain/entities/study.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class StudyModel {
   final int id;

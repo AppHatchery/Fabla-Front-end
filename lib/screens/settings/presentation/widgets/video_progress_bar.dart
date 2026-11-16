@@ -1,6 +1,6 @@
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/slider_shape.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:video_player/video_player.dart';
 
 /// Styled progress slider for a [VideoPlayerController], shared between the

@@ -17,7 +17,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/submit_
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/submit_loading.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_icons.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';

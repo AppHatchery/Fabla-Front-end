@@ -1,6 +1,6 @@
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/diary_list.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';

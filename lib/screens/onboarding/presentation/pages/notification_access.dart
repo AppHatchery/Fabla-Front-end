@@ -12,7 +12,7 @@ import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 // import 'package:audio_diaries_flutter/theme/custom_icons.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 // import 'package:disable_battery_optimization/disable_battery_optimization.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart' as rive;
 // import 'dart:io' show Platform;

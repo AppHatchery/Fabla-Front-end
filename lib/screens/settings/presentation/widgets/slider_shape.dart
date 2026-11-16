@@ -2,7 +2,7 @@
 // inactive one by default; zeroing that out keeps both at `trackHeight`.
 // Also paints a lighter inset highlight capsule over the active segment for
 // a subtle glossy/3d look.
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class EqualHeightSliderTrackShape extends RoundedRectSliderTrackShape {
   const EqualHeightSliderTrackShape();

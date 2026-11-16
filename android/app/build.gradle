@@ -25,8 +25,18 @@ if (flutterVersionName == null) {
 
 android {
     namespace "edu.emory.audio_diaries_flutter"
-    compileSdkVersion 36
+    compileSdkVersion 37
     ndkVersion "28.2.13676358"
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    // AGP's default ignore pattern contains ".*", which drops dotfiles such as
+    // the flutter_dotenv `.env` asset from the APK. This is the default minus ".*".
+    androidResources {
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"
+    }
 
     compileOptions {
         // add this line to support Java8 features
@@ -45,7 +55,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion 24
-        targetSdkVersion 36
+        targetSdkVersion 37
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
@@ -85,5 +95,5 @@ flutter {
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'androidx.core:core-ktx:1.17.0'
+    implementation 'androidx.core:core-ktx:1.19.0'
 }

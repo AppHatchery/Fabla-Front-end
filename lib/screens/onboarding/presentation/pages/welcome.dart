@@ -4,7 +4,7 @@ import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/partici
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 

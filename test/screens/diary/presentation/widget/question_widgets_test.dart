@@ -2,7 +2,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/questio
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart'
     as onboarding;
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/dynamic_widget.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
