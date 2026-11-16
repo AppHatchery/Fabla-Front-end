@@ -73,7 +73,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   equatable: ^2.0.8
 
-  #mock tail
+  #mocktail
   mocktail: ^1.0.5
 
   #Data
