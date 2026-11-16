@@ -31,7 +31,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.4'
+          flutter-version: '3.50.0'
           channel: 'stable'
           cache: true # caches the Flutter SDK itself between runs
 
@@ -59,8 +59,8 @@ jobs:
       - name: Generate ObjectBox bindings
         run: dart run build_runner build --delete-conflicting-outputs
 
-      # The `github` reporter annotates failing tests inline in the run log and
-      # folds output into groups; the `json` file-reporter is parsed afterwards
+      # The `GitHub` reporter annotates failing tests inline in the run log and
+      # folds output into groups; the `json` file-reporter is parsed afterward
       # for the step summary and PR comment. continue-on-error lets the summary
       # and comment steps run even when tests fail — the gate step fails the job.
       - name: Run tests with coverage
