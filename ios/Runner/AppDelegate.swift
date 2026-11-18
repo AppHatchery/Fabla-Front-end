@@ -19,6 +19,17 @@ import AVFoundation
   @available(iOS 17.0, *)
   private static var currentDiaryActivity: Activity<DiaryProgressActivityAttributes>?
 
+  // The open diary, kept while its activity steps aside for a recording or
+  // timer (only one Live Activity shows at a time; those two outrank it).
+  @available(iOS 17.0, *)
+  private static var diaryAttributes: DiaryProgressActivityAttributes?
+  @available(iOS 17.0, *)
+  private static var diaryState: DiaryProgressActivityAttributes.ContentState?
+
+  // The recording's "Saved" card, up for 10 seconds after its activity is
+  // otherwise done.
+  private static var savedCardShowing = false
+
   @available(iOS 17.0, *)
   private static var currentRecordingActivity: Activity<DiaryRecordingActivityAttributes>?
 
@@ -165,6 +176,7 @@ import AVFoundation
           AppDelegate.currentTimerActivity = try Activity.request(
             attributes: attributes,
             content: .init(state: state, staleDate: endDate))
+          if #available(iOS 17.0, *) { await AppDelegate.hideDiary() }
           result(nil)
         } catch {
           result(FlutterError(code: "START_FAILED", message: error.localizedDescription, details: nil))
@@ -189,6 +201,7 @@ import AVFoundation
       Task {
         await AppDelegate.currentTimerActivity?.end(nil, dismissalPolicy: .immediate)
         AppDelegate.currentTimerActivity = nil
+        if #available(iOS 17.0, *) { await AppDelegate.showDiary() }
         result(nil)
       }
 
@@ -232,6 +245,7 @@ import AVFoundation
           AppDelegate.currentRecordingActivity = try Activity.request(
             attributes: attributes,
             content: .init(state: state, staleDate: AppDelegate.lastMinuteDate(state, limit: hardLimit)))
+          await AppDelegate.hideDiary()
           result(nil)
         } catch {
           result(FlutterError(code: "START_FAILED", message: error.localizedDescription, details: nil))
@@ -248,6 +262,7 @@ import AVFoundation
         startDate: nil, pausedElapsed: elapsed, interrupted: false, ready: false, saved: true)
       guard let activity = AppDelegate.currentRecordingActivity else { return result(nil) }
       AppDelegate.currentRecordingActivity = nil
+      AppDelegate.savedCardShowing = true
       // The take is over, so nothing else keeps the app running in the
       // background for those 10 seconds.
       let application = UIApplication.shared
@@ -259,6 +274,8 @@ import AVFoundation
         result(nil)
         try? await Task.sleep(for: .seconds(10))
         await activity.end(content, dismissalPolicy: .immediate)
+        AppDelegate.savedCardShowing = false
+        await AppDelegate.showDiary()
         application.endBackgroundTask(backgroundTask)
       }
 
@@ -274,6 +291,7 @@ import AVFoundation
       Task {
         await AppDelegate.currentRecordingActivity?.end(nil, dismissalPolicy: .immediate)
         AppDelegate.currentRecordingActivity = nil
+        await AppDelegate.showDiary()
         result(nil)
       }
     }
@@ -295,27 +313,71 @@ import AVFoundation
       case "diaryStart":
         if let existing = AppDelegate.currentDiaryActivity {
           await existing.end(nil, dismissalPolicy: .immediate)
+          AppDelegate.currentDiaryActivity = nil
         }
         let closesAt = (args?["closesAtMillis"] as? Double).map { Date(timeIntervalSince1970: $0 / 1000) }
+        AppDelegate.diaryAttributes = DiaryProgressActivityAttributes(
+          questionCount: args?["questionCount"] as? Int ?? 1,
+          closesAt: closesAt)
+        AppDelegate.diaryState = state
+        // Held back while a recording or timer is showing.
+        guard !AppDelegate.othersShowing else { return result(nil) }
         do {
-          AppDelegate.currentDiaryActivity = try Activity.request(
-            attributes: DiaryProgressActivityAttributes(
-              questionCount: args?["questionCount"] as? Int ?? 1,
-              closesAt: closesAt),
-            content: .init(state: state, staleDate: AppDelegate.closingSoonDate(closesAt)))
+          try AppDelegate.requestDiary()
         } catch {
           return result(FlutterError(code: "START_FAILED", message: error.localizedDescription, details: nil))
         }
       case "diaryUpdate":
+        AppDelegate.diaryState = state
         if let activity = AppDelegate.currentDiaryActivity {
           await activity.update(.init(
             state: state, staleDate: AppDelegate.closingSoonDate(activity.attributes.closesAt)))
         }
       default:
+        AppDelegate.diaryAttributes = nil
+        AppDelegate.diaryState = nil
         await AppDelegate.currentDiaryActivity?.end(nil, dismissalPolicy: .immediate)
         AppDelegate.currentDiaryActivity = nil
       }
       result(nil)
+    }
+  }
+
+  /// Whether a recording or timer activity is up; both outrank the diary.
+  @available(iOS 17.0, *)
+  private static var othersShowing: Bool {
+    currentTimerActivity != nil || currentRecordingActivity != nil || savedCardShowing
+  }
+
+  @available(iOS 17.0, *)
+  private static func requestDiary() throws {
+    guard let attributes = diaryAttributes, let state = diaryState else { return }
+    currentDiaryActivity = try Activity.request(
+      attributes: attributes,
+      content: .init(state: state, staleDate: closingSoonDate(attributes.closesAt)))
+  }
+
+  /// Steps the diary activity aside for a recording or timer. The diary is
+  /// kept, to come back in [showDiary].
+  @available(iOS 17.0, *)
+  private static func hideDiary() async {
+    await currentDiaryActivity?.end(nil, dismissalPolicy: .immediate)
+    currentDiaryActivity = nil
+  }
+
+  /// Brings the open diary's activity back once nothing outranks it. iOS
+  /// only starts one from the foreground, so from the background this fails
+  /// quietly and [applicationDidBecomeActive] tries again.
+  @available(iOS 17.0, *)
+  private static func showDiary() async {
+    guard diaryAttributes != nil, currentDiaryActivity == nil, !othersShowing else { return }
+    try? requestDiary()
+  }
+
+  override func applicationDidBecomeActive(_ application: UIApplication) {
+    super.applicationDidBecomeActive(application)
+    if #available(iOS 17.0, *) {
+      Task { await AppDelegate.showDiary() }
     }
   }
 
