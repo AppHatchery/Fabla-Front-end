@@ -231,6 +231,29 @@ void main() {
       expect(iosCalls.last.arguments, <String, dynamic>{
         'endDateMillis': 1700000000000.0,
         'totalDurationMillis': 60000.0,
+        'canPause': false,
+      });
+    });
+
+    test('start sends the question and whether it can pause', () async {
+      final service = TimerLiveUpdateService(
+        isAndroid: false,
+        isIOS: true,
+        questionNumber: 5,
+        questionCount: 8,
+        onTogglePause: () async {},
+      );
+
+      await service.start(
+          DateTime.fromMillisecondsSinceEpoch(1700000000000),
+          const Duration(minutes: 1));
+
+      expect(iosCalls.last.arguments, <String, dynamic>{
+        'endDateMillis': 1700000000000.0,
+        'totalDurationMillis': 60000.0,
+        'canPause': true,
+        'questionNumber': 5,
+        'questionCount': 8,
       });
     });
 

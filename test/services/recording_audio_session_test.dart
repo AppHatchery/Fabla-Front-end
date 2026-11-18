@@ -172,6 +172,19 @@ void main() {
     // so there is nothing to report and nothing to reclaim here. This used to
     // reclaim the session and clear the interrupted flag, which took the
     // notice down the moment Siri finished, mid-take.
+    test('an interruption ending is passed on, not reported as a loss',
+        () async {
+      var ended = 0;
+      session.onInterruptionEnded = () async => ended++;
+
+      await session.handleInterruption(
+        AudioInterruptionEvent(false, AudioInterruptionType.pause),
+      );
+
+      expect(ended, 1);
+      expect(compromised, 0);
+    });
+
     test('an interruption ending does nothing', () async {
       await session.handleInterruption(
         AudioInterruptionEvent(true, AudioInterruptionType.pause),

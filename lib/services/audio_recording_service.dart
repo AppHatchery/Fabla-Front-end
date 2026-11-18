@@ -202,6 +202,13 @@ class AudioRecordingService {
 
   Timer? _timer;
 
+  /// When the current stretch of recording began, and the elapsed time at
+  /// that moment. Elapsed time is read off the clock from these rather than
+  /// counted in ticks, because ticks stall while the app is in the background
+  /// and the count then fell behind the Live Activity's timer.
+  DateTime? _runStartedAt;
+  Duration _elapsedAtRunStart = Duration.zero;
+
   String? _requestedTakePath;
 
   String? _takePath;
@@ -230,6 +237,11 @@ class AudioRecordingService {
 
   bool _recorderBusy = false;
 
+  /// Whether the session was taken back when the last interruption ended,
+  /// so resuming need not activate it again. See
+  /// [_reclaimSessionAfterInterruption].
+  bool _sessionReclaimed = false;
+
   bool _disposed = false;
 
   DateTime? _recordingStartedAt;
@@ -257,6 +269,7 @@ class AudioRecordingService {
         const Duration(milliseconds: 60),
       );
 
+      _audioSession.onInterruptionEnded = _reclaimSessionAfterInterruption;
       await _audioSession.startListening();
     } catch (e, s) {
       CrashlyticsService().recordError(
@@ -384,7 +397,7 @@ class AudioRecordingService {
   }) async {
     _setWakelock(enable: false);
 
-    _timer?.cancel();
+    _stopTimer();
 
     try {
       await _recorder.pauseRecorder();
@@ -405,25 +418,31 @@ class AudioRecordingService {
   }
 
   Future<void> _resumeTake() async {
-    // The only place an interrupted take reclaims the session. Nothing does it
-    // when the interruption ends, because the take stays paused until here —
-    // so the route is re-snapshotted against what is actually plugged in at
-    // the moment capture starts again, not at the moment Siri finished.
+    // An interrupted take reclaims the session here, or already did when the
+    // interruption ended (see [_reclaimSessionAfterInterruption]), since iOS
+    // refuses a background app the session any later. Either way the route
+    // is re-snapshotted here, against what is plugged in as capture starts
+    // again, not at the moment Siri finished.
     //
     // Before anything is claimed. If the session will not come back, a call
     // still holding it, the take stays paused: resuming anyway would record
     // silence under "Recording". A sealed segment always reclaims, because
     // the interruption that sealed it took the session.
-    if (_state.value.isInterrupted || _segmentSealed) {
-      CrashlyticsService().log(
-        'Activating audio session: resume of take, '
-        'interrupted=${_state.value.isInterrupted}, '
-        'segmentSealed=$_segmentSealed',
-      );
+    final reclaimed = _sessionReclaimed;
+    _sessionReclaimed = false;
 
-      if (!await _audioSession.activate()) {
-        _emit(microphoneUnavailable: true);
-        return;
+    if (_state.value.isInterrupted || _segmentSealed) {
+      if (!reclaimed) {
+        CrashlyticsService().log(
+          'Activating audio session: resume of take, '
+          'interrupted=${_state.value.isInterrupted}, '
+          'segmentSealed=$_segmentSealed',
+        );
+
+        if (!await _audioSession.activate()) {
+          _emit(microphoneUnavailable: true);
+          return;
+        }
       }
       await _audioSession.captureInputDevices();
     }
@@ -525,7 +544,7 @@ class AudioRecordingService {
     final startedAt = _recordingStartedAt;
     if (startedAt == null) return false;
 
-    _timer?.cancel();
+    _stopTimer();
     _recordingStartedAt = null;
 
     _setWakelock(enable: false);
@@ -618,7 +637,7 @@ class AudioRecordingService {
   Future<void> _sealSegment() async {
     if (_recordingStartedAt == null || _segmentSealed) return;
 
-    _timer?.cancel();
+    _stopTimer();
 
     _setWakelock(enable: false);
     await _foregroundService.stop();
@@ -799,7 +818,7 @@ class AudioRecordingService {
   /// explicitly rejected it. The path reference is cleared either way, so a
   /// later [save] cannot persist a path that no longer exists.
   Future<void> discardTake() async {
-    _timer?.cancel();
+    _stopTimer();
 
     _emit(
       elapsed: Duration.zero,
@@ -825,7 +844,7 @@ class AudioRecordingService {
   Future<RecordingSaveResult> save() async {
     try {
       _setWakelock(enable: false);
-      _timer?.cancel();
+      _stopTimer();
 
       await _foregroundService.stop();
 
@@ -922,6 +941,7 @@ class AudioRecordingService {
     _disposed = true;
 
     _timer?.cancel();
+    _runStartedAt = null;
     _audioSession.stopListening();
 
     // Let an in-flight move finish before teardown touches the audio stack.
@@ -990,12 +1010,14 @@ class AudioRecordingService {
   void _startTimer() {
     if (_disposed) return;
     _timer?.cancel();
+    _elapsedAtRunStart = _state.value.elapsed;
+    _runStartedAt = DateTime.now();
 
     final effectiveLimit =
         (limit != null && limit!.inSeconds > 0) ? limit! : null;
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) async {
-      if (effectiveLimit != null && _state.value.elapsed >= effectiveLimit) {
+      if (effectiveLimit != null && _runningElapsed >= effectiveLimit) {
         final stopped = await stop();
 
         if (stopped && !_disposed) {
@@ -1005,8 +1027,26 @@ class AudioRecordingService {
         return;
       }
 
-      _emit(elapsed: _state.value.elapsed + const Duration(seconds: 1));
+      _emit(elapsed: _runningElapsed);
     });
+  }
+
+  /// Elapsed time of the take right now, in whole seconds like the display.
+  Duration get _runningElapsed {
+    final startedAt = _runStartedAt;
+    if (startedAt == null) return _state.value.elapsed;
+    final elapsed = _elapsedAtRunStart + DateTime.now().difference(startedAt);
+    return Duration(seconds: elapsed.inSeconds);
+  }
+
+  /// Stops the elapsed timer, keeping the time recorded up to this moment so
+  /// a pause shows the same time everywhere.
+  void _stopTimer() {
+    _timer?.cancel();
+    if (_runStartedAt == null) return;
+    final elapsed = _runningElapsed;
+    _runStartedAt = null;
+    _emit(elapsed: elapsed);
   }
 
   /// Ends any live take before closing the recorder.
@@ -1104,8 +1144,34 @@ class AudioRecordingService {
   /// Nothing is checked before the lock is held. A take still starting or
   /// resuming reads as not recording, and bailing out then dropped the
   /// interruption: the take carried on as if nothing had happened.
+  /// Takes the session back as soon as an interruption ends, for a take it
+  /// paused.
+  ///
+  /// iOS only hands the session back to a background app at this moment. The
+  /// take stays paused and keeps its interrupted notice: this only makes sure
+  /// a resume from the Live Activity, with Fabla still in the background, has
+  /// a session to record into. Without it that resume hit '!int' and did
+  /// nothing.
+  Future<void> _reclaimSessionAfterInterruption() async {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    if (!await _acquireRecorderLock()) return;
+
+    try {
+      if (!_state.value.isInterrupted) return;
+
+      CrashlyticsService().log(
+        'Activating audio session: interruption ended, '
+        'segmentSealed=$_segmentSealed',
+      );
+      _sessionReclaimed = await _audioSession.activate();
+    } finally {
+      _recorderBusy = false;
+    }
+  }
+
   Future<void> _respondToCaptureLoss(CaptureLoss loss) async {
     if (!await _acquireRecorderLock()) return;
+    _sessionReclaimed = false;
 
     try {
       if (loss == CaptureLoss.interruption && _interruptionSealsSegment) {

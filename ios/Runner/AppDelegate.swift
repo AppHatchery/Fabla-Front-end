@@ -7,6 +7,7 @@ import UserNotifications
 import alarm
 import flutter_foreground_task
 import ActivityKit
+import AppIntents
 import AVFoundation
 
 @main
@@ -14,6 +15,25 @@ import AVFoundation
 
   @available(iOS 16.2, *)
   private static var currentTimerActivity: Activity<DiaryTimerActivityAttributes>?
+
+  @available(iOS 17.0, *)
+  private static var currentDiaryActivity: Activity<DiaryProgressActivityAttributes>?
+
+  // The open diary, kept while its activity steps aside for a recording or
+  // timer (only one Live Activity shows at a time; those two outrank it).
+  @available(iOS 17.0, *)
+  private static var diaryAttributes: DiaryProgressActivityAttributes?
+  @available(iOS 17.0, *)
+  private static var diaryState: DiaryProgressActivityAttributes.ContentState?
+
+  // The recording's "Saved" card, up for 10 seconds after its activity is
+  // otherwise done.
+  private static var savedCardShowing = false
+
+  @available(iOS 17.0, *)
+  private static var currentRecordingActivity: Activity<DiaryRecordingActivityAttributes>?
+
+  private var liveActivityChannel: FlutterMethodChannel?
 
   override func application(
     _ application: UIApplication,
@@ -42,6 +62,28 @@ import AVFoundation
     liveActivityChannel.setMethodCallHandler { [weak self] call, result in
       self?.handleLiveActivityCall(call, result: result)
     }
+    self.liveActivityChannel = liveActivityChannel
+
+    // The recording Live Activity's button runs ToggleRecordingPauseIntent in
+    // this process; hand it to Dart, which owns the recorder, and wait for it
+    // so the activity redraws with the new state rather than the old one.
+    if #available(iOS 18.0, *) {
+      RecordingIntentBridge.togglePause = { [weak self] intent in
+        let needsForeground = await self?.toggleRecordingPause() ?? false
+        guard needsForeground else { return }
+        // A call took the audio session and iOS won't hand it back to a
+        // background app. Ask to open Fabla, then resume from there.
+        throw intent.needsToContinueInForegroundError("Open Fabla to resume your recording.") {
+          _ = await self?.toggleRecordingPause()
+        }
+      }
+      RecordingIntentBridge.save = { [weak self] in
+        await self?.invokeRecording("recordingSave")
+      }
+      RecordingIntentBridge.toggleTimer = { [weak self] in
+        await self?.invokeRecording("timerTogglePause")
+      }
+    }
 
     // Joins the segments of a recording split by an interruption. See
     // AudioRecordingService and AudioSegmentMerger on the Dart side.
@@ -62,6 +104,33 @@ import AVFoundation
       Task {
         let reply = await AudioSegmentMerger.merge(segments, into: output)
         await MainActor.run { result(reply) }
+      }
+    }
+  }
+
+  /// Runs the Live Activity's pause/resume in Dart, answering whether it
+  /// needs the app in the foreground to finish.
+  private func toggleRecordingPause() async -> Bool {
+    await withCheckedContinuation { continuation in
+      DispatchQueue.main.async {
+        guard let channel = self.liveActivityChannel else {
+          continuation.resume(returning: false)
+          return
+        }
+        channel.invokeMethod("recordingTogglePause", arguments: nil) { reply in
+          let needsForeground = (reply as? [String: Any])?["needsForeground"] as? Bool ?? false
+          continuation.resume(returning: needsForeground)
+        }
+      }
+    }
+  }
+
+  /// Runs a Live Activity button's action in Dart and waits for it.
+  private func invokeRecording(_ method: String) async {
+    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+      DispatchQueue.main.async {
+        guard let channel = self.liveActivityChannel else { return continuation.resume() }
+        channel.invokeMethod(method, arguments: nil) { _ in continuation.resume() }
       }
     }
   }
@@ -88,7 +157,12 @@ import AVFoundation
       let endDate = Date(timeIntervalSince1970: endDateMillis / 1000)
       let totalDurationMillis = args?["totalDurationMillis"] as? Double
       let totalDuration = totalDurationMillis.map { $0 / 1000 } ?? endDate.timeIntervalSinceNow
-      let attributes = DiaryTimerActivityAttributes(title: "Diary Timer", totalDuration: totalDuration)
+      let attributes = DiaryTimerActivityAttributes(
+        title: "Meditation timer",
+        totalDuration: totalDuration,
+        questionNumber: args?["questionNumber"] as? Int,
+        questionCount: args?["questionCount"] as? Int,
+        canPause: args?["canPause"] as? Bool ?? false)
       let state = DiaryTimerActivityAttributes.ContentState(endDate: endDate, pausedRemaining: nil)
       Task {
         if let existing = AppDelegate.currentTimerActivity {
@@ -102,6 +176,7 @@ import AVFoundation
           AppDelegate.currentTimerActivity = try Activity.request(
             attributes: attributes,
             content: .init(state: state, staleDate: endDate))
+          if #available(iOS 17.0, *) { await AppDelegate.hideDiary() }
           result(nil)
         } catch {
           result(FlutterError(code: "START_FAILED", message: error.localizedDescription, details: nil))
@@ -126,13 +201,210 @@ import AVFoundation
       Task {
         await AppDelegate.currentTimerActivity?.end(nil, dismissalPolicy: .immediate)
         AppDelegate.currentTimerActivity = nil
+        if #available(iOS 17.0, *) { await AppDelegate.showDiary() }
         result(nil)
       }
+
+    case "diaryStart", "diaryUpdate", "diaryEnd":
+      guard #available(iOS 17.0, *) else {
+        result(FlutterError(code: "UNAVAILABLE", message: "Diary Live Activity requires iOS 17+", details: nil))
+        return
+      }
+      handleDiaryCall(call.method, args: args, result: result)
+
+    case "recordingStart", "recordingUpdate", "recordingEnd", "recordingSaved":
+      guard #available(iOS 17.0, *) else {
+        result(FlutterError(code: "UNAVAILABLE", message: "Recording Live Activity requires iOS 17+", details: nil))
+        return
+      }
+      handleRecordingCall(call.method, args: args, result: result)
 
     default:
       result(FlutterMethodNotImplemented)
     }
   }
+
+  @available(iOS 17.0, *)
+  private func handleRecordingCall(_ method: String, args: [String: Any]?, result: @escaping FlutterResult) {
+    let state = AppDelegate.recordingState(from: args)
+    switch method {
+    case "recordingStart":
+      // Zero or less is no limit; a zero-length timer range never ticks.
+      let limit = (args?["limitMillis"] as? Double).map { $0 / 1000 }.flatMap { $0 > 0 ? $0 : nil }
+      let hardLimit = (args?["hardLimitMillis"] as? Double).map { $0 / 1000 }.flatMap { $0 > 0 ? $0 : nil }
+      let attributes = DiaryRecordingActivityAttributes(
+        questionNumber: args?["questionNumber"] as? Int,
+        questionCount: args?["questionCount"] as? Int,
+        limit: limit,
+        hardLimit: hardLimit)
+      Task {
+        if let existing = AppDelegate.currentRecordingActivity {
+          await existing.end(nil, dismissalPolicy: .immediate)
+        }
+        do {
+          AppDelegate.currentRecordingActivity = try Activity.request(
+            attributes: attributes,
+            content: .init(state: state, staleDate: AppDelegate.lastMinuteDate(state, limit: hardLimit)))
+          await AppDelegate.hideDiary()
+          result(nil)
+        } catch {
+          result(FlutterError(code: "START_FAILED", message: error.localizedDescription, details: nil))
+        }
+      }
+
+    case "recordingSaved":
+      // The "Saved" card, frozen at the take's length. It is shown as an
+      // update, not as the ending content: iOS drops an ended activity from
+      // the Dynamic Island at once, so ending straight away would close the
+      // island the moment its check was tapped. It ends 10 seconds later.
+      let elapsed = (args?["elapsedMillis"] as? Double ?? 0) / 1000
+      let saved = DiaryRecordingActivityAttributes.ContentState(
+        startDate: nil, pausedElapsed: elapsed, interrupted: false, ready: false, saved: true)
+      guard let activity = AppDelegate.currentRecordingActivity else { return result(nil) }
+      AppDelegate.currentRecordingActivity = nil
+      AppDelegate.savedCardShowing = true
+      // The take is over, so nothing else keeps the app running in the
+      // background for those 10 seconds.
+      let application = UIApplication.shared
+      var backgroundTask = UIBackgroundTaskIdentifier.invalid
+      backgroundTask = application.beginBackgroundTask { application.endBackgroundTask(backgroundTask) }
+      Task {
+        let content = ActivityContent(state: saved, staleDate: nil)
+        await activity.update(content)
+        result(nil)
+        try? await Task.sleep(for: .seconds(10))
+        await activity.end(content, dismissalPolicy: .immediate)
+        AppDelegate.savedCardShowing = false
+        await AppDelegate.showDiary()
+        application.endBackgroundTask(backgroundTask)
+      }
+
+    case "recordingUpdate":
+      Task {
+        guard let activity = AppDelegate.currentRecordingActivity else { return result(nil) }
+        let staleDate = AppDelegate.lastMinuteDate(state, limit: activity.attributes.hardLimit)
+        await activity.update(.init(state: state, staleDate: staleDate))
+        result(nil)
+      }
+
+    default:
+      Task {
+        await AppDelegate.currentRecordingActivity?.end(nil, dismissalPolicy: .immediate)
+        AppDelegate.currentRecordingActivity = nil
+        await AppDelegate.showDiary()
+        result(nil)
+      }
+    }
+  }
+
+  /// 15 minutes before the diary closes, when the system marks its activity
+  /// stale and the view turns to "Diary closes soon" with no app running.
+  private static func closingSoonDate(_ closesAt: Date?) -> Date? {
+    closesAt?.addingTimeInterval(-15 * 60)
+  }
+
+  @available(iOS 17.0, *)
+  private func handleDiaryCall(_ method: String, args: [String: Any]?, result: @escaping FlutterResult) {
+    let state = DiaryProgressActivityAttributes.ContentState(
+      questionNumber: args?["questionNumber"] as? Int ?? 1,
+      waiting: args?["waiting"] as? Bool ?? false)
+    Task {
+      switch method {
+      case "diaryStart":
+        if let existing = AppDelegate.currentDiaryActivity {
+          await existing.end(nil, dismissalPolicy: .immediate)
+          AppDelegate.currentDiaryActivity = nil
+        }
+        let closesAt = (args?["closesAtMillis"] as? Double).map { Date(timeIntervalSince1970: $0 / 1000) }
+        AppDelegate.diaryAttributes = DiaryProgressActivityAttributes(
+          questionCount: args?["questionCount"] as? Int ?? 1,
+          closesAt: closesAt)
+        AppDelegate.diaryState = state
+        // Held back while a recording or timer is showing.
+        guard !AppDelegate.othersShowing else { return result(nil) }
+        do {
+          try AppDelegate.requestDiary()
+        } catch {
+          return result(FlutterError(code: "START_FAILED", message: error.localizedDescription, details: nil))
+        }
+      case "diaryUpdate":
+        AppDelegate.diaryState = state
+        if let activity = AppDelegate.currentDiaryActivity {
+          await activity.update(.init(
+            state: state, staleDate: AppDelegate.closingSoonDate(activity.attributes.closesAt)))
+        }
+      default:
+        AppDelegate.diaryAttributes = nil
+        AppDelegate.diaryState = nil
+        await AppDelegate.currentDiaryActivity?.end(nil, dismissalPolicy: .immediate)
+        AppDelegate.currentDiaryActivity = nil
+      }
+      result(nil)
+    }
+  }
+
+  /// Whether a recording or timer activity is up; both outrank the diary.
+  @available(iOS 17.0, *)
+  private static var othersShowing: Bool {
+    currentTimerActivity != nil || currentRecordingActivity != nil || savedCardShowing
+  }
+
+  @available(iOS 17.0, *)
+  private static func requestDiary() throws {
+    guard let attributes = diaryAttributes, let state = diaryState else { return }
+    currentDiaryActivity = try Activity.request(
+      attributes: attributes,
+      content: .init(state: state, staleDate: closingSoonDate(attributes.closesAt)))
+  }
+
+  /// Steps the diary activity aside for a recording or timer. The diary is
+  /// kept, to come back in [showDiary].
+  @available(iOS 17.0, *)
+  private static func hideDiary() async {
+    await currentDiaryActivity?.end(nil, dismissalPolicy: .immediate)
+    currentDiaryActivity = nil
+  }
+
+  /// Brings the open diary's activity back once nothing outranks it. iOS
+  /// only starts one from the foreground, so from the background this fails
+  /// quietly and [applicationDidBecomeActive] tries again.
+  @available(iOS 17.0, *)
+  private static func showDiary() async {
+    guard diaryAttributes != nil, currentDiaryActivity == nil, !othersShowing else { return }
+    try? requestDiary()
+  }
+
+  override func applicationDidBecomeActive(_ application: UIApplication) {
+    super.applicationDidBecomeActive(application)
+    if #available(iOS 17.0, *) {
+      Task { await AppDelegate.showDiary() }
+    }
+  }
+
+  /// When the take enters its last minute, which the Live Activity shows as
+  /// "One minute left" once the system marks it stale. [limit] is the hard
+  /// limit, never a suggestion. Nil while paused, without a limit, and for
+  /// limits of a minute or less, where the whole take would be that state.
+  @available(iOS 17.0, *)
+  private static func lastMinuteDate(
+    _ state: DiaryRecordingActivityAttributes.ContentState, limit: TimeInterval?
+  ) -> Date? {
+    guard let start = state.startDate, let limit, limit > 60 else { return nil }
+    return start.addingTimeInterval(limit - 60)
+  }
+
+  /// Running: elapsed counts up from `startDate`. Paused: frozen at `elapsed`.
+  @available(iOS 17.0, *)
+  private static func recordingState(from args: [String: Any]?) -> DiaryRecordingActivityAttributes.ContentState {
+    let elapsed = (args?["elapsedMillis"] as? Double ?? 0) / 1000
+    let isPaused = args?["isPaused"] as? Bool ?? false
+    return DiaryRecordingActivityAttributes.ContentState(
+      startDate: isPaused ? nil : Date().addingTimeInterval(-elapsed),
+      pausedElapsed: isPaused ? elapsed : nil,
+      interrupted: isPaused && (args?["isInterrupted"] as? Bool ?? false),
+      ready: args?["isReady"] as? Bool ?? false)
+  }
+
 
   override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     Messaging.messaging().apnsToken = deviceToken
@@ -198,3 +470,8 @@ enum AudioSegmentMerger {
     return FlutterError(code: "EXPORT_FAILED", message: lastError, details: nil)
   }
 }
+
+/// Only the app can ask to continue in the foreground; the widget extension
+/// shares the intent but not this.
+@available(iOS 18.0, *)
+extension ToggleRecordingPauseIntent: ForegroundContinuableIntent {}

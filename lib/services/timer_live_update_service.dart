@@ -2,6 +2,7 @@ import 'dart:developer' as dev;
 import 'dart:io' show Platform;
 
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:audio_diaries_flutter/services/live_activity_channel.dart';
 import 'package:flutter/services.dart';
 
 /// Drives the platform-native "live" surfaces for the diary timer countdown:
@@ -14,7 +15,7 @@ import 'package:flutter/services.dart';
 class TimerLiveUpdateService {
   static const _androidChannel =
       MethodChannel('edu.emory.audio_diaries_flutter/timer_live_update');
-  static const _iosChannel = MethodChannel('diary/live_activity');
+  static const _iosChannel = LiveActivityChannel.channel;
 
   static const _defaultTitle = 'Diary Timer';
 
@@ -22,13 +23,43 @@ class TimerLiveUpdateService {
   /// exercised in tests, which run on the host platform. [enabled] gates
   /// both platforms at once — e.g. for a timer question configured not to
   /// show live updates.
-  TimerLiveUpdateService({bool? isAndroid, bool? isIOS, this.enabled = true})
-      : _isAndroid = isAndroid ?? Platform.isAndroid,
+  TimerLiveUpdateService({
+    bool? isAndroid,
+    bool? isIOS,
+    this.enabled = true,
+    this.questionNumber,
+    this.questionCount,
+    this.onTogglePause,
+  })  : _isAndroid = isAndroid ?? Platform.isAndroid,
         _isIOS = isIOS ?? Platform.isIOS;
 
   final bool _isAndroid;
   final bool _isIOS;
   final bool enabled;
+
+  /// The question's place in the diary, shown as "Q5 of 8". Both or neither.
+  final int? questionNumber;
+  final int? questionCount;
+
+  /// Runs when the participant taps pause or resume on the iOS Live
+  /// Activity. Null hides the button, for timers without playback controls.
+  final Future<void> Function()? onTogglePause;
+
+  /// Takes the Live Activity's pause button. Call once, before [start].
+  void attach() {
+    if (!_isIOS || !enabled || onTogglePause == null) return;
+    LiveActivityChannel.on('timerTogglePause', _handleTogglePause);
+  }
+
+  void detach() {
+    if (!_isIOS) return;
+    LiveActivityChannel.off('timerTogglePause', _handleTogglePause);
+  }
+
+  Future<dynamic> _handleTogglePause() async {
+    await onTogglePause?.call();
+    return null;
+  }
 
   /// Starts the iOS Live Activity for a fresh countdown ending at [endDate].
   /// Skipped when the user has Live Activities disabled: requesting one then
@@ -39,6 +70,11 @@ class TimerLiveUpdateService {
     await _invokeIOS('start', {
       'endDateMillis': endDate.millisecondsSinceEpoch.toDouble(),
       'totalDurationMillis': totalDuration.inMilliseconds.toDouble(),
+      'canPause': onTogglePause != null,
+      if (questionNumber != null && questionCount != null) ...{
+        'questionNumber': questionNumber,
+        'questionCount': questionCount,
+      },
     });
   }
 

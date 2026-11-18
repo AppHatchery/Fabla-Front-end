@@ -953,6 +953,10 @@ class TimerWidget extends StatefulWidget {
   final void Function(String) respond;
   final Function(Function) addToPreFunction;
 
+  /// The question's place in the diary, for the Live Activity's "Q5 of 8".
+  final int? questionNumber;
+  final int? questionCount;
+
   const TimerWidget({
     super.key,
     required this.time,
@@ -961,6 +965,8 @@ class TimerWidget extends StatefulWidget {
     this.showLiveUpdates = true,
     required this.respond,
     required this.addToPreFunction,
+    this.questionNumber,
+    this.questionCount,
   });
 
   @override
@@ -1003,8 +1009,21 @@ class _TimerWidgetState extends State<TimerWidget>
   void initState() {
     super.initState();
 
-    _liveUpdate =
-        TimerLiveUpdateService(enabled: widget.showLiveUpdates ?? true);
+    _liveUpdate = TimerLiveUpdateService(
+      enabled: widget.showLiveUpdates ?? true,
+      questionNumber: widget.questionNumber,
+      questionCount: widget.questionCount,
+      // The Live Activity's button does what the sheet's does.
+      onTogglePause: widget.playbackControls
+          ? () async {
+              if (!isRunning && !isPaused) return;
+              _pauseResumeTimer();
+              // The sheet is its own route, so this widget's setState
+              // doesn't reach it; its button only redraws when told to.
+              _refreshModal();
+            }
+          : null,
+    )..attach();
 
     WidgetsBinding.instance.addObserver(this);
 
@@ -1068,6 +1087,7 @@ class _TimerWidgetState extends State<TimerWidget>
     WidgetsBinding.instance.removeObserver(this);
 
     _timer?.cancel();
+    _liveUpdate.detach();
     _liveUpdate.end();
     _shakeController.dispose();
     _remainingNotifier.dispose();
