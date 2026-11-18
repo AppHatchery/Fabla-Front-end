@@ -1,5 +1,6 @@
 import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -176,6 +177,8 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
 
   void _next(BuildContext context) async {
     await PreferenceService().setBoolPreference(key: 'setup', value: true);
+    // Onboarding just finish so skip the experiment update for today.
+    await SetupRepository().markExperimentUpToDate();
     final start = DateTime.fromMillisecondsSinceEpoch(
         await PreferenceService().getIntPreference(key: 'startDate') ?? 0);
 

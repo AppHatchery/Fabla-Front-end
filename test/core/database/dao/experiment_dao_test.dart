@@ -59,6 +59,62 @@ void main() {
       verify(() => mockBox.put(experiment)).called(1);
     });
 
+    group('updateExperiment', () {
+      test('overwrites the stored experiment but keeps its id', () {
+        final stored = createTestExperiment(id: 7, login: 'ABC123');
+        final updated = createTestExperiment(
+          id: 0,
+          login: 'ABC123',
+          name: 'Renamed',
+          ownerEmail: 'new@test.com',
+          version: '9',
+        );
+        when(() => mockBox.getAll()).thenReturn([stored]);
+        when(() => mockBox.put(any())).thenReturn(7);
+
+        final wrote = experimentDAO.updateExperiment('ABC123', updated);
+
+        expect(wrote, isTrue);
+        final captured = verify(() => mockBox.put(captureAny())).captured.single
+            as Experiment;
+        expect(captured.id, 7);
+        expect(captured.name, 'Renamed');
+        expect(captured.ownerEmail, 'new@test.com');
+        expect(captured.version, '9');
+        verifyNever(() => mockBox.removeAll());
+      });
+
+      test('matches the login case-insensitively', () {
+        when(() => mockBox.getAll())
+            .thenReturn([createTestExperiment(login: 'ABC123')]);
+        when(() => mockBox.put(any())).thenReturn(1);
+
+        expect(
+            experimentDAO.updateExperiment(
+                'abc123', createTestExperiment(login: 'ABC123')),
+            isTrue);
+      });
+
+      test('does not write onto a different study than the one requested', () {
+        when(() => mockBox.getAll())
+            .thenReturn([createTestExperiment(login: 'NEW_STUDY')]);
+
+        final wrote = experimentDAO.updateExperiment(
+            'OLD_STUDY', createTestExperiment(login: 'OLD_STUDY'));
+
+        expect(wrote, isFalse);
+        verifyNever(() => mockBox.put(any()));
+      });
+
+      test('does nothing when no experiment is stored', () {
+        when(() => mockBox.getAll()).thenReturn([]);
+
+        expect(experimentDAO.updateExperiment('ABC123', createTestExperiment()),
+            isFalse);
+        verifyNever(() => mockBox.put(any()));
+      });
+    });
+
     test('deleteExperiment removes all experiments from the database', () {
       // ───── Arrange ─────
       when(() => mockBox.removeAll()).thenReturn(0);

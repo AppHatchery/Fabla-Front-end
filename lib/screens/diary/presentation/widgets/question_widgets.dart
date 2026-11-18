@@ -1401,10 +1401,10 @@ class _TimerWidgetState extends State<TimerWidget>
         loopAudio: false,
         vibrate: false,
         volumeSettings: VolumeSettings.staircaseFade(
-          // Each step's time is from the alarm's start, so they must rise:
-          // 10% louder every 3 seconds, full volume at 27s.
-          fadeSteps: List.generate(10,
-              (i) => VolumeFadeStep(Duration(seconds: i * 3), 0.1 + (i * 0.1))),
+          // VolumeFadeStep.time is the offset from alarm start, not a delta,
+          // so each step must be later than the previous one.
+          fadeSteps: List.generate(
+              10, (i) => VolumeFadeStep(Duration(seconds: 3 * i), 0.1 + (i * 0.1))),
           volume: 1.0,
         ),
         warningNotificationOnKill: Platform.isIOS,

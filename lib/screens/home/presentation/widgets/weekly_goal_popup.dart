@@ -115,6 +115,12 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
         ? study.goals.weekly
         : possibleEntries;
 
+    // There is no progress to calculate when this study has no scheduled
+    // entries. Avoid dividing by zero and accessing diaries.first below.
+    if (goal <= 0 || diaries.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     final lowerGoal = (0.7 * goal).round();
     final lowerValue = (lowerGoal / goal) * totalWidth;
 
