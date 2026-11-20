@@ -95,9 +95,10 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
 
   @override
   Widget build(BuildContext context) {
-    final scaler = MediaQuery.of(context).textScaler;
-
-    return Container(
+    // Everything inside (day numbers, weekday letters, the month title and
+    // the chevrons) scales with the system font size up to the app-wide cap.
+    return AdaptiveTextScaleScope(
+        child: Container(
       decoration: BoxDecoration(
           color: CustomColors.fillWhite,
           borderRadius: BorderRadius.circular(20),
@@ -144,11 +145,20 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                         Flexible(
                           child: Padding(
                             padding: const EdgeInsets.only(left: 20),
-                            child: Text(
-                              textScaler: getAdaptiveTextScaler(context),
-                              getMonthYear(day),
-                              style: CustomTypography().titleSmall(
-                                  color: CustomColors.textSecondaryContent),
+                            child: LayoutBuilder(
+                              builder: (context, titleConstraints) {
+                                final title = getMonthYear(day) as String;
+                                final style = CustomTypography().titleSmall(
+                                    color: CustomColors.textSecondaryContent);
+                                // Shrinks just enough that "November" and
+                                // friends never break mid-word.
+                                return Text(
+                                  title,
+                                  style: style,
+                                  textScaler: getWordSafeTextScaler(context,
+                                      title, style, titleConstraints.maxWidth),
+                                );
+                              },
                             ),
                           ),
                         ),
@@ -160,11 +170,11 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                     duration: const Duration(milliseconds: 300),
                                     curve: Curves.ease),
                                 child: SizedBox(
-                                    height: scaler.scale(24),
-                                    width: scaler.scale(24),
+                                    height: MediaQuery.textScalerOf(context).scale(24),
+                                    width: MediaQuery.textScalerOf(context).scale(24),
                                     child: Icon(
                                       Icons.chevron_left_rounded,
-                                      size: scaler.scale(24),
+                                      size: MediaQuery.textScalerOf(context).scale(24),
                                     )),
                               ),
                               const SizedBox(width: 12),
@@ -173,11 +183,11 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                                     duration: const Duration(milliseconds: 300),
                                     curve: Curves.ease),
                                 child: SizedBox(
-                                    height: scaler.scale(24),
-                                    width: scaler.scale(24),
+                                    height: MediaQuery.textScalerOf(context).scale(24),
+                                    width: MediaQuery.textScalerOf(context).scale(24),
                                     child: Icon(
                                       Icons.chevron_right_rounded,
-                                      size: scaler.scale(24),
+                                      size: MediaQuery.textScalerOf(context).scale(24),
                                     )),
                               ),
                             ],
@@ -244,9 +254,19 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                       color: color,
                     );
                   },
+                  // Days from the previous and next month. Without this,
+                  // table_calendar's default cell draws them at full scale
+                  // and large text gets clipped ("26" shows as "2").
+                  outsideBuilder: (context, day, focusedDay) {
+                    return CalendarDayCircle(
+                      label: day.day.toString(),
+                      style: CustomTypography()
+                          .bodyLarge(color: CustomColors.textTertiaryContent),
+                    );
+                  },
                 ),
               )),
-    );
+    ));
   }
 
   _onDaySelected(DateTime selectedDay, DateTime focusedDate) {

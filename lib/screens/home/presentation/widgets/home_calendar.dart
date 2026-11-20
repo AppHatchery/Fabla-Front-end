@@ -25,11 +25,22 @@ class StudyCalendar extends StatefulWidget {
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
 
+  /// Where diaries come from. Defaults to the app's [DiaryRepository];
+  /// tests pass a fake so no database is needed.
+  final DiaryRepository? repository;
+
+  /// Whether to load and play the Rive animation. Tests pass false: there is
+  /// no Rive renderer in `flutter test`, and loading a .riv file there aborts
+  /// the test process (SIGABRT), which no try/catch can stop.
+  final bool showRiveAnimation;
+
   const StudyCalendar({
     super.key,
     required this.studies,
     required this.refresh,
     required this.getPageName,
+    this.repository,
+    this.showRiveAnimation = true,
   });
 
   @override
@@ -44,7 +55,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
   late List<DiaryModel> diaries; // Diaries for today
   late bool isBeforeToday;
   late List<DiaryModel> diaryList; // All the diaries
-  final DiaryRepository repository = DiaryRepository();
+  late final DiaryRepository repository =
+      widget.repository ?? DiaryRepository();
   Map<DateTime, List<String>>? events = {};
   Set<DateTime> activeDates = {};
   late List<StudyModel> studies;
@@ -68,7 +80,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
     studies = widget.studies;
 
     track();
-    _loadRive();
+    if (widget.showRiveAnimation) _loadRive();
     super.initState();
   }
 
@@ -87,7 +99,10 @@ class _StudyCalendarState extends State<StudyCalendar> {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
 
-    return SizedBox(
+    // Caps text and text-scaling icons on the whole page (including the
+    // diary cards and the empty state) at the app-wide limit.
+    return AdaptiveTextScaleScope(
+        child: SizedBox(
       height: height,
       width: width,
       child: SingleChildScrollView(
@@ -118,8 +133,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                       ),
                       Expanded(
                         flex: 2,
-                        child: Text(
-                          textScaler: getAdaptiveTextScaler(context),
+                        child: _WordSafeText(
                           "Study Calendar",
                           style: CustomTypography().titleLarge(
                               color: CustomColors.productNormalActive),
@@ -153,7 +167,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   track() async {
@@ -177,10 +191,18 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   Future<void> _loadRive() async {
-    final file = await rive.File.asset(
-      'assets/animations/ghosts-calendar.riv',
-      riveFactory: rive.Factory.rive,
-    );
+    final rive.File? file;
+    try {
+      file = await rive.File.asset(
+        'assets/animations/ghosts-calendar.riv',
+        riveFactory: rive.Factory.rive,
+      );
+    } catch (e) {
+      // The header animation is decoration: if it can't load, the calendar
+      // still works with an empty header instead of throwing.
+      debugPrint('StudyCalendar: could not load header animation: $e');
+      return;
+    }
     if (file != null && mounted) {
       final controller = rive.RiveWidgetController(
         file,
@@ -215,7 +237,9 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   Widget calendar() {
-    final scaler = MediaQuery.textScalerOf(context);
+    // This method runs with the State's context, which sits above the page's
+    // AdaptiveTextScaleScope, so take the capped scaler explicitly.
+    final scaler = getAdaptiveTextScaler(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -223,7 +247,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
           spacing: 6,
           children: [
             Flexible(
-              child: Text(
+              child: _WordSafeText(
                 "Study Calendar",
                 style: CustomTypography().titleLarge(),
               ),
@@ -280,9 +304,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
                             Flexible(
                               child: Padding(
                                 padding: const EdgeInsets.only(left: 20),
-                                child: Text(
-                                  textScaler: getAdaptiveTextScaler(context),
-                                  getMonthYear(day),
+                                child: _WordSafeText(
+                                  getMonthYear(day) as String,
                                   style: CustomTypography().titleSmall(
                                       color: CustomColors.textSecondaryContent),
                                 ),
@@ -329,10 +352,12 @@ class _StudyCalendarState extends State<StudyCalendar> {
                                       color:
                                           CustomColors.productBorderNormal))),
                           child: Center(
-                            child: Text(
-                              DateFormat.E().format(day)[0],
-                              style: CustomTypography().titleSmall(
-                                  color: CustomColors.textSecondaryContent),
+                            child: FittedBox(
+                              child: Text(
+                                DateFormat.E().format(day)[0],
+                                style: CustomTypography().titleSmall(
+                                    color: CustomColors.textSecondaryContent),
+                              ),
                             ),
                           ),
                         );
@@ -447,8 +472,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
-            child: Text(
-              textScaler: getAdaptiveTextScaler(context),
+            child: _WordSafeText(
               _getEntriesHeading(selectedDate),
               style: CustomTypography().titleLarge().copyWith(fontSize: 19.5),
             ),
@@ -571,6 +595,29 @@ class _StudyCalendarState extends State<StudyCalendar> {
     } else {
       return "Upcoming entries";
     }
+  }
+}
+
+/// Text that wraps between words but shrinks, only as much as needed, so
+/// no single word is wider than the space and breaks mid-word.
+class _WordSafeText extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  final TextAlign? textAlign;
+
+  const _WordSafeText(this.text, {required this.style, this.textAlign});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => Text(
+        text,
+        style: style,
+        textAlign: textAlign,
+        textScaler:
+            getWordSafeTextScaler(context, text, style, constraints.maxWidth),
+      ),
+    );
   }
 }
 

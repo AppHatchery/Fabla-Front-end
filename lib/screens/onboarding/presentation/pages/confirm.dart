@@ -79,11 +79,11 @@ class _ConfirmJoiningPageState extends State<ConfirmJoiningPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  textScaler: getAdaptiveTextScaler(context),
-                    "Study Information",
-                    style: CustomTypography()
-                        .headlineLarge(color: CustomColors.textWhite)),
+                WordSafeText(
+                  "Study Information",
+                  style: CustomTypography()
+                      .headlineLarge(color: CustomColors.textWhite),
+                ),
                 const SizedBox(
                   height: 16,
                 ),

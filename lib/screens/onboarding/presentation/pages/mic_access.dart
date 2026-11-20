@@ -156,13 +156,20 @@ class _MicAccessPageState extends State<MicAccessPage>
                             children: [
                               Column(
                                 children: [
-                                  Text(
-                                    textScaler: getAdaptiveTextScaler(context),
-                                    permission
-                                        ? "Let's test your microphone, say something"
-                                        : "Great, next enable microphone access",
-                                    style: CustomTypography().headlineLarge(
-                                        color: CustomColors.textWhite),
+                                  LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final headline = permission
+                                          ? "Let's test your microphone, say something"
+                                          : "Great, next enable microphone access";
+                                      final style = CustomTypography().headlineLarge(
+                                          color: CustomColors.textWhite);
+                                      return Text(
+                                        headline,
+                                        style: style,
+                                        textScaler: getWordSafeTextScaler(context,
+                                            headline, style, constraints.maxWidth),
+                                      );
+                                    },
                                   ),
                                   const SizedBox(height: 40.0),
                                   MicTester(

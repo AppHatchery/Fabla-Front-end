@@ -9,6 +9,8 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class UpdateTimePicker extends StatefulWidget {
   final String title;
   final String subtitle;
@@ -66,6 +68,7 @@ class _UpdateTimePickerState extends State<UpdateTimePicker> {
                 Expanded(
                     flex: 1,
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       "Question ${widget.index}",
                       style: CustomTypography().bodyLarge(),
                     )),
@@ -89,6 +92,7 @@ class _UpdateTimePickerState extends State<UpdateTimePicker> {
                   children: [
                     Expanded(
                       child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
                         widget.title,
                         style: CustomTypography().titleLarge(),
                         textAlign: TextAlign.center,
@@ -104,6 +108,7 @@ class _UpdateTimePickerState extends State<UpdateTimePicker> {
                   children: [
                     Expanded(
                       child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
                         widget.subtitle,
                         style: CustomTypography().bodyMedium(),
                         textAlign: TextAlign.center,
@@ -281,6 +286,7 @@ class _UpdateRadioOptionsState extends State<UpdateRadioOptions> {
                 Expanded(
                     flex: 1,
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       "Question ${widget.index}",
                       style: CustomTypography().bodyLarge(),
                     )),
@@ -303,7 +309,7 @@ class _UpdateRadioOptionsState extends State<UpdateRadioOptions> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Text(
+                      child: WordSafeText(
                         widget.title,
                         style: CustomTypography().titleLarge(),
                         textAlign: TextAlign.center,
@@ -318,7 +324,7 @@ class _UpdateRadioOptionsState extends State<UpdateRadioOptions> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Text(
+                      child: WordSafeText(
                         widget.subtitle,
                         style: CustomTypography().bodyMedium(),
                         textAlign: TextAlign.center,
@@ -414,6 +420,7 @@ class _UpdateMultipleOptionsState extends State<UpdateMultipleOptions> {
                 Expanded(
                     flex: 1,
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       "Question ${widget.index}",
                       style: CustomTypography().bodyLarge(),
                     )),
@@ -436,7 +443,7 @@ class _UpdateMultipleOptionsState extends State<UpdateMultipleOptions> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Text(
+                      child: WordSafeText(
                         widget.title,
                         style: CustomTypography().titleLarge(),
                         textAlign: TextAlign.center,
@@ -451,7 +458,7 @@ class _UpdateMultipleOptionsState extends State<UpdateMultipleOptions> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Text(
+                      child: WordSafeText(
                         widget.subtitle,
                         style: CustomTypography().bodyMedium(),
                         textAlign: TextAlign.center,
@@ -555,6 +562,7 @@ class _UpdateSliderOptionState extends State<UpdateSliderOption> {
                 Expanded(
                     flex: 1,
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       "Question ${widget.index}",
                       style: CustomTypography().bodyLarge(),
                     )),
@@ -578,6 +586,7 @@ class _UpdateSliderOptionState extends State<UpdateSliderOption> {
                   children: [
                     Expanded(
                       child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
                         widget.title,
                         style: CustomTypography().titleLarge(),
                         textAlign: TextAlign.center,
@@ -593,6 +602,7 @@ class _UpdateSliderOptionState extends State<UpdateSliderOption> {
                   children: [
                     Expanded(
                       child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
                         widget.subtitle,
                         style: CustomTypography().bodyMedium(),
                         textAlign: TextAlign.center,
@@ -686,13 +696,12 @@ class _UpdateTextOptionState extends State<UpdateTextOption> {
             Row(
               children: [
                 Expanded(
-                    flex: 1,
                     child: Text(
-                      "Question ${widget.index}",
-                      style: CustomTypography().bodyLarge(),
-                    )),
+                  textScaler: getAdaptiveTextScaler(context),
+                  "Question ${widget.index}",
+                  style: CustomTypography().bodyLarge(),
+                )),
                 Expanded(
-                  flex: 1,
                   child: Container(
                       alignment: Alignment.centerRight,
                       child: IconButton(
@@ -709,15 +718,12 @@ class _UpdateTextOptionState extends State<UpdateTextOption> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          widget.title,
-                          style: CustomTypography().titleLarge(),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                    Expanded(
+                      child: WordSafeText(
+                        widget.title,
+                        style: CustomTypography().titleLarge(),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ],
                 ),
@@ -728,7 +734,7 @@ class _UpdateTextOptionState extends State<UpdateTextOption> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Text(
+                      child: WordSafeText(
                         widget.subtitle,
                         style: CustomTypography().bodyMedium(),
                         textAlign: TextAlign.center,
@@ -742,6 +748,7 @@ class _UpdateTextOptionState extends State<UpdateTextOption> {
               height: 32,
             ),
             Text(
+              textScaler: getAdaptiveTextScaler(context),
               "Answer",
               style: CustomTypography().titleSmallCustom(),
             ),
@@ -822,6 +829,7 @@ class _UpdateDateOptionState extends State<UpdateDateOption> {
                 Expanded(
                     flex: 1,
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       "Question ${widget.index}",
                       style: CustomTypography().bodyLarge(),
                     )),
@@ -860,6 +868,7 @@ class _UpdateDateOptionState extends State<UpdateDateOption> {
                   children: [
                     Expanded(
                       child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
                         widget.subtitle,
                         style: CustomTypography().bodyMedium(),
                         textAlign: TextAlign.center,

@@ -691,7 +691,8 @@ class _QuestionPageState extends State<QuestionPage>
         : prompt.responseType == ResponseType.instruction
             ? SingleChildScrollView(
                 child: SizedBox(
-                  child: CustomFormatterText(text: prompt.question),
+                  child: CustomFormatterText(
+                      text: prompt.question),
                 ),
               )
             : Container(
@@ -728,6 +729,7 @@ class _QuestionPageState extends State<QuestionPage>
                         children: [
                           Expanded(
                             child: Text(
+                              textScaler: getAdaptiveTextScaler(context),
                               prompt.question.toString(),
                               style: CustomTypography().titleLarge(),
                             ),
@@ -737,7 +739,9 @@ class _QuestionPageState extends State<QuestionPage>
                       Row(
                         children: [
                           Expanded(
-                            child: Text(questionTip,
+                            child: Text(
+                              textScaler: getAdaptiveTextScaler(context),
+                                questionTip,
                                 style: CustomTypography().bodyLarge(
                                     color: CustomColors.textNormalContent,
                                     weight: FontWeight.w400)),

@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
@@ -438,6 +439,7 @@ class CustomFormatterText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RichText(
+      textScaler: getAdaptiveTextScaler(context),
       text: TextSpan(
         style: CustomTypography().bodyMedium(), // Default text style
         children: _formatText(text),

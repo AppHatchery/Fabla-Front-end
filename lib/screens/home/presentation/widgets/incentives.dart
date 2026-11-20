@@ -72,29 +72,29 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Expanded(
-                        child: SizedBox(),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                            textScaler: getAdaptiveTextScaler(context),
-                            "Incentives Earned",
-                            style: CustomTypography()
-                                .titleLarge(color: CustomColors.yellowDark)),
-                      ),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              icon: Icon(
-                                CupertinoIcons.clear,
-                                color: CustomColors.yellowDark,
-                                size: getAdaptiveTextScaler(context).scale(20),
-                              )),
+                      // Invisible twin of the close button so the title is
+                      // centred on the sheet, not in the space left of it.
+                      ExcludeSemantics(
+                        child: Visibility(
+                          visible: false,
+                          maintainSize: true,
+                          maintainAnimation: true,
+                          maintainState: true,
+                          child: closeButton(),
                         ),
                       ),
+                      // The title must be the Row's direct Expanded child so
+                      // it gets a bounded width; WordSafeText needs that to
+                      // shrink long words instead of overflowing.
+                      Expanded(
+                        child: WordSafeText(
+                          "Incentives Earned",
+                          style: CustomTypography()
+                              .titleLarge(color: CustomColors.yellowDark),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      closeButton(),
                     ],
                   ),
                   //Days active
@@ -129,14 +129,23 @@ class _StudyIncentivesState extends State<StudyIncentives> {
         "Incentives Earned", {"viewed_at": now.toIso8601String()});
   }
 
+  Widget closeButton() {
+    return IconButton(
+        onPressed: () => Navigator.pop(context),
+        icon: Icon(
+          CupertinoIcons.clear,
+          color: CustomColors.yellowDark,
+          size: getAdaptiveTextScaler(context).scale(20),
+        ));
+  }
+
   Widget header() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Center(
-          child: Text(
-            textScaler: getAdaptiveTextScaler(context),
+          child: WordSafeText(
             formatMoney(acquired,
                 currency: widget.studies.first.incentive.currency),
             style: CustomTypography().headlineLargeCustom(
@@ -159,21 +168,12 @@ class _StudyIncentivesState extends State<StudyIncentives> {
   //Incentive Calculation
   Widget compensation() {
     final width = MediaQuery.of(context).size.width;
-    final titleFontSize = getTitleFontSize(
-      textScale: textScale,
-      iosThreshold: 3.1,
-      iosFontSize: 18,
-      androidThreshold: 2,
-      androidFontSize: 20,
-      defaultSize: 20,
-    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        WordSafeText(
           "Compensation Details",
-          style:
-              CustomTypography().titleLarge().copyWith(fontSize: titleFontSize),
+          style: CustomTypography().titleLarge(),
           textAlign: TextAlign.left,
         ),
         const SizedBox(height: 6),

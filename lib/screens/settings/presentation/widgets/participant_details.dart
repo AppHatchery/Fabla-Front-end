@@ -99,10 +99,14 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Expanded(
-              child: Text(
-                "Participant Details",
-                style: CustomTypography()
-                    .titleLarge(color: CustomColors.textNormalContent),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  textScaler: getAdaptiveTextScaler(context),
+                  "Participant Details",
+                  style: CustomTypography()
+                      .titleLarge(color: CustomColors.textNormalContent),
+                ),
               ),
             ),
           ],
@@ -245,9 +249,8 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: Icon(
-                    applyTextScaling: true,
                     Icons.chevron_right_rounded,
-                    size: 24,
+                    size: getAdaptiveTextScaler(context).scale(24),
                     color: CustomColors.productNormalActive,
                   ),
                 ),

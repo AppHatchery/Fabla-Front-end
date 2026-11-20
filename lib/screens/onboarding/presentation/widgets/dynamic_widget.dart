@@ -198,7 +198,7 @@ class _CustomMultipleQuestion extends State<CustomMultipleQuestion> {
               child: Material(
                   color: Colors.transparent,
                   child: CheckboxListTile(
-                    title: Text(
+                    title: WordSafeText(
                       widget.options[index].title,
                       style: CustomTypography().button(
                           color: selectedOptions
@@ -235,7 +235,9 @@ class _CustomMultipleQuestion extends State<CustomMultipleQuestion> {
                         });
                       }
                     },
-                    checkboxScaleFactor: getAdaptiveTextScaler(context).scale(1),                  ))),
+                    checkboxScaleFactor:
+                        getAdaptiveTextScaler(context).scale(1),
+                  ))),
           const SizedBox(
             height: 12,
           ),
@@ -288,7 +290,7 @@ class _CustomRadioQuestionState extends State<CustomRadioQuestion> {
               child: Material(
                   color: Colors.transparent,
                   child: RadioListTile<String>(
-                    title: Text(
+                    title: WordSafeText(
                       widget.options[index].title,
                       style: CustomTypography().button(
                           color: !widget.disabled

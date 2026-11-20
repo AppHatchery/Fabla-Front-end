@@ -245,7 +245,7 @@ class _DiaryCardState extends State<DiaryCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
       children: [
-        Text(
+        WordSafeText(
           widget.diary?.name ?? "",
           style: CustomTypography().titleSmall(),
         ),
@@ -1001,6 +1001,7 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return Container(
+      constraints: const BoxConstraints(minHeight: 48),
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
       decoration: BoxDecoration(
@@ -1012,6 +1013,9 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
       child: Row(children: [
         Expanded(
           child: Text(
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
+            textScaler: getAdaptiveTextScaler(context),
             widget.answer,
             style: CustomTypography()
                 .bodyLarge(color: CustomColors.textSecondaryContent),

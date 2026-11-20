@@ -19,6 +19,7 @@ import 'package:audio_diaries_flutter/screens/diary/presentation/cubit/prompt/pr
 import 'package:audio_diaries_flutter/screens/diary/presentation/pages/new_diary.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/pages/homepage.dart';
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
+import 'package:audio_diaries_flutter/screens/hub/presentation/widgets/hub_tab.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/dynamic/dynamic_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
@@ -495,51 +496,59 @@ class _CustomHubTabViewState extends State<CustomHubTabView> {
     final showUpload = _completeCount > 0;
     final showCount = !showUpload && _totalSubmissions > 0;
 
-    // Clamped scaling keeps the labels inside the default 72pt tab height.
-    // Use Tab.text, not Tab.child: only text keeps labels to a single line.
+    // Labels grow with the system font size up to the adaptive cap. hubTab
+    // keeps each label on one line, shrinking it to fit its tab rather than
+    // fading it out, and grows the tab so the label isn't cut off.
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
         textScaler: getAdaptiveTextScaler(context),
       ),
-      child: TabBar(
-        controller: widget.tabController,
-        labelColor: CustomColors.productNormal,
-        unselectedLabelColor: Colors.black,
-        indicatorColor: Colors.transparent,
-        indicatorWeight: 2,
-        indicator: null,
-        padding: EdgeInsets.only(
-          top: 8,
-          bottom: bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
+      // Builder so hubTab measures with the capped scale set just above.
+      child: Builder(
+        builder: (context) => TabBar(
+          controller: widget.tabController,
+          labelColor: CustomColors.productNormal,
+          unselectedLabelColor: Colors.black,
+          indicatorColor: Colors.transparent,
+          indicatorWeight: 2,
+          indicator: null,
+          padding: EdgeInsets.only(
+            top: 8,
+            bottom: bottomPadding > 0 ? bottomPadding : (isIos ? 34 : 8),
+          ),
+          dividerColor: Colors.transparent,
+          tabs: [
+            hubTab(
+              context,
+              icon: const Icon(CupertinoIcons.text_badge_checkmark),
+              label: 'Study',
+            ),
+            hubTab(
+              context,
+              icon: Badge(
+                  backgroundColor: showCount
+                      ? CustomColors.productNormal
+                      : Colors.transparent,
+                  textColor: CustomColors.fillWhite,
+                  isLabelVisible: showUpload || showCount,
+                  label: showUpload
+                      ? const Icon(
+                          CupertinoIcons.cloud_upload_fill,
+                          color: CustomColors.warningActive,
+                        )
+                      : showCount
+                          ? Text('$_totalSubmissions')
+                          : null,
+                  child: const Icon(Icons.history)),
+              label: 'History',
+            ),
+            hubTab(
+              context,
+              icon: const Icon(Icons.settings_outlined),
+              label: 'Settings',
+            ),
+          ],
         ),
-        dividerColor: Colors.transparent,
-        tabs: [
-          const Tab(
-            icon: Icon(CupertinoIcons.text_badge_checkmark),
-            text: 'Study',
-          ),
-          Tab(
-            icon: Badge(
-                backgroundColor:
-                    showCount ? CustomColors.productNormal : Colors.transparent,
-                textColor: CustomColors.fillWhite,
-                isLabelVisible: showUpload || showCount,
-                label: showUpload
-                    ? const Icon(
-                        CupertinoIcons.cloud_upload_fill,
-                        color: CustomColors.warningActive,
-                      )
-                    : showCount
-                        ? Text('$_totalSubmissions')
-                        : null,
-                child: const Icon(Icons.history)),
-            text: 'History',
-          ),
-          const Tab(
-            icon: Icon(Icons.settings_outlined),
-            text: 'Settings',
-          ),
-        ],
       ),
     );
   }

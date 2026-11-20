@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/screens/home/data/experiment.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/theme/components/buttons.dart';
@@ -136,6 +137,7 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                             children: Wrap(children: [
                               Center(
                                 child: Text(
+                                  textScaler: getAdaptiveTextScaler(context),
                                   "View Details",
                                   style: CustomTypography()
                                       .button(color: CustomColors.textWhite),
@@ -160,7 +162,9 @@ class _SettingsStudyDetailsState extends State<SettingsStudyDetails> {
                                 horizontal: 24.0, vertical: 8.0),
                             children: Wrap(children: [
                               Center(
-                                child: Text("Update Study",
+                                child: Text(
+                                  textScaler: getAdaptiveTextScaler(context),
+                                    "Update Study",
                                     style: CustomTypography().button(
                                       color: CustomColors.productNormal,
                                     )),

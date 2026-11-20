@@ -137,13 +137,20 @@ class _NotificationAccessPageState extends State<NotificationAccessPage>
                             left: 16.0, right: 16.0, bottom: 34.0),
                         child: Column(
                           children: [
-                            Text(
-                              textScaler: getAdaptiveTextScaler(context),
-                              granted != null && granted == true
-                                  ? "Make sure you have sound on to catch these alerts on time"
-                                  : "Turn on notifications for timely reminders!",
-                              style: CustomTypography()
-                                  .headlineLarge(color: CustomColors.textWhite),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final headline = granted == true
+                                    ? "Make sure you have sound on to catch these alerts on time"
+                                    : "Turn on notifications for timely reminders!";
+                                final style = CustomTypography().headlineLarge(
+                                    color: CustomColors.textWhite);
+                                return Text(
+                                  headline,
+                                  style: style,
+                                  textScaler: getWordSafeTextScaler(context,
+                                      headline, style, constraints.maxWidth),
+                                );
+                              },
                             ),
                             const SizedBox(height: 40.0),
                             illustrations(width)

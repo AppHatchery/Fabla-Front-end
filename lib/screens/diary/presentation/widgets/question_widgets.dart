@@ -98,7 +98,7 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
             widget.isSliderEnabled
                 ? SizedBox.shrink()
                 : Text(
-              textScaler: getAdaptiveTextScaler(context),
+                    textScaler: getAdaptiveTextScaler(context),
                     "Selected value: ${_value.round().toString()}",
                     style: CustomTypography().titleSmall(),
                   ),
@@ -126,8 +126,8 @@ class _SliderQuestionCardState extends State<SliderQuestionCard> {
                           : CustomColors.fillDisabled,
                       inactiveTrackColor: CustomColors.fillDisabled,
                       activeTickMarkColor: CustomColors.productNormal,
-                      inactiveTickMarkColor:
-                          CustomColors.textNormalContent.withValues(alpha: 0.35),
+                      inactiveTickMarkColor: CustomColors.textNormalContent
+                          .withValues(alpha: 0.35),
                       overlayShape: SliderComponentShape.noOverlay,
                       valueIndicatorColor: CustomColors.productNormal,
                       trackHeight: getAdaptiveTextScaler(context).scale(4),
@@ -245,7 +245,7 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
               child: Material(
                   color: Colors.transparent,
                   child: CheckboxListTile(
-                    title: Text(
+                    title: WordSafeText(
                       widget.options[index],
                       style: CustomTypography().button(
                           color:
@@ -279,7 +279,8 @@ class _MultipleQuestionState extends State<MultipleQuestion> {
                         });
                       }
                     },
-                    checkboxScaleFactor: getAdaptiveTextScaler(context).scale(1),
+                    checkboxScaleFactor:
+                        getAdaptiveTextScaler(context).scale(1),
                   ))),
           const SizedBox(
             height: 12,
@@ -334,7 +335,7 @@ class _RadioQuestionState extends State<RadioQuestion> {
               child: Material(
                   color: Colors.transparent,
                   child: RadioListTile<String>(
-                    title: Text(
+                    title: WordSafeText(
                       widget.options[index],
                       style: CustomTypography().button(
                           color: !widget.disabled
@@ -356,6 +357,7 @@ class _RadioQuestionState extends State<RadioQuestion> {
                         widget.onChanged(value);
                       }
                     },
+                    radioScaleFactor: getAdaptiveTextScaler(context).scale(1),
                   ))),
           const SizedBox(
             height: 12,
@@ -588,7 +590,7 @@ class _RadioQuestionSummaryState extends State<RadioQuestionSummary> {
   @override
   Widget build(BuildContext context) {
     return RadioListTile<String>(
-      title: Text(
+      title: WordSafeText(
         widget.selectedOption ?? "",
         style: CustomTypography()
             .bodyLarge(color: CustomColors.textSecondaryContent),
@@ -624,7 +626,7 @@ class _MultipleQuestionSummaryState extends State<MultipleQuestionSummary> {
       itemCount: widget.answers.length,
       itemBuilder: (context, index) {
         return CheckboxListTile(
-          title: Text(
+          title: WordSafeText(
             widget.answers[index],
             style: CustomTypography()
                 .bodyLarge(color: CustomColors.textSecondaryContent),
@@ -763,6 +765,7 @@ class _FreeTextQuestionSummaryState extends State<FreeTextQuestionSummary> {
             ]),
         child: ListTile(
           title: Text(
+            textScaler: getAdaptiveTextScaler(context),
             widget.answer,
             style: CustomTypography()
                 .bodyLarge(color: CustomColors.textSecondaryContent),
@@ -899,6 +902,7 @@ class _WebViewResponseCardState extends State<WebViewResponseCard> {
                     child: Image.asset("assets/images/icons/check_circle.png"),
                   ),
                   RichText(
+                    textScaler: getAdaptiveTextScaler(context),
                     textAlign: TextAlign.center,
                     text: TextSpan(
                       children: [
@@ -1481,14 +1485,15 @@ class _TimerWidgetState extends State<TimerWidget>
             child: Text(
               "$pickerMinutes min ${pickerSeconds.toString().padLeft(2, '0')} sec",
               style: CustomTypography().titleMedium(
-                  color: CustomColors.textNormalContent.withValues(alpha: 0.64)),
+                  color:
+                      CustomColors.textNormalContent.withValues(alpha: 0.64)),
             ),
           ),
           IconButton(
             onPressed: widget.userInteraction ? _showMinuteSecondPicker : null,
             icon: widget.userInteraction
                 ? const Icon(
-              applyTextScaling: true,
+                    applyTextScaling: true,
                     Icons.edit_outlined,
                     color: CustomColors.productNormal,
                   )
@@ -1573,7 +1578,7 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                           ),
                           Flexible(
                             child: Text(
-                              maxLines: 2,
+                              maxLines: 3,
                               widget.prompt.answer?.recordings.isNotEmpty ??
                                       false
                                   ? 'Add Another Picture'
@@ -1605,7 +1610,7 @@ class _VisualResponseWidgetState extends State<VisualResponseWidget> {
                                       false
                                   ? 'Add Another Video'
                                   : 'Take a Video',
-                              maxLines: 2,
+                              maxLines: 3,
                               style: CustomTypography()
                                   .button(color: CustomColors.textWhite),
                             ),

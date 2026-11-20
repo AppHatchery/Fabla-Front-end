@@ -130,8 +130,8 @@ class _DiarySummaryPageState extends State<DiarySummaryPage>
                         (route) => false,
                       );
                     },
-                    icon: const Icon(applyTextScaling: true, CustomIcons.close),
-                    iconSize: 15.0,
+                    icon: const Icon(CustomIcons.close),
+                    iconSize: getAdaptiveTextScaler(context).scale(15),
                   ),
                   title: FittedBox(
                     fit: BoxFit.scaleDown,

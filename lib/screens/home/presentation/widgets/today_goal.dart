@@ -78,6 +78,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final mascotScale = widget.dailyGoal.isEmpty
+        ? getAdaptiveTextScaler(context).scale(1)
+        : GoalProgressIndicators.ringScale(
+            context, widget.dailyGoal.length, width);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 16,
@@ -128,8 +132,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                       child: Padding(
                         padding: const EdgeInsets.only(top: 5.0),
                         child: SizedBox(
-                          height: getAdaptiveTextScaler(context).scale(120),
-                          width: getAdaptiveTextScaler(context).scale(180),
+                          // Shrink with the rings so the mascot never
+                          // covers the innermost ring.
+                          height: 120 * mascotScale,
+                          width: 180 * mascotScale,
                           child: _riveController != null
                               ? RiveWidget(
                                   controller: _riveController!,

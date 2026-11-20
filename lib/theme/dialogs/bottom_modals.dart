@@ -2944,16 +2944,15 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        constraints: const BoxConstraints(maxHeight: 70, maxWidth: 70),
         width: getAdaptiveTextScaler(context).scale(64),
         height: getAdaptiveTextScaler(context).scale(64),
         decoration: BoxDecoration(
           border: Border.all(width: 2, color: borderColor),
           borderRadius: BorderRadius.circular(100),
         ),
-        child: Icon(
-            applyTextScaling: true,
-            icon,
-            size: 24,
+        child: Icon(icon,
+            size: getAdaptiveTextScaler(context).scale(24),
             color: CustomColors.fillWhite),
       ),
     );
@@ -2963,6 +2962,7 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     return GestureDetector(
       onTap: widget.showTimeUpOverlay ? widget.onStop : widget.onPauseResume,
       child: Container(
+        constraints: const BoxConstraints(maxHeight: 100, maxWidth: 100),
         width: getAdaptiveTextScaler(context).scale(80),
         height: getAdaptiveTextScaler(context).scale(80),
         decoration: BoxDecoration(
@@ -2971,23 +2971,20 @@ class _BottomTimerModalState extends State<BottomTimerModal>
         ),
         child: Center(
           child: widget.showTimeUpOverlay
-              ? const Icon(
-                  applyTextScaling: true,
+              ? Icon(
                   CupertinoIcons.checkmark_alt,
-                  size: 40,
+                  size: getAdaptiveTextScaler(context).scale(40),
                   color: CustomColors.productNormal,
                 )
               : (widget.isRunning && !widget.isPaused)
-                  ? const Icon(
-                      applyTextScaling: true,
+                  ? Icon(
                       CupertinoIcons.pause_fill,
-                      size: 40,
+                      size: getAdaptiveTextScaler(context).scale(40),
                       color: CustomColors.warningActive,
                     )
-                  : const Icon(
-                      applyTextScaling: true,
+                  : Icon(
                       CupertinoIcons.play_fill,
-                      size: 40,
+                      size: getAdaptiveTextScaler(context).scale(40),
                       color: CustomColors.productNormal,
                     ),
         ),

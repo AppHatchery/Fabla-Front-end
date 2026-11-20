@@ -12,8 +12,13 @@ import '../../../home/data/study.dart';
 import '../../data/diary.dart';
 
 class CustomCalender extends StatefulWidget {
+  /// Where diaries and studies come from. Defaults to the app's
+  /// [DiaryRepository]; tests pass a fake so no database is needed.
+  final DiaryRepository? repository;
+
   const CustomCalender({
     super.key,
+    this.repository,
   });
 
   @override
@@ -28,7 +33,8 @@ class _CustomCalenderState extends State<CustomCalender> {
   late List<DiaryModel> diaries;
   late bool isBeforeToday;
   late List<DiaryModel> diaryList;
-  final DiaryRepository repository = DiaryRepository();
+  late final DiaryRepository repository =
+      widget.repository ?? DiaryRepository();
   Map<DateTime, List<String>>? events = {};
   late List<StudyModel> studies;
 
@@ -48,25 +54,24 @@ class _CustomCalenderState extends State<CustomCalender> {
 
   @override
   Widget build(BuildContext context) {
-    final scaler = MediaQuery.of(context).textScaler;
+    // Same cap as the rest of the app; AdaptiveTextScaleScope below applies
+    // it to every Text and Icon inside the calendar.
+    final scaler = getAdaptiveTextScaler(context);
     final scaled = scaler.scale(56);
     final rowHeight = scaled < 100
         ? 60.0
         : scaled < 130
             ? 72.0
             : 80.0;
-    const minCalendarWidth = 7 * 48.0 + 4;
 
     final today =
         DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    return LayoutBuilder(builder: (context, constraints) {
-      final narrowCalendar = !constraints.hasBoundedWidth ||
-          constraints.maxWidth < minCalendarWidth;
-      final calendarWidth =
-          narrowCalendar ? minCalendarWidth : constraints.maxWidth;
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Container(
+    return AdaptiveTextScaleScope(
+        child: LayoutBuilder(builder: (context, constraints) {
+      // Fit the width we're given. CalendarDayCircle shrinks the numbers to
+      // fit narrow cells, so all seven days and both arrows stay visible.
+      final calendarWidth = constraints.maxWidth;
+      return Container(
           width: calendarWidth,
           decoration: BoxDecoration(
               color: CustomColors.fillWhite,
@@ -80,9 +85,7 @@ class _CustomCalenderState extends State<CustomCalender> {
             lastDay: DateTime.utc(2060, 3, 14),
             focusedDay: focusedDay,
             currentDay: today,
-            availableGestures: narrowCalendar
-                ? AvailableGestures.none
-                : AvailableGestures.horizontalSwipe,
+            availableGestures: AvailableGestures.horizontalSwipe,
             headerStyle: const HeaderStyle(
                 titleCentered: false,
                 formatButtonVisible: false,
@@ -113,10 +116,20 @@ class _CustomCalenderState extends State<CustomCalender> {
                     Flexible(
                       child: Padding(
                         padding: const EdgeInsets.only(left: 20),
-                        child: Text(
-                          getMonthYear(day),
-                          style: CustomTypography().titleSmall(
-                              color: CustomColors.textSecondaryContent),
+                        child: LayoutBuilder(
+                          builder: (context, titleConstraints) {
+                            final title = getMonthYear(day) as String;
+                            final style = CustomTypography().titleSmall(
+                                color: CustomColors.textSecondaryContent);
+                            // Shrinks just enough that the month name never
+                            // breaks mid-word.
+                            return Text(
+                              title,
+                              style: style,
+                              textScaler: getWordSafeTextScaler(context, title,
+                                  style, titleConstraints.maxWidth),
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -160,10 +173,12 @@ class _CustomCalenderState extends State<CustomCalender> {
                               width: 0.6,
                               color: CustomColors.productBorderNormal))),
                   child: Center(
-                    child: Text(
-                      DateFormat.E().format(day)[0],
-                      style: CustomTypography()
-                          .titleSmall(color: CustomColors.textSecondaryContent),
+                    child: FittedBox(
+                      child: Text(
+                        DateFormat.E().format(day)[0],
+                        style: CustomTypography().titleSmall(
+                            color: CustomColors.textSecondaryContent),
+                      ),
                     ),
                   ),
                 );
@@ -222,9 +237,8 @@ class _CustomCalenderState extends State<CustomCalender> {
               },
             ),
           ),
-        ),
-      );
-    });
+        );
+    }));
   }
 
   getMonthYear(DateTime day) {

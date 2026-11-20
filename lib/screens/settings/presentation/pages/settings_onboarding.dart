@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/cubit/settings_cubit.dart';
@@ -51,13 +52,17 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
         appBar: AppBar(
           backgroundColor: CustomColors.fillNormal,
           scrolledUnderElevation: 0.0,
-          title: Text(
-            "Participant Details",
-            style: CustomTypography().titleLarge(),
+          title: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              textScaler: getAdaptiveTextScaler(context),
+              "Participant Details",
+              style: CustomTypography().titleLarge(),
+            ),
           ),
           centerTitle: true,
           leading: IconButton(
-            key: Key("back_button"),
+              key: Key("back_button"),
               onPressed: () => Navigator.pop(context, updated),
               icon: FittedBox(
                 child: Icon(
@@ -84,9 +89,10 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
                       child: Padding(
                         padding: const EdgeInsets.only(top: 6, bottom: 12),
                         child: Text(
+                          textScaler: getAdaptiveTextScaler(context),
                           "Important Note",
-                          style: CustomTypography()
-                              .titleLarge(color: CustomColors.textNormalContent),
+                          style: CustomTypography().titleLarge(
+                              color: CustomColors.textNormalContent),
                         ),
                       ),
                     ),
@@ -151,6 +157,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
+                  textScaler: getAdaptiveTextScaler(context),
                   "Question ${index + 1}",
                   style: CustomTypography().titleLarge(),
                 ),
@@ -180,6 +187,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
+                  textScaler: getAdaptiveTextScaler(context),
                   question.title,
                   style: CustomTypography()
                       .titleLarge(color: CustomColors.textNormalContent),
@@ -193,7 +201,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
             ),
           ),
           IconButton(
-            key: Key("edit_icon_button"),
+              key: Key("edit_icon_button"),
               onPressed: () => edit(question, index),
               icon: Icon(
                 applyTextScaling: true,
@@ -239,10 +247,12 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
         return ans;
     }
   }
+
   void edit(Questions question, int index) async {
     if (question.type == "time") {
       final time = timeOfDayFromString(question.answer!);
       final _time = await showModalBottomSheet(
+          useSafeArea: true,
           backgroundColor: CustomColors.fillWhite,
           isScrollControlled: true,
           enableDrag: false,
@@ -265,6 +275,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
       }
     } else if (question.type == 'text') {
       final result = await showModalBottomSheet(
+          useSafeArea: true,
           backgroundColor: CustomColors.fillWhite,
           isScrollControlled: true,
           enableDrag: false,
@@ -290,6 +301,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
       }
     } else if (question.type == 'slider') {
       final result = await showModalBottomSheet(
+          useSafeArea: true,
           backgroundColor: CustomColors.fillWhite,
           isScrollControlled: true,
           enableDrag: false,
@@ -323,6 +335,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
               .toList()
           : <String>[];
       final result = await showModalBottomSheet(
+          useSafeArea: true,
           backgroundColor: CustomColors.fillWhite,
           isScrollControlled: true,
           enableDrag: false,
@@ -345,6 +358,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
       }
     } else if (question.type == 'radio') {
       final result = await showModalBottomSheet(
+          useSafeArea: true,
           backgroundColor: CustomColors.fillWhite,
           isScrollControlled: true,
           enableDrag: false,
@@ -370,6 +384,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
           : null;
 
       final result = await showModalBottomSheet(
+          useSafeArea: true,
           backgroundColor: CustomColors.fillWhite,
           isScrollControlled: true,
           enableDrag: false,

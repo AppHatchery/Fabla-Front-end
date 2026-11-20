@@ -967,29 +967,18 @@ class WarningPopUp extends StatelessWidget {
               ),
 
               // Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context),
-                      text: "Cancel",
-                      color: CustomColors.greyLight,
-                      borderColor: CustomColors.greyLight,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context),
-                      text: "Change Response",
-                      color: CustomColors.warningActive,
-                      borderColor: CustomColors.warningActive,
-                    ),
-                  ),
-                ],
-              )
+              CustomFlatButton(
+                onClick: () => Navigator.pop(context),
+                text: "Cancel",
+                color: CustomColors.greyLight,
+                borderColor: CustomColors.greyLight,
+              ),
+              CustomFlatButton(
+                onClick: () => Navigator.pop(context),
+                text: "Change Response",
+                color: CustomColors.warningActive,
+                borderColor: CustomColors.warningActive,
+              ),
             ],
           ),
         ),
@@ -1148,7 +1137,6 @@ class DeletePopUp extends StatelessWidget {
                 borderColor: CustomColors.warningActive,
                 textColor: CustomColors.warningActive,
               ),
-              const SizedBox(width: 18),
               CustomFlatButton(
                 onClick: () => Navigator.pop(context, false),
                 text: "Cancel",
@@ -1574,17 +1562,16 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
   List<Widget> _buildAvailable() {
     return [
       Container(
-        width: 60,
-        height: 60,
+        width: getAdaptiveTextScaler(context).scale(60),
+        height: getAdaptiveTextScaler(context).scale(60),
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
           color: CustomColors.productLightPrimaryActive,
         ),
-        child: const Center(
+        child: Center(
           child: Icon(
-              applyTextScaling: true,
               Icons.sync_rounded,
-              size: 40,
+              size: getAdaptiveTextScaler(context).scale(40),
               color: CustomColors.productNormal),
         ),
       ),
@@ -1684,7 +1671,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         child: Padding(
           padding: EdgeInsets.all(5.0),
           child: CircularProgressIndicator(
-            strokeWidth: 5,
+            strokeWidth: getAdaptiveTextScaler(context).scale(5),
             color: CustomColors.productNormal,
             strokeCap: StrokeCap.round,
           ),

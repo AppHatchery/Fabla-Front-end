@@ -131,29 +131,28 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
                             const SizedBox(height: 12),
                             SizedBox(
                               child: Row(
-                                mainAxisAlignment:
-                                MainAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    height: getAdaptiveTextScaler(context).scale(45),
-                                    decoration: ShapeDecoration(
-                                      color: CustomColors.pumpkinOrange,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                        BorderRadius.circular(11),
+                                  Flexible(
+                                    child: Container(
+                                      constraints: BoxConstraints(
+                                        minHeight: getAdaptiveTextScaler(context).scale(45),
                                       ),
-                                    ),
-                                    child: TextButton(
-                                      onPressed: () => launchEmail(),
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
+                                      decoration: ShapeDecoration(
+                                        color: CustomColors.pumpkinOrange,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(11),
+                                        ),
+                                      ),
+                                      child: TextButton(
+                                        onPressed: () => launchEmail(),
                                         child: Text(
-                                          textScaler: getAdaptiveTextScaler(context),
                                           "Contact Researcher",
-                                          style: CustomTypography()
-                                              .bodyLarge(
-                                            color:
-                                            CustomColors.fillVanilla,
+                                          maxLines: 2,
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
+                                          textScaler: getAdaptiveTextScaler(context),
+                                          style: CustomTypography().bodyLarge(
+                                            color: CustomColors.fillVanilla,
                                             weight: FontWeight.w400,
                                           ),
                                         ),

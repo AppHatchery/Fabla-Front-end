@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:flutter/material.dart';
 
 import '../custom_typography.dart';
@@ -27,6 +28,7 @@ class _CustomCheckboxState extends State<CustomCheckbox> {
   @override
   Widget build(BuildContext context) {
     return CheckboxListTile(
+      checkboxScaleFactor: getAdaptiveTextScaler(context).scale(1),
       value: widget.value,
       onChanged: widget.onChanged,
       title: Text(widget.label.toString(), style: CustomTypography().button()),

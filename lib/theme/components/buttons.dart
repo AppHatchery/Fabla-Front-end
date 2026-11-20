@@ -71,7 +71,7 @@ class CustomElevatedButton extends StatelessWidget {
                     horizontal: 10.0, vertical: 12.0),
                 child: Center(
                     child: Text(
-                      textScaler: getAdaptiveTextScaler(context),
+                        textScaler: getAdaptiveTextScaler(context),
                         text.toString(),
                         style: CustomTypography().button(
                           color: isDisabled
@@ -290,47 +290,45 @@ class CustomFlatButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6.0),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: isDisabled ? CustomColors.fillDisabled : color,
-            borderRadius: BorderRadius.circular(12),
-            shape: BoxShape.rectangle,
-            border: Border.all(
-                color: isDisabled ? CustomColors.fillDisabled : borderColor,
-                width: 1),
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            splashColor: borderColor.withAlpha(50),
-            highlightColor: borderColor.withAlpha(50),
-            onTap: isDisabled
-                ? null
-                : () => {
-                      if (onClick != null) {onClick!()}
-                    },
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 48.0),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10.0, vertical: 12.0),
-                child: Center(
-                    child: Text(
-                  text.toString(),
-                  style: CustomTypography()
-                      .button(
-                        color: isDisabled ? CustomColors.greyDark : textColor,
-                      )
-                      .copyWith(fontSize: buttonFontSize),
-                )),
+        color: Colors.transparent,
+        child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6.0),
+            child: Ink(
+              decoration: BoxDecoration(
+                color: isDisabled ? CustomColors.fillDisabled : color,
+                borderRadius: BorderRadius.circular(12),
+                shape: BoxShape.rectangle,
+                border: Border.all(
+                    color: isDisabled ? CustomColors.fillDisabled : borderColor,
+                    width: 1),
               ),
-            ),
-          ),
-        ),
-      ),
-    );
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                splashColor: borderColor.withAlpha(50),
+                highlightColor: borderColor.withAlpha(50),
+                onTap: isDisabled
+                    ? null
+                    : () => {
+                          if (onClick != null) {onClick!()}
+                        },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10.0, vertical: 14.0),
+                  child: Center(
+                    child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
+                      text.toString(),
+                      style: CustomTypography()
+                          .button(
+                            color:
+                                isDisabled ? CustomColors.greyDark : textColor,
+                          )
+                          .copyWith(fontSize: buttonFontSize),
+                    ),
+                  ),
+                ),
+              ),
+            )));
   }
 }
 
@@ -497,6 +495,7 @@ class CustomTextAnswerButton extends StatelessWidget {
                   ),
                   Flexible(
                     child: Text(
+                     textScaler:  getAdaptiveTextScaler(context),
                       text.toString(),
                       style: CustomTypography()
                           .button(color: CustomColors.productNormal),
@@ -588,12 +587,9 @@ class CustomOutlineButton extends StatelessWidget {
         child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: isDisabled ?? false ? null : () => onClick(),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 48.0),
-              child: Padding(
-                padding: padding,
-                child: Container(child: children),
-              ),
+            child: Padding(
+              padding: padding,
+              child: Container(child: children),
             )),
       ),
     );
