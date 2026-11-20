@@ -40,8 +40,10 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
     final minuteIndex = initial.minute ~/ widget.minuteInterval;
     _date = initial.replacing(minute: minuteIndex * widget.minuteInterval);
     hoursController = FixedExtentScrollController(
-      // Item n shows hour n + 1, so 12 o'clock is item 11.
       initialItem: (_date.hour % 12) == 0 ? 11 : (_date.hour % 12) - 1,
+    );
+    minutesController = FixedExtentScrollController(
+      initialItem: _date.minute,
     );
     minutesController = FixedExtentScrollController(initialItem: minuteIndex);
     periodController = FixedExtentScrollController(

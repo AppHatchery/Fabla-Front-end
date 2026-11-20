@@ -55,7 +55,7 @@ dependencies:
   camera: ^0.12.0+1
 
   #Location
-  location: ^8.0.1
+  location: ^10.0.2
 
   #internal storage
   path_provider: ^2.1.5
@@ -92,7 +92,7 @@ dependencies:
   flutter_local_notifications: ^21.0.0
 
   #Notification
-  awesome_notifications: ^0.11.0
+  awesome_notifications: ^0.12.1
 
   #URL Launcher
   url_launcher: ^6.3.2
@@ -101,7 +101,7 @@ dependencies:
   webview_flutter: ^4.13.1
 
   #Pendo
-  pendo_sdk: ^3.13.1
+  pendo_sdk: ^3.14.5
 
   #Splash
   flutter_native_splash: ^2.4.7
@@ -112,8 +112,8 @@ dependencies:
   wakelock_plus: ^1.6.0
   firebase_analytics: ^12.4.0
   package_info_plus: ^10.1.0
-  flutter_keyboard_visibility: ^6.0.0
-  alarm: ^5.2.1
+  flutter_keyboard_visibility: ^7.0.1
+  alarm: ^5.15.0
   gradient_borders: ^1.0.2
   popover: ^0.4.0
   mockito: ^5.6.4

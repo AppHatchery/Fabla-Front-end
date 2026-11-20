@@ -283,11 +283,28 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
           text: widget.question.type == 'text' ? answer : null);
       animationURL = getAnimationAssets();
     });
+    // Rebuild so the Continue button tracks typed text.
+    textEditingController.addListener(_onTextChanged);
     super.initState();
+  }
+
+  void _onTextChanged() {
+    if (mounted) setState(() {});
+  }
+
+  /// Whether the current question has a usable answer. Text questions are
+  /// judged by the field contents; every other type by [answer].
+  bool get _hasAnswer {
+    if (widget.question.type == 'text') {
+      return textEditingController.text.trim().isNotEmpty;
+    }
+    final value = answer;
+    return value != null && value.isNotEmpty && value != '[]';
   }
 
   @override
   void dispose() {
+    textEditingController.removeListener(_onTextChanged);
     textEditingController.dispose();
     _questionTrigger?.dispose();
     super.dispose();
@@ -380,7 +397,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
                                         ? textEditingController.text
                                         : answer)
                               },
-                          // isDisabled: answer != null || textEditingController.text.isNotEmpty,
+                          isDisabled: !_hasAnswer,
                           text: "Continue"),
                     ),
                   ],
@@ -482,7 +499,7 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
         subtitle: question.subtitle,
         onChanged: (String time) {
           setState(() {
-            answer = '$time:00'; // TODO Find better way of adding seconds
+            answer = time;
           });
         },
       ));

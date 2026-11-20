@@ -244,6 +244,34 @@ class MockSetupRepository extends _i1.Mock implements _i6.SetupRepository {
         ),
         returnValue: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
+
+  @override
+  _i7.Future<void> markExperimentUpToDate() => (super.noSuchMethod(
+        Invocation.method(
+          #markExperimentUpToDate,
+          [],
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+
+  @override
+  _i7.Future<bool> updateExperimentDaily() => (super.noSuchMethod(
+        Invocation.method(
+          #updateExperimentDaily,
+          [],
+        ),
+        returnValue: _i7.Future<bool>.value(false),
+      ) as _i7.Future<bool>);
+
+  @override
+  _i7.Future<bool> updateExperiment() => (super.noSuchMethod(
+        Invocation.method(
+          #updateExperiment,
+          [],
+        ),
+        returnValue: _i7.Future<bool>.value(false),
+      ) as _i7.Future<bool>);
 }
 
 /// A class which mocks [PreferenceService].

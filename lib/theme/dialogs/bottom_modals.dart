@@ -437,6 +437,110 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                 children: [SizedBox(width: gap), trailing],
               ),
             ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (!isCompleted) ...[
+                // When stopped initially: Show mic
+                if (!recordingState.isRecording && !recordingState.isPaused)
+                  Container(
+                    height: 68,
+                    width: 68,
+                    decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      borderRadius: BorderRadius.circular(42),
+                    ),
+                    child: _buildControlButton(
+                      icon: Icons.mic,
+                      size: 34,
+                      onPressed: () => unawaited(record()),
+                      color: CustomColors.warningActive,
+                    ),
+                  )
+                else
+                  // When recording or paused
+                  ...[
+                  SizedBox(width: recordingState.isRecording ? 90 : 130),
+                  // Stop button
+                  Container(
+                    height: recordingState.isPaused ? 40 : 68,
+                    width: recordingState.isPaused ? 40 : 68,
+                    decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      borderRadius: BorderRadius.circular(42),
+                    ),
+                    child: _buildControlButton(
+                      icon: CupertinoIcons.stop_fill,
+                      size: recordingState.isPaused ? 24 : 34,
+                      onPressed: recordingState.elapsed < const Duration(seconds: 1)
+                          ? null
+                          : () => unawaited(_recordingService.stop()),
+                      color: CustomColors.warningActive,
+                    ),
+                  ),
+                  const SizedBox(width: 50),
+                  // Pause/Resume (right - swaps size)
+                  Container(
+                    height: recordingState.isPaused ? 68 : 40,
+                    width: recordingState.isPaused ? 68 : 40,
+                    decoration: BoxDecoration(
+                      color: recordingState.isRecording
+                          ? CustomColors.fillWhite
+                          : CustomColors.warningActive,
+                      borderRadius: BorderRadius.circular(42),
+                    ),
+                    child: _buildControlButton(
+                      icon: recordingState.isPaused
+                          ? Icons.mic
+                          : CupertinoIcons.pause_fill,
+                      color: recordingState.isPaused
+                          ? CustomColors.fillWhite
+                          : CustomColors.productNormal,
+                      size: recordingState.isPaused ? 34 : 24,
+                      onPressed: () => unawaited(record()),
+                    ),
+                  ),
+                ],
+              ] else ...[
+                // Checkmark button (left)
+                SizedBox(width: 90),
+                Container(
+                  height: 68,
+                  width: 68,
+                  decoration: BoxDecoration(
+                    color: CustomColors.fillWhite,
+                    borderRadius: BorderRadius.circular(42),
+                  ),
+                  child: _buildControlButton(
+                    icon: CupertinoIcons.checkmark_alt,
+                    size: 34,
+                    onPressed: () => unawaited(save()),
+                    color: CustomColors.productNormal,
+                  ),
+                ),
+                const SizedBox(width: 50),
+                // Redo button (right)
+                Container(
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: CustomColors.fillWhite,
+                    borderRadius: BorderRadius.circular(42),
+                  ),
+                  child: Transform.rotate(
+                    angle: -40 * pi / 180,
+                    child: _buildControlButton(
+                      icon: CupertinoIcons.refresh_bold,
+                      size: 24,
+                      onPressed: () => unawaited(redo()),
+                      color: CustomColors.productNormal,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ],
@@ -540,7 +644,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
 
   Widget _buildControlButton({
     required IconData icon,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
     required int size,
     required color,
   }) {

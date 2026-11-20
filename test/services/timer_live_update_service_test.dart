@@ -215,7 +215,7 @@ void main() {
 
       setIOSHandler((call) async {
         iosCalls.add(call);
-        return null;
+        return call.method == 'checkLiveActivityPermission' ? true : null;
       });
     });
 
@@ -226,11 +226,23 @@ void main() {
 
       await service.start(endDate, const Duration(minutes: 1));
 
-      expect(iosCalls.single.method, 'start');
-      expect(iosCalls.single.arguments, <String, dynamic>{
+      expect(iosCalls.map((c) => c.method),
+          ['checkLiveActivityPermission', 'start']);
+      expect(iosCalls.last.arguments, <String, dynamic>{
         'endDateMillis': 1700000000000.0,
         'totalDurationMillis': 60000.0,
       });
+    });
+
+    test('start is skipped when Live Activities are disabled', () async {
+      setIOSHandler((call) async {
+        iosCalls.add(call);
+        return false;
+      });
+
+      await service.start(DateTime.now(), const Duration(minutes: 1));
+
+      expect(iosCalls.map((c) => c.method), ['checkLiveActivityPermission']);
     });
 
     test('updateRunning sends the end date with isPaused false', () async {
@@ -303,7 +315,7 @@ void main() {
 
       setIOSHandler((call) async {
         iosCalls.add(call);
-        return null;
+        return call.method == 'checkLiveActivityPermission' ? true : null;
       });
     });
 

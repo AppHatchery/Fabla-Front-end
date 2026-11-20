@@ -91,6 +91,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                   Positioned(
                     bottom: 0,
                     child: Container(
+                      key: const Key('weekly_goal_progress_bar'),
                       width: progressBarWidth,
                       height: getAdaptiveTextScaler(context).scale(6),
                       decoration: BoxDecoration(
@@ -159,11 +160,8 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
         : totalPossibleEntries;
     currentEntries = totalCurrentEntries;
     progressValue = (currentEntries / weeklyGoal) * width;
-    progressBarWidth = progressValue.isNaN
-        ? 0
-        : (progressValue > width)
-            ? width
-            : progressValue;
+    progressBarWidth =
+        progressValue.isFinite ? progressValue.clamp(0.0, width) : 0.0;
     //calculate the lower goal width/value
     lowerValue = (0.7 * weeklyGoal).round();
     lowerGoal = (lowerValue / weeklyGoal) * width;

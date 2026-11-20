@@ -271,7 +271,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
               }));
 
       if (_time != null) {
-        update(question, '$_time:00');
+        update(question, _time);
       }
     } else if (question.type == 'text') {
       final result = await showModalBottomSheet(

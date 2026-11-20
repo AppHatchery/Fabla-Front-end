@@ -480,6 +480,8 @@ class _StudyIncentiveState extends State<StudyIncentive> {
             // Progress is how much has been acquired
             // Bonus is how much is required to get the bonus
             final double _progress = (acquired / total) * max;
+            final double realProgress =
+                _progress.isFinite ? _progress : 0.0;
             final double _bonus =
                 (bonusEntriesRequired / totalEntriesRequired) * max;
 
@@ -550,7 +552,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
-                      width: _progress,
+                      width: realProgress,
                       height: getAdaptiveTextScaler(context).scale(6),
                       decoration: BoxDecoration(
                         color: color,

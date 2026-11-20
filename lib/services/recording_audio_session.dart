@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 /// How the audio system took capture away from a take.
 ///
@@ -37,6 +38,9 @@ class RecordingAudioSession {
   StreamSubscription<AudioInterruptionEvent>? _interruptionSubscription;
   StreamSubscription<AudioDevicesChangedEvent>? _devicesChangedSubscription;
   StreamSubscription<void>? _becomingNoisySubscription;
+
+  /// `'!pri'`, AVAudioSessionErrorCodeInsufficientPriority.
+  static const _insufficientPriorityCode = '561017449';
 
   final Set<String> _inputDeviceIds = {};
 
@@ -93,11 +97,20 @@ class RecordingAudioSession {
 
       return active;
     } catch (e, s) {
-      CrashlyticsService().recordError(
-        e,
-        s,
-        reason: 'Audio session activation failed',
-      );
+      // Another client outranks us, typically a call or another app's audio.
+      // The caller already surfaces it as "microphone unavailable", so it is a
+      // breadcrumb, not an error worth a report.
+      if (e is PlatformException && e.code == _insufficientPriorityCode) {
+        CrashlyticsService().log(
+          'Audio session activation refused: another client holds the session',
+        );
+      } else {
+        CrashlyticsService().recordError(
+          e,
+          s,
+          reason: 'Audio session activation failed',
+        );
+      }
 
       return false;
     }
