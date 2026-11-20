@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:audio_diaries_flutter/core/usecases/calendar.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -5,6 +7,7 @@ import 'package:audio_diaries_flutter/screens/diary/domain/repository/diary_repo
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/empty_state.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
+import 'package:audio_diaries_flutter/theme/components/calendar.dart';
 import 'package:audio_diaries_flutter/theme/components/cards.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -15,16 +18,29 @@ import 'package:popover/popover.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:rive/rive.dart' as rive;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class StudyCalendar extends StatefulWidget {
   final List<StudyModel> studies;
   final ValueChanged<bool> refresh;
   final String Function() getPageName;
+
+  /// Where diaries come from. Defaults to the app's [DiaryRepository];
+  /// tests pass a fake so no database is needed.
+  final DiaryRepository? repository;
+
+  /// Whether to load and play the Rive animation. Tests pass false: there is
+  /// no Rive renderer in `flutter test`, and loading a .riv file there aborts
+  /// the test process (SIGABRT), which no try/catch can stop.
+  final bool showRiveAnimation;
 
   const StudyCalendar({
     super.key,
     required this.studies,
     required this.refresh,
     required this.getPageName,
+    this.repository,
+    this.showRiveAnimation = true,
   });
 
   @override
@@ -39,7 +55,8 @@ class _StudyCalendarState extends State<StudyCalendar> {
   late List<DiaryModel> diaries; // Diaries for today
   late bool isBeforeToday;
   late List<DiaryModel> diaryList; // All the diaries
-  final DiaryRepository repository = DiaryRepository();
+  late final DiaryRepository repository =
+      widget.repository ?? DiaryRepository();
   Map<DateTime, List<String>>? events = {};
   Set<DateTime> activeDates = {};
   late List<StudyModel> studies;
@@ -63,7 +80,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
     studies = widget.studies;
 
     track();
-    _loadRive();
+    if (widget.showRiveAnimation) _loadRive();
     super.initState();
   }
 
@@ -82,7 +99,10 @@ class _StudyCalendarState extends State<StudyCalendar> {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
 
-    return SizedBox(
+    // Caps text and text-scaling icons on the whole page (including the
+    // diary cards and the empty state) at the app-wide limit.
+    return AdaptiveTextScaleScope(
+        child: SizedBox(
       height: height,
       width: width,
       child: SingleChildScrollView(
@@ -104,6 +124,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                           child: IconButton(
                               onPressed: () => Navigator.pop(context),
                               icon: const Icon(
+                                applyTextScaling: true,
                                 CupertinoIcons.clear,
                                 color: CustomColors.productNormalActive,
                                 size: 20,
@@ -112,7 +133,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
                       ),
                       Expanded(
                         flex: 2,
-                        child: Text(
+                        child: _WordSafeText(
                           "Study Calendar",
                           style: CustomTypography().titleLarge(
                               color: CustomColors.productNormalActive),
@@ -146,7 +167,7 @@ class _StudyCalendarState extends State<StudyCalendar> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   track() async {
@@ -170,10 +191,18 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   Future<void> _loadRive() async {
-    final file = await rive.File.asset(
-      'assets/animations/ghosts-calendar.riv',
-      riveFactory: rive.Factory.rive,
-    );
+    final rive.File? file;
+    try {
+      file = await rive.File.asset(
+        'assets/animations/ghosts-calendar.riv',
+        riveFactory: rive.Factory.rive,
+      );
+    } catch (e) {
+      // The header animation is decoration: if it can't load, the calendar
+      // still works with an empty header instead of throwing.
+      debugPrint('StudyCalendar: could not load header animation: $e');
+      return;
+    }
     if (file != null && mounted) {
       final controller = rive.RiveWidgetController(
         file,
@@ -208,15 +237,20 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 
   Widget calendar() {
+    // This method runs with the State's context, which sits above the page's
+    // AdaptiveTextScaleScope, so take the capped scaler explicitly.
+    final scaler = getAdaptiveTextScaler(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           spacing: 6,
           children: [
-            Text(
-              "Study Calendar",
-              style: CustomTypography().titleLarge(),
+            Flexible(
+              child: _WordSafeText(
+                "Study Calendar",
+                style: CustomTypography().titleLarge(),
+              ),
             ),
             HelpButton()
           ],
@@ -229,166 +263,174 @@ class _StudyCalendarState extends State<StudyCalendar> {
             shape: BoxShape.rectangle,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
-          child: TableCalendar(
-            firstDay: DateTime.utc(2010, 10, 16),
-            lastDay: DateTime.utc(2060, 3, 14),
-            focusedDay: focusedDay,
-            currentDay: today,
-            availableGestures: AvailableGestures.horizontalSwipe,
-            rowHeight: 54,
-            headerStyle: const HeaderStyle(
-                titleCentered: false,
-                formatButtonVisible: false,
-                rightChevronVisible: false,
-                leftChevronVisible: false),
-            calendarStyle: CalendarStyle(
-              outsideTextStyle: CustomTypography()
-                  .bodyLarge(color: CustomColors.textTertiaryContent),
-              todayDecoration: const BoxDecoration(
-                  color: CustomColors.productNormalActive,
-                  shape: BoxShape.circle),
-            ),
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            daysOfWeekHeight: 45,
-            onDaySelected: _onDaySelected,
-            onCalendarCreated: (controller) {
-              pageController = controller;
-            },
-            eventLoader: getDiariesForDay,
-            calendarBuilders: CalendarBuilders(
-              headerTitleBuilder: (context, day) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20),
-                      child: Text(
-                        getMonthYear(day),
-                        style: CustomTypography().titleSmall(
-                            color: CustomColors.textSecondaryContent),
+          child: LayoutBuilder(
+              builder: (context, constraints) => TableCalendar(
+                    firstDay: DateTime.utc(2010, 10, 16),
+                    lastDay: DateTime.utc(2060, 3, 14),
+                    focusedDay: focusedDay,
+                    currentDay: today,
+                    availableGestures: AvailableGestures.horizontalSwipe,
+                    rowHeight: CalendarDayCircle.rowHeightFor(
+                      preferredRowHeight:
+                          getAdaptiveTextScaler(context).scale(56),
+                      cellWidth: constraints.maxWidth / 7,
+                      baseSize: 33,
+                    ),
+                    headerStyle: const HeaderStyle(
+                        titleCentered: false,
+                        formatButtonVisible: false,
+                        rightChevronVisible: false,
+                        leftChevronVisible: false),
+                    calendarStyle: CalendarStyle(
+                      outsideTextStyle: CustomTypography()
+                          .bodyLarge(color: CustomColors.textTertiaryContent),
+                      todayDecoration: const BoxDecoration(
+                          color: CustomColors.productNormalActive,
+                          shape: BoxShape.circle),
+                    ),
+                    startingDayOfWeek: StartingDayOfWeek.monday,
+                    daysOfWeekHeight: scaler.scale(45),
+                    onDaySelected: _onDaySelected,
+                    onCalendarCreated: (controller) {
+                      pageController = controller;
+                    },
+                    eventLoader: getDiariesForDay,
+                    calendarBuilders: CalendarBuilders(
+                      headerTitleBuilder: (context, day) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 20),
+                                child: _WordSafeText(
+                                  getMonthYear(day) as String,
+                                  style: CustomTypography().titleSmall(
+                                      color: CustomColors.textSecondaryContent),
+                                ),
+                              ),
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  constraints: const BoxConstraints(
+                                      minWidth: 48, minHeight: 48),
+                                  onPressed: () => pageController?.previousPage(
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      curve: Curves.ease),
+                                  icon: const Icon(
+                                      applyTextScaling: true,
+                                      Icons.chevron_left_rounded),
+                                ),
+                                IconButton(
+                                  constraints: const BoxConstraints(
+                                      minWidth: 48, minHeight: 48),
+                                  onPressed: () => pageController?.nextPage(
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      curve: Curves.ease),
+                                  icon: const Icon(
+                                      applyTextScaling: true,
+                                      Icons.chevron_right_rounded),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => pageController?.previousPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.ease),
-                            child: const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: Icon(Icons.chevron_left_rounded)),
+                      dowBuilder: (context, day) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.only(bottom: 8),
+                          decoration: const BoxDecoration(
+                              border: Border(
+                                  bottom: BorderSide(
+                                      width: 0.6,
+                                      color:
+                                          CustomColors.productBorderNormal))),
+                          child: Center(
+                            child: FittedBox(
+                              child: Text(
+                                DateFormat.E().format(day)[0],
+                                style: CustomTypography().titleSmall(
+                                    color: CustomColors.textSecondaryContent),
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 12),
-                          GestureDetector(
-                            onTap: () => pageController?.nextPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.ease),
-                            child: const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: Icon(Icons.chevron_right_rounded)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              dowBuilder: (context, day) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.only(bottom: 8),
-                  decoration: const BoxDecoration(
-                      border: Border(
-                          bottom: BorderSide(
-                              width: 0.6,
-                              color: CustomColors.productBorderNormal))),
-                  child: Center(
-                    child: Text(
-                      DateFormat.E().format(day)[0],
-                      style: CustomTypography()
-                          .titleSmall(color: CustomColors.textSecondaryContent),
-                    ),
-                  ),
-                );
-              },
-              defaultBuilder: (context, day, focusedDay) {
-                final color = selectedDate == day
-                    ? CustomColors.productNormalActive
-                    : null;
+                        );
+                      },
+                      defaultBuilder: (context, day, focusedDay) {
+                        final color = selectedDate == day
+                            ? CustomColors.productNormalActive
+                            : null;
 
-                final isPast = day.isBefore(today);
+                        final isPast = day.isBefore(today);
 
-                final textColor = selectedDate == day
-                    ? CustomColors.textWhite
-                    : isPast
-                        ? CustomColors.textTertiaryContent
-                        : CustomColors.textNormalContent;
-                return Center(
-                  child: Container(
-                    width: 33,
-                    height: 33,
-                    margin: const EdgeInsets.only(bottom: 4),
-                    alignment: Alignment.center,
-                    decoration:
-                        BoxDecoration(shape: BoxShape.circle, color: color),
-                    child: Text(
-                      day.day.toString(),
-                      style: CustomTypography().bodyMedium(color: textColor),
+                        final textColor = selectedDate == day
+                            ? CustomColors.textWhite
+                            : isPast
+                                ? CustomColors.textTertiaryContent
+                                : CustomColors.textNormalContent;
+                        return CalendarDayCircle(
+                          label: day.day.toString(),
+                          style:
+                              CustomTypography().bodyMedium(color: textColor),
+                          color: color,
+                          baseSize: 33,
+                        );
+                      },
+                      outsideBuilder: (context, day, focusedDay) {
+                        return CalendarDayCircle(
+                          label: day.day.toString(),
+                          style: CustomTypography().bodyMedium(
+                              color: CustomColors.textTertiaryContent),
+                          baseSize: 33,
+                        );
+                      },
+                      todayBuilder: (context, date, time) {
+                        final color =
+                            (today == selectedDate || date == selectedDate)
+                                ? CustomColors.productNormalActive
+                                : CustomColors.productLightBackground;
+
+                        final textColor =
+                            (today == selectedDate || date == selectedDate)
+                                ? CustomColors.textWhite
+                                : CustomColors.productNormal;
+                        return CalendarDayCircle(
+                          label: date.day.toString(),
+                          style: CustomTypography().bodyLarge(color: textColor),
+                          color: color,
+                          baseSize: 33,
+                        );
+                      },
+                      singleMarkerBuilder: (context, date, event) {
+                        isBeforeToday = date.isBefore(today);
+                        final isDiaryOnEventSubmitted =
+                            _diaryOnEventSubmitted(date);
+                        final goal = studyGoalCheck(date);
+
+                        final color = isBeforeToday
+                            ? isDiaryOnEventSubmitted
+                                ? CustomColors.productLightPrimaryActive
+                                : CustomColors.productBorderNormal
+                            : goal
+                                ? CustomColors.productNormalActive
+                                : Colors.transparent;
+                        return Container(
+                          width: 7.0,
+                          height: 7.0,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle, color: color),
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 5.0, horizontal: 1.5),
+                        );
+                      },
                     ),
-                  ),
-                );
-              },
-              todayBuilder: (context, date, time) {
-                final color = (today == selectedDate || date == selectedDate)
-                    ? CustomColors.productNormalActive
-                    : CustomColors.productLightBackground;
-
-                final textColor =
-                    (today == selectedDate || date == selectedDate)
-                        ? CustomColors.textWhite
-                        : CustomColors.productNormal;
-                return Center(
-                  child: Container(
-                    width: 33,
-                    height: 33,
-                    margin: const EdgeInsets.only(bottom: 4),
-                    alignment: Alignment.center,
-                    decoration:
-                        BoxDecoration(shape: BoxShape.circle, color: color),
-                    child: Text(
-                      date.day.toString(),
-                      style: CustomTypography().bodyLarge(color: textColor),
-                    ),
-                  ),
-                );
-              },
-              singleMarkerBuilder: (context, date, event) {
-                isBeforeToday = date.isBefore(today);
-                final isDiaryOnEventSubmitted = _diaryOnEventSubmitted(date);
-                final goal = studyGoalCheck(date);
-
-                final color = isBeforeToday
-                    ? isDiaryOnEventSubmitted
-                        ? CustomColors.productLightPrimaryActive
-                        : CustomColors.productBorderNormal
-                    : goal
-                        ? CustomColors.productNormalActive
-                        : Colors.transparent;
-                return Container(
-                  width: 7.0,
-                  height: 7.0,
-                  decoration:
-                      BoxDecoration(shape: BoxShape.circle, color: color),
-                  margin: const EdgeInsets.symmetric(
-                      vertical: 5.0, horizontal: 1.5),
-                );
-              },
-            ),
-          ),
+                  )),
         )
       ],
     );
@@ -429,13 +471,18 @@ class _StudyCalendarState extends State<StudyCalendar> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            _getEntriesHeading(selectedDate),
-            style: CustomTypography().titleLarge(),
+          Flexible(
+            child: _WordSafeText(
+              _getEntriesHeading(selectedDate),
+              style: CustomTypography().titleLarge().copyWith(fontSize: 19.5),
+            ),
           ),
-          Text(
-            DateFormat("MMM d, yyyy").format(selectedDate),
-            style: CustomTypography().titleMedium(),
+          Flexible(
+            child: Text(
+              textScaler: getAdaptiveTextScaler(context),
+              DateFormat("MMM d, yyyy").format(selectedDate),
+              style: CustomTypography().titleMedium(),
+            ),
           ),
         ],
       ),
@@ -551,13 +598,35 @@ class _StudyCalendarState extends State<StudyCalendar> {
   }
 }
 
+/// Text that wraps between words but shrinks, only as much as needed, so
+/// no single word is wider than the space and breaks mid-word.
+class _WordSafeText extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  final TextAlign? textAlign;
+
+  const _WordSafeText(this.text, {required this.style, this.textAlign});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => Text(
+        text,
+        style: style,
+        textAlign: textAlign,
+        textScaler:
+            getWordSafeTextScaler(context, text, style, constraints.maxWidth),
+      ),
+    );
+  }
+}
+
 class HelpButton extends StatelessWidget {
   const HelpButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
-        iconSize: 20,
         color: CustomColors.productNormalActive,
         onPressed: () => showPopover(
             context: context,
@@ -580,10 +649,12 @@ class HelpButton extends StatelessWidget {
                   ),
                 ),
             direction: PopoverDirection.top,
-            constraints: BoxConstraints(maxWidth: 220),
+            constraints: BoxConstraints(
+              maxWidth: getAdaptiveTextScaler(context).scale(220),
+            ),
             arrowHeight: 0,
             arrowWidth: 0,
             barrierColor: Colors.transparent),
-        icon: Icon(Icons.help_outline_rounded));
+        icon: Icon(applyTextScaling: true, Icons.help_outline_rounded));
   }
 }

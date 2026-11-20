@@ -1,4 +1,4 @@
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
+
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/participant_experiment_details.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/login_cubit.dart';
@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../theme/custom_colors.dart';
 
 class LoginPage extends StatefulWidget {
@@ -97,7 +98,14 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
               RouteService()
                   .navigateBack(context: context, current: 'participant_login')
             },
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
+            ),
             color: CustomColors.textWhite,
           )),
       body: SafeArea(
@@ -185,6 +193,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text("Participant Login",
+                        textScaler: getAdaptiveTextScaler(context),
                         style: CustomTypography()
                             .headlineLarge(color: CustomColors.textWhite)),
                     const SizedBox(
@@ -225,6 +234,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                 children: [
                   Flexible(
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       "Need help with the participant ID? ",
                       style: CustomTypography()
                           .bodyMedium(color: CustomColors.textWhite),
@@ -233,6 +243,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                   GestureDetector(
                       onTap: () => launchEmail(),
                       child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
                         "Contact us",
                         style: TextStyle(
                             fontSize: CustomTypography().bodyMedium().fontSize,

@@ -63,6 +63,7 @@ class _QuickstartVideoPageState extends State<QuickstartVideoPage> {
             GestureDetector(
               onTap: () => Navigator.pop(context),
               child: const Icon(
+                applyTextScaling: true,
                 Icons.close_rounded,
                 size: 28,
               ),

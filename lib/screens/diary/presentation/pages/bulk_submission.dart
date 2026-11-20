@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/main.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/bulk_submission.dart';
@@ -50,6 +51,7 @@ class _BulkSubmissionPageState extends State<BulkSubmissionPage> {
           backgroundColor: CustomColors.fillNormal,
           scrolledUnderElevation: 0.0,
           title: Text(
+            textScaler: getAdaptiveTextScaler(context),
             "Entries to be uploaded",
             style: CustomTypography()
                 .headlineMedium(color: CustomColors.textNormalContent),

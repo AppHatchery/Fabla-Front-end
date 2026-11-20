@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
@@ -42,6 +43,7 @@ class _OnBoardingTextFieldState extends State<OnBoardingTextField> {
           suffix: IconButton(
             onPressed: () => widget.controller.clear(),
             icon: const Icon(
+              applyTextScaling: true,
               CustomIcons.cancel,
               size: 20,
             ),
@@ -196,7 +198,7 @@ class _CustomMultipleQuestion extends State<CustomMultipleQuestion> {
               child: Material(
                   color: Colors.transparent,
                   child: CheckboxListTile(
-                    title: Text(
+                    title: WordSafeText(
                       widget.options[index].title,
                       style: CustomTypography().button(
                           color: selectedOptions
@@ -233,6 +235,8 @@ class _CustomMultipleQuestion extends State<CustomMultipleQuestion> {
                         });
                       }
                     },
+                    checkboxScaleFactor:
+                        getAdaptiveTextScaler(context).scale(1),
                   ))),
           const SizedBox(
             height: 12,
@@ -286,7 +290,7 @@ class _CustomRadioQuestionState extends State<CustomRadioQuestion> {
               child: Material(
                   color: Colors.transparent,
                   child: RadioListTile<String>(
-                    title: Text(
+                    title: WordSafeText(
                       widget.options[index].title,
                       style: CustomTypography().button(
                           color: !widget.disabled
@@ -308,6 +312,7 @@ class _CustomRadioQuestionState extends State<CustomRadioQuestion> {
                         widget.onChanged!(value);
                       }
                     },
+                    radioScaleFactor: getAdaptiveTextScaler(context).scale(1),
                   ))),
           const SizedBox(
             height: 12,

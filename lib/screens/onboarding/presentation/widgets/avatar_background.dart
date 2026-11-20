@@ -96,11 +96,20 @@ class _AvatarBackgroundState extends State<AvatarBackground> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        _buildAvatarLayer(),
-        _buildForegroundLayer(),
-      ],
+    final double? effectiveHeight =
+        (widget.height.isFinite && widget.height > 0) ? widget.height : null;
+    final double? effectiveWidth =
+        (widget.width.isFinite && widget.width > 0) ? widget.width : null;
+
+    return SizedBox(
+      height: effectiveHeight,
+      width: effectiveWidth,
+      child: Stack(
+        children: [
+          _buildAvatarLayer(),
+          _buildForegroundLayer(),
+        ],
+      ),
     );
   }
 

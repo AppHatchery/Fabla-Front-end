@@ -13,6 +13,8 @@ import 'package:audio_diaries_flutter/theme/dialogs/bottom_modals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class EditDiaryPage extends StatefulWidget {
   final DiaryModel diary;
   final PromptModel prompt;
@@ -70,7 +72,7 @@ class _EditDiaryPageState extends State<EditDiaryPage>
         leading: IconButton(
             onPressed: () =>
                 proceed ? Navigator.pop(context, true) : showSnackError(),
-            icon: Icon(Icons.close_rounded)),
+            icon: FittedBox(child: Icon(Icons.close_rounded, applyTextScaling: true,))),
         centerTitle: true,
         title: Text('Edit Response',
             style: CustomTypography()
@@ -182,6 +184,7 @@ class _EditDiaryPageState extends State<EditDiaryPage>
                       Container(
                           alignment: Alignment.topLeft,
                           child: Text(
+                            textScaler: getAdaptiveTextScaler(context),
                             "Question ${widget.index}/${widget.diary.prompts.length}",
                             style: CustomTypography().custom(
                                 fontSize: 16, fontWeight: FontWeight.w400),

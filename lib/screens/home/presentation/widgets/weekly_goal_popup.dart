@@ -8,6 +8,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class WeeklyGoalPopup extends StatefulWidget {
   final List<StudyModel> studies;
   final List<DiaryModel> diaries;
@@ -140,13 +142,15 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
             Image.asset(
               icon,
               color: color,
-              height: 20,
-              width: 20,
+              height: getAdaptiveTextScaler(context).scale(20),
+              width: getAdaptiveTextScaler(context).scale(20),
             ),
             const SizedBox(width: 6),
-            Text(
-              study.name,
-              style: CustomTypography().bodyLarge(),
+            Flexible(
+              child: Text(
+                study.name,
+                style: CustomTypography().bodyLarge(),
+              ),
             )
           ],
         ),
@@ -178,7 +182,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
           children: [
             SizedBox(
               width: totalWidth,
-              height: 45,
+              height:getAdaptiveTextScaler(context).scale(47),
               child: Stack(
                 children: [
                   //PROGRESS BAR BACKGROUND
@@ -189,7 +193,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                       height: 6,
                       constraints: const BoxConstraints(maxHeight: 6),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.2),
+                        color: color.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(27),
                       ),
                     ),
@@ -199,7 +203,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                     alignment: Alignment.centerLeft,
                     child: Container(
                       width: progressWidth,
-                      height: 6,
+                      height:getAdaptiveTextScaler(context).scale(6),
                       decoration: BoxDecoration(
                         color: color,
                         borderRadius: BorderRadius.circular(27),
@@ -226,6 +230,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                                   : 1,
                               // Hide the progress indicator when it reaches the lower goal
                               child: Text(
+                                textScaler: getAdaptiveTextScaler(context),
                                 "$currentEntries",
                                 style: CustomTypography().caption(),
                               ),
@@ -243,12 +248,13 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(CupertinoIcons.flag_fill, color: color, size: 17),
+                        Icon(CupertinoIcons.flag_fill, color: color, size: 17, applyTextScaling: true,),
                         const SizedBox(
                           height: 5,
                         ),
                         Flexible(
                           child: Text(
+                            textScaler: getAdaptiveTextScaler(context),
                             "$lowerGoal",
                             style: CustomTypography().caption(),
                           ),
@@ -266,7 +272,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Icon(Icons.emoji_events_rounded,
-                            color: color, size: 20),
+                            color: color, size: getAdaptiveTextScaler(context).scale(18),),
                         Flexible(
                           child: Text(
                             "$goal",

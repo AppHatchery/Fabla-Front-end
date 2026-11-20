@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:flutter/material.dart';
 
@@ -129,6 +130,7 @@ class _ActiveRemindersState extends State<ActiveReminders> {
                         children: Wrap(children: [
                           Center(
                             child: Text(
+                              textScaler: getAdaptiveTextScaler(context),
                               "+ Add Reminder",
                               style: CustomTypography()
                                   .title(color: CustomColors.textWhite),

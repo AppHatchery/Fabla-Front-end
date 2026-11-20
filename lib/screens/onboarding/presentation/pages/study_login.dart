@@ -1,4 +1,4 @@
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
+
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/cubit/login/study_login_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/verification_code.dart';
@@ -12,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math' show pi;
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../services/pendo_service.dart';
 
@@ -184,19 +185,22 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                   children: [
                     Image.asset(
                       "assets/images/logo_white.png",
-                      height: 52,
-                      width: 52,
+                      height: getAdaptiveTextScaler(context).scale(52),
+                      width: getAdaptiveTextScaler(context).scale(52),
                     ),
                     const SizedBox(
                       height: 24,
                     ),
-                    Text("Welcome to Fabla! ${Strings.wavingEmoji}",
+                    Text(
+                      textScaler: getAdaptiveTextScaler(context),
+                        "Welcome to Fabla! ${Strings.wavingEmoji}",
                         style: CustomTypography()
                             .headlineLarge(color: CustomColors.textWhite)),
                     const SizedBox(
                       height: 24,
                     ),
                     Text(
+                      textScaler: getAdaptiveTextScaler(context),
                         "Fabla is a tool for daily experience research, audio diaries and more ${Strings.telescope}",
                         style: CustomTypography()
                             .titleSmall(color: CustomColors.textWhite)),
@@ -230,6 +234,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                 children: [
                   Flexible(
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       "Need help with the study string? ",
                       style: CustomTypography()
                           .bodyMedium(color: CustomColors.textWhite),
@@ -238,6 +243,7 @@ class _StudyLoginState extends State<StudyLogin> with WidgetsBindingObserver {
                   GestureDetector(
                       onTap: () => launchEmail(),
                       child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
                         "Contact us",
                         style: TextStyle(
                             fontSize: CustomTypography().bodyMedium().fontSize,

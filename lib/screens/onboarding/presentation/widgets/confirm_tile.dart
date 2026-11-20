@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,9 @@ class ConfrimTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: CustomTypography().titleSmall(color: Colors.white)),
+        Text(
+          textScaler: getAdaptiveTextScaler(context),
+            title, style: CustomTypography().titleSmall(color: Colors.white)),
         const SizedBox(
           height: 6,
         ),
@@ -46,3 +49,4 @@ class ConfrimTile extends StatelessWidget {
     );
   }
 }
+

@@ -1,6 +1,7 @@
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/components/time_picker.dart';
 import '../../../../theme/custom_icons.dart';
@@ -35,7 +36,7 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
           color: widget.isEnabled
               ? CustomColors.fillWhite
@@ -44,30 +45,35 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
           border:
               Border.all(color: CustomColors.productBorderNormal, width: 2)),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                period,
-                style: CustomTypography().button(
-                    color: widget.isEnabled
-                        ? CustomColors.textNormalContent
-                        : CustomColors.textTertiaryContent),
-              ),
-              Text(
-                localizations.formatTimeOfDay(timeOfDay),
-                style: CustomTypography().bodyMedium(
-                    color: widget.isEnabled
-                        ? CustomColors.textNormalContent
-                        : CustomColors.textTertiaryContent),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  period,
+                  style: CustomTypography().button(
+                      color: widget.isEnabled
+                          ? CustomColors.textNormalContent
+                          : CustomColors.textTertiaryContent),
+                ),
+                Text(
+                  localizations.formatTimeOfDay(timeOfDay),
+                  style: CustomTypography().bodyMedium(
+                      color: widget.isEnabled
+                          ? CustomColors.textNormalContent
+                          : CustomColors.textTertiaryContent),
+                ),
+              ],
+            ),
           ),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
+                  constraints:
+                      const BoxConstraints.tightFor(width: 40, height: 48),
+                  padding: EdgeInsets.zero,
                   onPressed:
                       widget.isEnabled ? () => pickDate(timeOfDay) : null,
                   icon: Icon(
@@ -75,9 +81,12 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
                     color: widget.isEnabled
                         ? CustomColors.textSecondaryContent
                         : CustomColors.textTertiaryContent,
-                    size: 24,
+                    size: getAdaptiveTextScaler(context).scale(24),
                   )),
               IconButton(
+                  constraints:
+                      const BoxConstraints.tightFor(width: 40, height: 48),
+                  padding: EdgeInsets.zero,
                   onPressed: widget.isEnabled
                       ? () {
                           widget.delete();
@@ -88,7 +97,7 @@ class _ActiveTimeTileState extends State<ActiveTimeTile> {
                     color: widget.isEnabled
                         ? CustomColors.warningActive
                         : CustomColors.textTertiaryContent,
-                    size: 24,
+                    size: getAdaptiveTextScaler(context).scale(24),
                   )),
             ],
           ),

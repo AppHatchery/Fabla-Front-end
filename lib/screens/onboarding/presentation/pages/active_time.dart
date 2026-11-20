@@ -5,6 +5,7 @@ import 'package:audio_diaries_flutter/theme/components/buttons.dart';
 import 'package:flutter/material.dart';
 import 'dart:io' show Platform;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../services/pendo_service.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -43,10 +44,13 @@ class _ActiveTimePageState extends State<ActiveTimePage> {
         leading: canGoBack
             ? IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: CustomColors.fillWhite,
-                  size: 32,
+                icon: FittedBox(
+                  fit: BoxFit.contain,
+                  child: Icon(
+                    Icons.arrow_back_rounded,
+                    color: CustomColors.fillWhite,
+                    size: getAdaptiveTextScaler(context).scale(32),
+                  ),
                 ))
             : null,
       ),

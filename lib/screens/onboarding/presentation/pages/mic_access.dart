@@ -1,5 +1,4 @@
 import 'package:app_settings/app_settings.dart';
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/mic_tester.dart';
@@ -13,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -122,10 +122,13 @@ class _MicAccessPageState extends State<MicAccessPage>
                   RouteService()
                       .navigateBack(context: context, current: 'microphone')
                 },
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       body: SafeArea(
@@ -153,12 +156,20 @@ class _MicAccessPageState extends State<MicAccessPage>
                             children: [
                               Column(
                                 children: [
-                                  Text(
-                                    permission
-                                        ? "Let's test your microphone, say something"
-                                        : "Great, next enable microphone access",
-                                    style: CustomTypography().headlineLarge(
-                                        color: CustomColors.textWhite),
+                                  LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final headline = permission
+                                          ? "Let's test your microphone, say something"
+                                          : "Great, next enable microphone access";
+                                      final style = CustomTypography().headlineLarge(
+                                          color: CustomColors.textWhite);
+                                      return Text(
+                                        headline,
+                                        style: style,
+                                        textScaler: getWordSafeTextScaler(context,
+                                            headline, style, constraints.maxWidth),
+                                      );
+                                    },
                                   ),
                                   const SizedBox(height: 40.0),
                                   MicTester(
@@ -187,8 +198,8 @@ class _MicAccessPageState extends State<MicAccessPage>
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                  const Icon(CustomIcons.cancel,
-                                                      size: 20,
+                                                   Icon(CustomIcons.cancel,
+                                                      size:  getAdaptiveTextScaler(context).scale(20),
                                                       color: CustomColors
                                                           .warningActive),
                                                   const SizedBox(
@@ -196,6 +207,7 @@ class _MicAccessPageState extends State<MicAccessPage>
                                                   ),
                                                   Flexible(
                                                     child: Text(
+                                                      textScaler: getAdaptiveTextScaler(context),
                                                       "Oops! You need to enable microphone access to use the recording diary.",
                                                       style: CustomTypography()
                                                           .bodyLarge(
@@ -239,6 +251,7 @@ class _MicAccessPageState extends State<MicAccessPage>
                                                           openPermissionSettings,
                                                       child: Text(
                                                           "Open Settings",
+                                                          textScaler: getAdaptiveTextScaler(context),
                                                           style: CustomTypography()
                                                               .bodyLarge(
                                                                   color: CustomColors
@@ -335,10 +348,7 @@ class _MicAccessPageState extends State<MicAccessPage>
       final tempDir = await getTemporaryDirectory();
       final path = '${tempDir.path}/flutter_sound.m4a';
       await recorder.startRecorder(
-          toFile: path,
-          codec: Codec.aacMP4,
-          sampleRate: 44100,
-          bitRate: 48000);
+          toFile: path, codec: Codec.aacMP4, sampleRate: 44100, bitRate: 48000);
     } catch (_) {
       return;
     }

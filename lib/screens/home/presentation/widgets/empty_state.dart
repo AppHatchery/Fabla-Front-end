@@ -1,42 +1,20 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../theme/custom_colors.dart';
+import '../../../../theme/components/empty_state_layout.dart';
 
 class FreeDayWidget extends StatelessWidget {
   const FreeDayWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 47),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/images/empty-box.png',
-            height: 108,
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Text(
-            'No Surveys Scheduled Today',
-            style: CustomTypography().titleLarge(),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(
-            height: 6,
-          ),
-          Text(
-            "We’ll notify you when your next one is available.",
-            style: CustomTypography()
-                .bodyMedium(color: CustomColors.textTertiaryContent),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+    return EmptyStateLayout(
+      imageAsset: 'assets/images/empty-box.png',
+      imageHeight: getAdaptiveTextScaler(context).scale(108),
+      title: 'No Surveys Scheduled Today',
+      titleStyle: CustomTypography().titleLarge(),
+      message: "We’ll notify you when your next one is available.",
     );
   }
 }
@@ -46,35 +24,12 @@ class EndStateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 47),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/images/complete.png',
-            height: 108,
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Text(
-            'Research Journey End',
-            style: CustomTypography().titleMedium(),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(
-            height: 6,
-          ),
-          Text(
-            "No entries - the study reaches its conclusion. Thank you for being a part of this journey!",
-            style: CustomTypography()
-                .bodyMedium(color: CustomColors.textTertiaryContent),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+    return EmptyStateLayout(
+      imageAsset: 'assets/images/complete.png',
+      title: 'Research Journey End',
+      titleStyle: CustomTypography().titleMedium(),
+      message:
+          "No entries - the study reaches its conclusion. Thank you for being a part of this journey!",
     );
   }
 }
@@ -84,35 +39,12 @@ class DayComplete extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 47),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/images/complete.png',
-            height: 108,
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Text(
-            "That's it for today",
-            style: CustomTypography().titleMedium(),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(
-            height: 6,
-          ),
-          Text(
-            "Check your study calendar to see when your next entries are available",
-            style: CustomTypography()
-                .bodyMedium(color: CustomColors.textTertiaryContent),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+    return EmptyStateLayout(
+      imageAsset: 'assets/images/complete.png',
+      title: "That's it for today",
+      titleStyle: CustomTypography().titleMedium(),
+      message:
+          "Check your study calendar to see when your next entries are available",
     );
   }
 }

@@ -7,6 +7,8 @@ import 'package:audio_diaries_flutter/screens/hub/data/submission_progress.dart'
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class RingProgressIndicator extends StatefulWidget {
   final double progress;
   final double size;
@@ -74,8 +76,8 @@ class _RingProgressIndicatorState extends State<RingProgressIndicator>
   }
 
   void _buildAnimation(double begin) {
-    _animation = Tween<double>(begin: begin, end: widget.progress).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _animation = Tween<double>(begin: begin, end: widget.progress)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -93,7 +95,7 @@ class _RingProgressIndicatorState extends State<RingProgressIndicator>
         animation: _animation,
         builder: (context, _) => CircularProgressIndicator(
           value: widget.activateAnimation ? _animation.value : widget.progress,
-          strokeWidth: 5,
+          strokeWidth: getAdaptiveTextScaler(context).scale(5),
           strokeCap: StrokeCap.round,
           backgroundColor: widget.backgroundColor,
           color: widget.color,
@@ -110,44 +112,64 @@ class GoalProgressIndicators extends StatelessWidget {
   const GoalProgressIndicators(
       {super.key, required this.goalData, required this.submissionProgress});
 
+  static const double baseSize = 150;
+  static const double spacing = 40;
+
+  /// The factor every ring is drawn at: the text scale, shrunk if needed so
+  /// the outermost of [ringCount] rings fits in [maxWidth].
+  ///
+  /// At large font sizes (iOS caps at 2x) the outer ring can be wider than
+  /// the screen. The width is bounded but the height isn't, so the ring would
+  /// be squashed into an oval. Anything drawn inside the rings (the Rive
+  /// mascot) must use this same factor or it will cover the inner rings.
+  static double ringScale(
+      BuildContext context, int ringCount, double maxWidth) {
+    final textScale = getAdaptiveTextScaler(context).scale(1);
+    final rings = ringCount < 1 ? 1 : ringCount;
+    final outerSize = (baseSize + (rings - 1) * spacing) * textScale;
+    if (!maxWidth.isFinite || outerSize <= maxWidth) return textScale;
+    return textScale * maxWidth / outerSize;
+  }
+
   @override
   Widget build(BuildContext context) {
-    double baseSize = 150;
-    double spacing = 40;
-
     return Center(
-      child: Stack(
-        alignment: Alignment.center,
-        children: goalData.entries.toList().asMap().entries.map((entry) {
-          int index = entry.key;
-          final study = entry.value.key;
-          final data = entry.value.value;
-          final activateAnimation =
-              submissionProgress[study.studyId]?.activateAnimation ?? false;
+      child: LayoutBuilder(builder: (context, constraints) {
+        final scale = ringScale(context, goalData.length, constraints.maxWidth);
 
-          // Start one submission behind so the animation fills the last step.
-          final fromProgress = activateAnimation && data.target > 0
-              ? ((data.completed - 1).clamp(0, data.target) / data.target)
-                  .toDouble()
-              : 0.0;
+        return Stack(
+          alignment: Alignment.center,
+          children: goalData.entries.toList().asMap().entries.map((entry) {
+            int index = entry.key;
+            final study = entry.value.key;
+            final data = entry.value.value;
+            final activateAnimation =
+                submissionProgress[study.studyId]?.activateAnimation ?? false;
 
-          double size = baseSize + (index * spacing);
+            // Start one submission behind so the animation fills the last step.
+            final fromProgress = activateAnimation && data.target > 0
+                ? ((data.completed - 1).clamp(0, data.target) / data.target)
+                    .toDouble()
+                : 0.0;
 
-          return RingProgressIndicator(
-            progress: data.progress,
-            size: size,
-            color: study.color ?? CustomColors.productNormal,
-            backgroundColor: study.color?.withOpacity(0.2) ??
-                CustomColors.productNormal.withOpacity(0.2),
-            activateAnimation: activateAnimation,
-            fromProgress: fromProgress,
-            onAnimationComplete: activateAnimation
-                ? () => modifyHomeProgressTracking(
-                    studyID: study.studyId, activateAnimation: false)
-                : null,
-          );
-        }).toList(),
-      ),
+            double size = baseSize + (index * spacing);
+
+            return RingProgressIndicator(
+              progress: data.progress,
+              size: size * scale,
+              color: study.color ?? CustomColors.productNormal,
+              backgroundColor: study.color?.withOpacity(0.2) ??
+                  CustomColors.productNormal.withOpacity(0.2),
+              activateAnimation: activateAnimation,
+              fromProgress: fromProgress,
+              onAnimationComplete: activateAnimation
+                  ? () => modifyHomeProgressTracking(
+                      studyID: study.studyId, activateAnimation: false)
+                  : null,
+            );
+          }).toList(),
+        );
+      }),
     );
   }
 }

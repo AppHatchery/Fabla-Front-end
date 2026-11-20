@@ -5,7 +5,8 @@ import 'package:audio_diaries_flutter/core/usecases/daily_goal_service.dart'
 import 'package:audio_diaries_flutter/core/usecases/homepage.dart';
 import 'package:audio_diaries_flutter/screens/home/data/study.dart';
 import 'package:audio_diaries_flutter/screens/home/presentation/widgets/ring_progress_indicator.dart';
-import 'package:audio_diaries_flutter/screens/hub/data/submission_progress.dart' show SubmissionProgress;
+import 'package:audio_diaries_flutter/screens/hub/data/submission_progress.dart'
+    show SubmissionProgress;
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
@@ -13,6 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 
 import 'dart:developer' as dev;
+
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 
 class TodayGoalWidget extends StatefulWidget {
   final Map<StudyModel, DailyGoalData> dailyGoal;
@@ -75,6 +78,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final mascotScale = widget.dailyGoal.isEmpty
+        ? getAdaptiveTextScaler(context).scale(1)
+        : GoalProgressIndicators.ringScale(
+            context, widget.dailyGoal.length, width);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 16,
@@ -125,8 +132,10 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
                       child: Padding(
                         padding: const EdgeInsets.only(top: 5.0),
                         child: SizedBox(
-                          height: 120,
-                          width: 180,
+                          // Shrink with the rings so the mascot never
+                          // covers the innermost ring.
+                          height: 120 * mascotScale,
+                          width: 180 * mascotScale,
                           child: _riveController != null
                               ? RiveWidget(
                                   controller: _riveController!,
@@ -292,7 +301,8 @@ class _TodayGoalWidgetState extends State<TodayGoalWidget> {
 
     dev.log(
         "Total Progress: ${stats.totalCompleted}/${stats.totalDailyGoal} daily, ${stats.totalCompleted}/${stats.totalWeeklyGoal} weekly");
-    dev.log("Daily Progress: ${(stats.dailyProgress * 100).toStringAsFixed(1)}%");
+    dev.log(
+        "Daily Progress: ${(stats.dailyProgress * 100).toStringAsFixed(1)}%");
     dev.log(
         "Weekly Progress: ${(stats.weeklyProgress * 100).toStringAsFixed(1)}%");
     dev.log("========================");
@@ -311,6 +321,7 @@ class DailyGoalEntries extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
+              applyTextScaling: true,
               Icons.check_circle_rounded,
               color: CustomColors.darkGreen,
               size: 20,
@@ -342,14 +353,17 @@ class DailyGoalEntries extends StatelessWidget {
           Image.asset(
             icon,
             color: color,
-            height: 20,
-            width: 20,
+            height: getAdaptiveTextScaler(context).scale(20),
+            width: getAdaptiveTextScaler(context).scale(20),
           ),
           const SizedBox(width: 6),
-          Text(
-            key: const Key('displayText'),
-            displayText,
-            style: CustomTypography().bodyMedium(),
+          Flexible(
+            child: Text(
+              textScaler: getAdaptiveTextScaler(context),
+              key: const Key('displayText'),
+              displayText,
+              style: CustomTypography().bodyMedium(),
+            ),
           ),
         ],
       ));

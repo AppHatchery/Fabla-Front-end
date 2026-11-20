@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../core/utils/device_appInfo.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/dialogs/pop_ups.dart';
@@ -188,21 +189,26 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                                         color: CustomColors
                                             .productLightBackground),
                                     child: Icon(
+                                      applyTextScaling: true,
                                       Icons.question_mark_rounded,
                                       color: CustomColors.productNormal,
                                       size: 24,
                                     ),
                                   ),
-                                  Text(
-                                    "Fabla Quickstart",
-                                    style: CustomTypography().bodyLarge(
-                                        color: CustomColors.productNormal,
-                                        weight: FontWeight.w500),
+                                  Flexible(
+                                    child: Text(
+                                      textScaler: getAdaptiveTextScaler(context),
+                                      "Fabla Quickstart",
+                                      style: CustomTypography().bodyLarge(
+                                          color: CustomColors.productNormal,
+                                          weight: FontWeight.w500),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                             Icon(
+                              applyTextScaling: true,
                               Icons.chevron_right_rounded,
                               size: 24,
                               color: CustomColors.midGrey,
@@ -249,6 +255,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                             child: Stack(
                               children: <Widget>[
                                 const Icon(
+                                  applyTextScaling: true,
                                   Icons.mic,
                                   color: CustomColors.productNormalActive,
                                   size: 46,
@@ -365,6 +372,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                           Stack(
                             children: <Widget>[
                               const Icon(
+                                applyTextScaling: true,
                                 Icons.notifications,
                                 color: CustomColors.productNormalActive,
                                 size: 46,
