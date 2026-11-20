@@ -65,12 +65,15 @@ class ExperimentManager {
       if (stored == UpdateStatus.available.name) return UpdateStatus.available;
       if (stored == UpdateStatus.pending.name) return UpdateStatus.pending;
 
-      final code = _setupRepository.getExperiment();
+      final experiment = _setupRepository.getExperiment();
+      await CrashlyticsService().log(
+        'Experiment loaded in checkForUpdates: id=${experiment.id}',
+      );
       final participant = _setupRepository.getParticipant();
 
       final getdbextras = await post(path: "/fabla/getuserextras", body: {
         'participant_id': participant?.studyCode,
-        'login_code': code.login,
+        'login_code': experiment.login,
       });
 
       final Map<String, dynamic> json = jsonDecode(getdbextras ?? '{}');
@@ -105,7 +108,8 @@ class ExperimentManager {
   Future<DateTime> reschedule() async {
     await setUpdateStatus(UpdateStatus.pending);
     final shiftedDayBoundaries = getShiftedDayBoundaries(DateTime.now());
-    final nextUpdateTime = shiftedDayBoundaries.end.add(const Duration(minutes: 1));
+    final nextUpdateTime =
+        shiftedDayBoundaries.end.add(const Duration(minutes: 1));
     await _preferenceService.setStringPreference(
       key: pendingDateKey,
       value: nextUpdateTime.toIso8601String(),

@@ -9,7 +9,8 @@ import 'package:audio_diaries_flutter/core/database/dao/study_dao.dart';
 import 'package:audio_diaries_flutter/core/network/request.dart';
 import 'package:audio_diaries_flutter/core/usecases/connectivity.dart'
     show checkForInternet;
-import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart' show clearAllHomeProgressTracking;
+import 'package:audio_diaries_flutter/core/usecases/home_progress_tracking.dart'
+    show clearAllHomeProgressTracking;
 import 'package:audio_diaries_flutter/core/usecases/notification_manager.dart';
 import 'package:audio_diaries_flutter/core/utils/dummy_data.dart';
 import 'package:audio_diaries_flutter/screens/diary/data/diary.dart';
@@ -53,9 +54,10 @@ typedef PostRequest = Future<String?> Function({
 });
 
 class SetupRepository {
-  // Everything except the experiment DAO is created lazily, so a repository
-  // built with an injected [ExperimentDAO] never touches the global objectbox.
-  late final ParticipantDAO _participantDAO =
+  static const experimentLastActionKey = 'experiment_last_action';
+  static const leaveStudyConfirmedAction = 'leave_study_confirmed_by_user';
+
+  final ParticipantDAO _participantDAO =
       ParticipantDAO(box: Box<Participant>(objectbox.store));
   late final ProtocolDAO _protocolDAO =
       ProtocolDAO(box: Box<ProtocolEntity>(objectbox.store));
@@ -307,7 +309,10 @@ class SetupRepository {
 
   ExperimentModel getExperiment() {
     final entity = _experimentDAO.getExperiment();
-    return ExperimentModel.fromEntity(entity!);
+    if (entity == null) {
+      throw StateError('Experiment not found in local database');
+    }
+    return ExperimentModel.fromEntity(entity);
   }
 
   /// Null-safe variant for flows (e.g. login screens) that run before an
@@ -746,11 +751,17 @@ class SetupRepository {
   /// - A `Future` that resolves to a `bool` value indicating the success of the operation.
   Future<bool> leaveStudy() async {
     final userclearextrasmap = <String, dynamic>{};
+    final preferences = PreferenceService();
+    final crashlytics = CrashlyticsService();
 
     final participant = _participantDAO.get();
     final experiment = _experimentDAO.getExperiment();
 
     try {
+      await crashlytics.log(
+        'User confirmed Leave Study; local experiment is still present',
+      );
+
       userclearextrasmap.addAll(
         {
           'participant_id': participant!.studyCode.toString(),
@@ -777,11 +788,28 @@ class SetupRepository {
       });
 
       if (leavestudymap != 'success') {
+        await crashlytics.log(
+          'Leave Study stopped before local deletion because server confirmation failed',
+        );
         return false;
       }
 
+      await preferences.setStringPreference(
+        key: experimentLastActionKey,
+        value: leaveStudyConfirmedAction,
+      );
+      await crashlytics.setCustomKey(
+        experimentLastActionKey,
+        leaveStudyConfirmedAction,
+      );
+      await crashlytics.log(
+        'Leave Study server confirmation succeeded; deleting local experiment',
+      );
       _participantDAO.remove();
       _experimentDAO.deleteExperiment();
+      await crashlytics.log(
+        'Leave Study local experiment deletion completed',
+      );
       _protocolDAO.deleteProtocol();
       _studyDAO.deleteAllStudies();
       _questionsDAO.removeAllQuestions();
@@ -801,7 +829,7 @@ class SetupRepository {
           false;
 
       // Clear all preferences
-      await PreferenceService().clearPreferences();
+      await preferences.clearPreferences();
 
       if (hasSeenQuickstart) {
         await PreferenceService()
@@ -829,6 +857,9 @@ class SetupRepository {
 
       return true;
     } catch (e, stackTrace) {
+      if (_experimentDAO.getExperiment() != null) {
+        await preferences.removePreference(key: experimentLastActionKey);
+      }
       CrashlyticsService()
           .recordError(e, stackTrace, reason: "Leaving study failed");
       return false;
