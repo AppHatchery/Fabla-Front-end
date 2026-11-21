@@ -42,6 +42,10 @@ class RecordingAudioSession {
   /// `'!pri'`, AVAudioSessionErrorCodeInsufficientPriority.
   static const _insufficientPriorityCode = '561017449';
 
+  /// `'!int'`, AVAudioSessionErrorCodeCannotInterruptOthers. Same cause in
+  /// practice: another client holds a non-interruptible session.
+  static const _cannotInterruptOthersCode = '560557684';
+
   final Set<String> _inputDeviceIds = {};
 
   bool _stopped = false;
@@ -100,7 +104,9 @@ class RecordingAudioSession {
       // Another client outranks us, typically a call or another app's audio.
       // The caller already surfaces it as "microphone unavailable", so it is a
       // breadcrumb, not an error worth a report.
-      if (e is PlatformException && e.code == _insufficientPriorityCode) {
+      if (e is PlatformException &&
+          (e.code == _insufficientPriorityCode ||
+              e.code == _cannotInterruptOthersCode)) {
         CrashlyticsService().log(
           'Audio session activation refused: another client holds the session',
         );
