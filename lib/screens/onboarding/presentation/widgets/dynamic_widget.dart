@@ -25,7 +25,9 @@ class _OnBoardingTextFieldState extends State<OnBoardingTextField> {
         widget.subtitle != null
             ? Text(
                 widget.subtitle!,
-                style: CustomTypography().titleLarge(),
+                style: CustomTypography().bodyLarge(
+                    color: CustomColors.textNormalContent,
+                    weight: FontWeight.w400),
               )
             : const SizedBox.shrink(),
         widget.subtitle != null
@@ -78,7 +80,9 @@ class _OnBoardingRadioOptionsState extends State<OnBoardingRadioOptions> {
         widget.subtitle != null
             ? Text(
                 widget.subtitle!,
-                style: CustomTypography().titleLarge(),
+                style: CustomTypography().bodyLarge(
+                    color: CustomColors.textNormalContent,
+                    weight: FontWeight.w400),
               )
             : const SizedBox.shrink(),
         widget.subtitle != null
@@ -122,7 +126,9 @@ class _OnBoardingMultipleOptionState extends State<OnBoardingMultipleOption> {
         widget.subtitle != null
             ? Text(
                 widget.subtitle!,
-                style: CustomTypography().titleLarge(),
+                style: CustomTypography().bodyLarge(
+                    color: CustomColors.textNormalContent,
+                    weight: FontWeight.w400),
               )
             : const SizedBox.shrink(),
         widget.subtitle != null
@@ -319,6 +325,7 @@ class _CustomRadioQuestionState extends State<CustomRadioQuestion> {
 }
 
 class OnBoardingSlider extends StatefulWidget {
+  final String subtitle;
   final String scaleMinText;
   final String scaleMaxText;
   final int scaleMin;
@@ -328,6 +335,7 @@ class OnBoardingSlider extends StatefulWidget {
   final ValueChanged<double> onChanged;
   const OnBoardingSlider(
       {super.key,
+      required this.subtitle,
       required this.scaleMinText,
       required this.scaleMaxText,
       required this.scaleMin,
@@ -351,18 +359,36 @@ class _OnBoardingSliderState extends State<OnBoardingSlider> {
 
   @override
   Widget build(BuildContext context) {
-    return SliderQuestionCard(
-        value: value,
-        scaleMinText: widget.scaleMinText,
-        scaleMaxText: widget.scaleMaxText,
-        scaleMin: widget.scaleMin,
-        scaleMax: widget.scaleMax,
-        isSliderEnabled: true,
-        onSliderValueChanged: (value) {
-          setState(() {
-            this.value = value;
-            widget.onChanged(value);
-          });
-        });
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        widget.subtitle != null
+            ? Text(
+          widget.subtitle!,
+          style: CustomTypography().bodyLarge(
+              color: CustomColors.textNormalContent,
+              weight: FontWeight.w400),
+        )
+            : const SizedBox.shrink(),
+        widget.subtitle != null
+            ? const SizedBox(
+          height: 12,
+        )
+            : const SizedBox.shrink(),
+        SliderQuestionCard(
+            value: value,
+            scaleMinText: widget.scaleMinText,
+            scaleMaxText: widget.scaleMaxText,
+            scaleMin: widget.scaleMin,
+            scaleMax: widget.scaleMax,
+            isSliderEnabled: true,
+            onSliderValueChanged: (value) {
+              setState(() {
+                this.value = value;
+                widget.onChanged(value);
+              });
+            }),
+      ],
+    );
   }
 }

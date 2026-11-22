@@ -32,39 +32,57 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
   Widget build(BuildContext context) {
     final scaler = MediaQuery.of(context).textScaler;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      decoration: BoxDecoration(
-          color: CustomColors.fillWhite,
-          borderRadius: BorderRadius.circular(20),
-          border:
-              Border.all(color: CustomColors.productBorderNormal, width: 2)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Flexible(
-            child: Text(
-              time != null
-                  ? localizations.formatTimeOfDay(time!)
-                  : 'Select Time',
-              style: CustomTypography()
-                  .titleMedium(color: CustomColors.textNormalContent),
-            ),
-          ),
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        widget.subtitle != null
+            ? Text(
+          widget.subtitle!,
+          style: CustomTypography().bodyLarge(
+              color: CustomColors.textNormalContent,
+              weight: FontWeight.w400),
+        )
+            : const SizedBox.shrink(),
+        widget.subtitle != null
+            ? const SizedBox(
+          height: 12,
+        )
+            : const SizedBox.shrink(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          decoration: BoxDecoration(
+              color: CustomColors.fillWhite,
+              borderRadius: BorderRadius.circular(20),
+              border:
+                  Border.all(color: CustomColors.productBorderNormal, width: 2)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(
-                  key: const Key("time_picker_icon_button"),
-                  onPressed: () => pickTime(time),
-                  icon: Icon(
-                    Icons.edit_outlined,
-                    color: CustomColors.productNormal,
-                    size: scaler.scale(24),
-                  )),
+              Flexible(
+                child: Text(
+                  time != null
+                      ? localizations.formatTimeOfDay(time!)
+                      : 'Select Time',
+                  style: CustomTypography()
+                      .titleMedium(color: CustomColors.textNormalContent),
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                      key: const Key("time_picker_icon_button"),
+                      onPressed: () => pickTime(time),
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        color: CustomColors.productNormal,
+                        size: scaler.scale(24),
+                      )),
+                ],
+              ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

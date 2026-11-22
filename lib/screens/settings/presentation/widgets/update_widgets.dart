@@ -612,7 +612,7 @@ class _UpdateSliderOptionState extends State<UpdateSliderOption> {
                   setState(() {
                     value = _value;
                   });
-                }),
+                }, subtitle: widget.subtitle,),
             const SizedBox(
               height: 24,
             ),
