@@ -74,7 +74,7 @@ class TimerLiveUpdateService {
   /// only fails natively. The later update/end calls are no-ops without one.
   Future<void> start(DateTime endDate, Duration totalDuration) async {
     if (!_isIOS || !enabled) return;
-    if (!await _isLiveActivityEnabled()) return;
+    if (!await LiveActivityChannel.areActivitiesEnabled()) return;
     await _invokeIOS('start', {
       'endDateMillis': endDate.millisecondsSinceEpoch.toDouble(),
       'totalDurationMillis': totalDuration.inMilliseconds.toDouble(),
@@ -170,20 +170,6 @@ class TimerLiveUpdateService {
           reason: 'Android Live Update channel unavailable: $method');
       dev.log('TimerLiveUpdateService.$method (Android) failed: $e',
           name: 'TimerLiveUpdateService');
-    }
-  }
-
-  /// Whether the user allows Live Activities for the app. Treated as
-  /// disabled if the native side cannot answer.
-  Future<bool> _isLiveActivityEnabled() async {
-    try {
-      return await _iosChannel
-              .invokeMethod<bool>('checkLiveActivityPermission') ??
-          false;
-    } catch (e) {
-      dev.log('TimerLiveUpdateService permission check failed: $e',
-          name: 'TimerLiveUpdateService');
-      return false;
     }
   }
 

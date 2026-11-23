@@ -54,7 +54,7 @@ class DiaryProgressLiveActivityService {
       return;
     }
     _active = true;
-    if (!await _isEnabled()) return;
+    if (!await LiveActivityChannel.areActivitiesEnabled()) return;
     await _invoke('diaryStart', {
       ...args,
       'questionCount': questionCount,
@@ -70,17 +70,6 @@ class DiaryProgressLiveActivityService {
     _lastQuestion = null;
     _lastWaiting = null;
     await _invoke('diaryEnd');
-  }
-
-  Future<bool> _isEnabled() async {
-    try {
-      return await _channel.invokeMethod<bool>('checkLiveActivityPermission') ??
-          false;
-    } catch (e) {
-      dev.log('DiaryProgressLiveActivityService permission check failed: $e',
-          name: 'DiaryProgressLiveActivityService');
-      return false;
-    }
   }
 
   Future<void> _invoke(String method, [Map<String, dynamic>? arguments]) async {

@@ -123,7 +123,7 @@ class RecordingLiveActivityService {
       return;
     }
     _active = true;
-    if (!await _isEnabled()) return;
+    if (!await LiveActivityChannel.areActivitiesEnabled()) return;
     await _invoke('recordingStart', {
       ...args,
       // A zero limit means none, as it does to the recorder.
@@ -174,17 +174,6 @@ class RecordingLiveActivityService {
     if (!_isIOS) return;
     LiveActivityChannel.off('recordingSave', _handleSave);
     LiveActivityChannel.off('recordingTogglePause', _handleTogglePause);
-  }
-
-  Future<bool> _isEnabled() async {
-    try {
-      return await _channel.invokeMethod<bool>('checkLiveActivityPermission') ??
-          false;
-    } catch (e) {
-      dev.log('RecordingLiveActivityService permission check failed: $e',
-          name: 'RecordingLiveActivityService');
-      return false;
-    }
   }
 
   Future<void> _invoke(String method, [Map<String, dynamic>? arguments]) async {

@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:flutter/services.dart';
 
 /// The `diary/live_activity` channel, shared by the timer and recording Live
@@ -26,4 +28,18 @@ class LiveActivityChannel {
 
   static Future<dynamic> _dispatch(MethodCall call) async =>
       _handlers[call.method]?.call();
+
+  /// Whether the user allows Fabla's Live Activities (the app's switch in
+  /// iOS Settings). False on iOS before 16.2, where they don't exist, and
+  /// when the check fails.
+  static Future<bool> areActivitiesEnabled() async {
+    try {
+      return await channel.invokeMethod<bool>('checkLiveActivityPermission') ??
+          false;
+    } catch (e) {
+      dev.log('Live Activity permission check failed: $e',
+          name: 'LiveActivityChannel');
+      return false;
+    }
+  }
 }

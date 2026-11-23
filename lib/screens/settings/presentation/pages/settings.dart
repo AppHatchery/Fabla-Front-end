@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/screens/settings/presentation/pages/quickstart.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/live_activity.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/participant_details.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/settings_active_reminders.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/study_details.dart';
@@ -335,6 +336,26 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                     )),
 
                 ///REMINDERS
+                const SizedBox(
+                  height: 24,
+                ),
+
+                //Live Activity
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Lock Screen",
+                      style: CustomTypography().titleLarge(),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                LiveActivity(),
+
                 const SizedBox(
                   height: 24,
                 ),
