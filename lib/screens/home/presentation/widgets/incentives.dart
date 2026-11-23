@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class StudyIncentives extends StatefulWidget {
   final List<StudyModel> studies;
   final ValueChanged<bool> refresh;
@@ -34,11 +36,14 @@ class _StudyIncentivesState extends State<StudyIncentives> {
   double acquired = 0.0;
   double total = 0.0;
 
+  late final mediaQuery = MediaQuery.of(context);
+  late final textScaler = mediaQuery.textScaler;
+  late final textScale = textScaler.scale(1.0);
+
   @override
   void initState() {
     diaryList = _getAllDiaries();
     studies = _getStudies();
-
     track();
     super.initState();
   }
@@ -67,30 +72,29 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Expanded(
-                        child: SizedBox(),
+                      // Invisible twin of the close button so the title is
+                      // centred on the sheet, not in the space left of it.
+                      ExcludeSemantics(
+                        child: Visibility(
+                          visible: false,
+                          maintainSize: true,
+                          maintainAnimation: true,
+                          maintainState: true,
+                          child: closeButton(),
+                        ),
                       ),
+                      // The title must be the Row's direct Expanded child so
+                      // it gets a bounded width; WordSafeText needs that to
+                      // shrink long words instead of overflowing.
                       Expanded(
-                        flex: 2,
-                        child: Text(
+                        child: WordSafeText(
                           "Incentives Earned",
                           style: CustomTypography()
                               .titleLarge(color: CustomColors.yellowDark),
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              icon: const Icon(
-                                CupertinoIcons.clear,
-                                color: CustomColors.yellowDark,
-                                size: 20,
-                              )),
-                        ),
-                      ),
+                      closeButton(),
                     ],
                   ),
                   //Days active
@@ -125,13 +129,23 @@ class _StudyIncentivesState extends State<StudyIncentives> {
         "Incentives Earned", {"viewed_at": now.toIso8601String()});
   }
 
+  Widget closeButton() {
+    return IconButton(
+        onPressed: () => Navigator.pop(context),
+        icon: Icon(
+          CupertinoIcons.clear,
+          color: CustomColors.yellowDark,
+          size: getAdaptiveTextScaler(context).scale(20),
+        ));
+  }
+
   Widget header() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Center(
-          child: Text(
+          child: WordSafeText(
             formatMoney(acquired,
                 currency: widget.studies.first.incentive.currency),
             style: CustomTypography().headlineLargeCustom(
@@ -157,14 +171,14 @@ class _StudyIncentivesState extends State<StudyIncentives> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        WordSafeText(
           "Compensation Details",
           style: CustomTypography().titleLarge(),
           textAlign: TextAlign.left,
         ),
         const SizedBox(height: 6),
         Padding(
-          padding:EdgeInsets.only(bottom: 24),
+          padding: EdgeInsets.only(bottom: 24),
           child: Container(
             // height: 81,
             width: 440,
@@ -178,6 +192,7 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                 alignment: WrapAlignment.spaceBetween,
                 children: [
                   Text(
+                    textScaler: getAdaptiveTextScaler(context),
                     "Total Compensation",
                     style: CustomTypography().headlineSmall(),
                   ),
@@ -188,7 +203,8 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 2, horizontal: 4),
                       child: Text(
-                        formatMoney(total, currency: widget.studies.first.incentive.currency),
+                        formatMoney(total,
+                            currency: widget.studies.first.incentive.currency),
                         style: CustomTypography().headlineSmall(),
                       ),
                     ),
@@ -219,7 +235,8 @@ class _StudyIncentivesState extends State<StudyIncentives> {
                   return StudyIncentive(
                     study: widget.studies[index],
                     diaries: diaries,
-                    addToAcquired: (amount, studyTotal) => addToAcquired(amount, studyTotal),
+                    addToAcquired: (amount, studyTotal) =>
+                        addToAcquired(amount, studyTotal),
                   );
                 },
                 separatorBuilder: (context, index) =>
@@ -233,9 +250,9 @@ class _StudyIncentivesState extends State<StudyIncentives> {
 
   // Having all the studies calculate their own incentives and acquired
   void addToAcquired(double amount, double studyTotal) => setState(() {
-    acquired += amount;
-    total += studyTotal;
-  });
+        acquired += amount;
+        total += studyTotal;
+      });
 }
 
 class StudyIncentive extends StatefulWidget {
@@ -339,7 +356,9 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                   spacing: 6,
                   runSpacing: 4,
                   children: [
-                    Text(widget.study.name,
+                    Text(
+                        textScaler: getAdaptiveTextScaler(context),
+                        widget.study.name,
                         style: CustomTypography().titleSmall()),
                     previewTotal()
                   ],
@@ -352,6 +371,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                     });
                   },
                   icon: Icon(
+                    applyTextScaling: true,
                     expanded
                         ? CupertinoIcons.chevron_up
                         : CupertinoIcons.chevron_down,
@@ -434,6 +454,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
       ),
       padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       child: Text(
+        textScaler: getAdaptiveTextScaler(context),
         "${formatMoney(acquired, currency: currency)}/${formatMoney(total, currency: currency)}",
         style: CustomTypography()
             .titleSmall(color: CustomColors.textNormalContent),
@@ -466,7 +487,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
 
             return SizedBox(
               width: max,
-              height: 45,
+              height: getAdaptiveTextScaler(context).scale(45),
               child: Stack(
                 children: [
                   //BONUS
@@ -475,41 +496,51 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                       : bonusAvailable
                           ? Positioned(
                               left: _bonus,
-                              top: 5,
+                              top: getAdaptiveTextScaler(context).scale(5),
                               child: showtwoIcons
                                   ? SizedBox.shrink()
                                   : Image.asset(
                                       'assets/images/icons/Flag.png',
-                                      width: 20,
-                                      height: 20,
+                                      width: getAdaptiveTextScaler(context)
+                                          .scale(20),
+                                      height: getAdaptiveTextScaler(context)
+                                          .scale(20),
                                       color: color,
                                     ))
                           : const SizedBox.shrink(),
                   //Completion
                   Positioned(
-                    left: showtwoIcons ? max - 33 : max - 20,
-                    top: showtwoIcons ? 0.3 : 5,
+                    left: showtwoIcons
+                        ? getAdaptiveTextScaler(context).scale(max) -
+                            getAdaptiveTextScaler(context).scale(33)
+                        : getAdaptiveTextScaler(context).scale(max) -
+                            getAdaptiveTextScaler(context).scale(20),
+                    top: showtwoIcons
+                        ? getAdaptiveTextScaler(context).scale(0.3)
+                        : getAdaptiveTextScaler(context).scale(5),
                     child: showtwoIcons
                         ? Image.asset(
                             'assets/images/icons/Trophy&Flag.png',
-                            width: 40.34,
-                            height: 28.45,
+                            width: getAdaptiveTextScaler(context).scale(40.34),
+                            height: getAdaptiveTextScaler(context).scale(28.45),
                             color: color,
                           )
                         : Icon(Icons.emoji_events_rounded,
-                            color: color, size: 20),
+                            color: color,
+                            size: getAdaptiveTextScaler(context).scale(20)),
                   ),
 
                   //PROGRESS BAR BACKGROUND
                   Align(
                     alignment: Alignment.center,
                     child: Container(
-                      height: 6,
+                      height: getAdaptiveTextScaler(context).scale(6),
                       decoration: BoxDecoration(color: CustomColors.fillWhite),
                       child: Container(
                         width: max,
-                        height: 6,
-                        constraints: const BoxConstraints(maxHeight: 6),
+                        height: getAdaptiveTextScaler(context).scale(6),
+                        constraints: BoxConstraints(
+                            maxHeight: getAdaptiveTextScaler(context).scale(6)),
                         decoration: BoxDecoration(
                           color: color?.withAlpha(90),
                           borderRadius: BorderRadius.circular(27),
@@ -522,7 +553,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                     alignment: Alignment.centerLeft,
                     child: Container(
                       width: realProgress,
-                      height: 6,
+                      height: getAdaptiveTextScaler(context).scale(6),
                       decoration: BoxDecoration(
                         color: color,
                         borderRadius: BorderRadius.circular(27),
@@ -542,16 +573,20 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                   children: [
                     Image.asset(
                       'assets/images/icons/Flag.png',
-                      width: 18,
-                      height: 18,
+                      width: getAdaptiveTextScaler(context).scale(18),
+                      height: getAdaptiveTextScaler(context).scale(18),
                       color: color,
                     ),
                     Expanded(
-                      child: Text("Get Your Bonus",
+                      child: Text(
+                          textScaler: getAdaptiveTextScaler(context),
+                          "Get Your Bonus",
                           style: CustomTypography().bodyMedium(
                               color: CustomColors.textNormalContent)),
                     ),
-                    Text("$completed/$bonusEntriesRequired",
+                    Text(
+                        textScaler: getAdaptiveTextScaler(context),
+                        "$completed/$bonusEntriesRequired",
                         style: CustomTypography()
                             .bodyMedium(color: CustomColors.textNormalContent)),
                   ],
@@ -565,15 +600,19 @@ class _StudyIncentiveState extends State<StudyIncentive> {
             children: [
               Icon(
                 Icons.emoji_events_rounded,
-                size: 18,
+                size: getAdaptiveTextScaler(context).scale(18),
                 color: color,
               ),
               Expanded(
-                child: Text("Total Completion",
+                child: Text(
+                    textScaler: getAdaptiveTextScaler(context),
+                    "Total Completion",
                     style: CustomTypography()
                         .bodyMedium(color: CustomColors.textNormalContent)),
               ),
-              Text("$completed/$totalEntriesRequired",
+              Text(
+                  textScaler: getAdaptiveTextScaler(context),
+                  "$completed/$totalEntriesRequired",
                   style: CustomTypography()
                       .bodyMedium(color: CustomColors.textNormalContent)),
             ],
@@ -598,7 +637,9 @@ class _StudyIncentiveState extends State<StudyIncentive> {
           mainAxisSize: MainAxisSize.min,
           spacing: 4,
           children: [
-            Icon(Icons.help_outline_rounded,
+            Icon(
+                applyTextScaling: true,
+                Icons.help_outline_rounded,
                 color: CustomColors.textSecondaryContent),
             Flexible(
               child: Text(
@@ -645,7 +686,7 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                           style: CustomTypography().titleSmall())),
                   IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.close_rounded))
+                      icon: Icon(applyTextScaling: true, Icons.close_rounded))
                 ],
               ),
 
@@ -658,9 +699,12 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                     Row(
                       children: [
                         Expanded(
-                            child: Text("Each ${widget.study.name}",
+                            child: Text(
+                                textScaler: getAdaptiveTextScaler(context),
+                                "Each ${widget.study.name}",
                                 style: CustomTypography().bodyMedium())),
                         Text(
+                            textScaler: getAdaptiveTextScaler(context),
                             formatMoney(widget.study.incentive.amount,
                                 currency: currency),
                             style: CustomTypography().bodyMedium()),
@@ -669,24 +713,33 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                     Row(
                       children: [
                         Expanded(
-                            child: Text("Total Entries",
+                            child: Text(
+                                textScaler: getAdaptiveTextScaler(context),
+                                "Total Entries",
                                 style: CustomTypography().bodyMedium())),
-                        Text(totalEntriesRequired.toString(),
+                        Text(
+                            textScaler: getAdaptiveTextScaler(context),
+                            totalEntriesRequired.toString(),
                             style: CustomTypography().bodyMedium()),
                       ],
                     ),
-                    bonusAvailable ? Row(
-                      children: [
-                        Expanded(
-                            child: Text(
-                                "Bonus When You Complete $bonusEntriesRequired Entries",
-                                style: CustomTypography().bodyMedium())),
-                        Text(
-                            formatMoney(widget.study.incentive.bonus,
-                                currency: currency),
-                            style: CustomTypography().bodyMedium()),
-                      ],
-                    ) : SizedBox.shrink(),
+                    bonusAvailable
+                        ? Row(
+                            children: [
+                              Expanded(
+                                  child: Text(
+                                      textScaler:
+                                          getAdaptiveTextScaler(context),
+                                      "Bonus When You Complete $bonusEntriesRequired Entries",
+                                      style: CustomTypography().bodyMedium())),
+                              Text(
+                                  textScaler: getAdaptiveTextScaler(context),
+                                  formatMoney(widget.study.incentive.bonus,
+                                      currency: currency),
+                                  style: CustomTypography().bodyMedium()),
+                            ],
+                          )
+                        : SizedBox.shrink(),
                   ],
                 ),
               ),
@@ -703,9 +756,13 @@ class _StudyIncentiveState extends State<StudyIncentive> {
                 child: Row(
                   children: [
                     Expanded(
-                        child:
-                            Text("Total", style: CustomTypography().title())),
-                    Text(formatMoney(total, currency: currency),
+                        child: Text(
+                            textScaler: getAdaptiveTextScaler(context),
+                            "Total",
+                            style: CustomTypography().title())),
+                    Text(
+                        textScaler: getAdaptiveTextScaler(context),
+                        formatMoney(total, currency: currency),
                         style: CustomTypography().title())
                   ],
                 ),

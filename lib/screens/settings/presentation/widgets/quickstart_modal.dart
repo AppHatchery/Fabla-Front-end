@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class QuickstartModal extends StatefulWidget {
   const QuickstartModal({super.key});
 
@@ -180,6 +182,7 @@ class _QuickstartModalState extends State<QuickstartModal> {
             spacing: 8,
             children: [
               Text(
+                textScaler: getAdaptiveTextScaler(context),
                 "Need Help Later?",
                 style: CustomTypography().custom(
                     fontSize: 22.sp,
@@ -188,6 +191,7 @@ class _QuickstartModalState extends State<QuickstartModal> {
                 textAlign: TextAlign.center,
               ),
               Text(
+                textScaler: getAdaptiveTextScaler(context),
                 "Find the guide any time in Settings, under Help.",
                 style: CustomTypography().custom(
                     fontSize: 15.sp,

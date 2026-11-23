@@ -16,6 +16,7 @@ import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../core/utils/audioPlayer.dart';
 import '../../core/utils/formatter.dart';
 import '../../core/utils/participant_experiment_details.dart';
@@ -173,9 +174,11 @@ class _DiaryCardState extends State<DiaryCard> {
                 ),
               ),
               !closed
-                  ? Icon(widget.diary!.status == DiaryStatus.submitted
-                      ? Icons.remove_red_eye_outlined
-                      : Icons.keyboard_arrow_right_rounded)
+                  ? Icon(
+                      size: getAdaptiveTextScaler(context).scale(20),
+                      widget.diary!.status == DiaryStatus.submitted
+                          ? Icons.remove_red_eye_outlined
+                          : Icons.keyboard_arrow_right_rounded)
                   : const SizedBox.shrink(),
             ],
           ),
@@ -196,6 +199,7 @@ class _DiaryCardState extends State<DiaryCard> {
         "diary_day_viewed": "${DateTime.now()}"
       });
       showModalBottomSheet(
+          useSafeArea: true,
           context: context,
           isScrollControlled: true,
           routeSettings: RouteSettings(name: "/ReviewDiaryModal"),
@@ -224,8 +228,8 @@ class _DiaryCardState extends State<DiaryCard> {
       ),
       child: Image.asset(
         determineDiaryIcon(widget.diary!),
-        height: 24,
-        width: 24,
+        height: getAdaptiveTextScaler(context).scale(24),
+        width: getAdaptiveTextScaler(context).scale(24),
         color: closed ? CustomColors.midGrey : color,
       ),
     );
@@ -242,7 +246,7 @@ class _DiaryCardState extends State<DiaryCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
       children: [
-        Text(
+        WordSafeText(
           widget.diary?.name ?? "",
           style: CustomTypography().titleSmall(),
         ),
@@ -272,6 +276,7 @@ class _DiaryCardState extends State<DiaryCard> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
       child: Text(
+        textScaler: getAdaptiveTextScaler(context),
         text,
         style: CustomTypography().titleRegular(color: color),
       ),
@@ -319,21 +324,28 @@ class DiaryCardTag extends StatelessWidget {
 
     return Row(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Icon(
           icon,
           color: color,
-          size: 20,
+          size: getAdaptiveTextScaler(context).scale(20),
         ),
         const SizedBox(
           width: 5,
         ),
         Flexible(
-          child: Text(text,
-              style: CustomTypography().bodyMedium(
-                  color: CustomColors.textNormalContent,
-                  weight: FontWeight.w400)),
+          //using a fittedbox to avoid the word split for awaiting submissions for Android,
+          // the font will be scaled down to fit the space but other status words are okay
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+                textScaler: getAdaptiveTextScaler(context),
+                text,
+                style: CustomTypography().bodyMedium(
+                    color: CustomColors.textNormalContent,
+                    weight: FontWeight.w400)),
+          ),
         ),
       ],
     );
@@ -380,7 +392,11 @@ class _DiaryCardSmallState extends State<DiaryCardSmall> {
             ),
           ),
           widget.diary.status == DiaryStatus.submitted
-              ? Icon(Icons.check_circle_rounded, color: CustomColors.darkGreen)
+              ? Icon(
+                  Icons.check_circle_rounded,
+                  color: CustomColors.darkGreen,
+                  applyTextScaling: true,
+                )
               : const SizedBox.shrink(),
         ],
       ),
@@ -390,8 +406,8 @@ class _DiaryCardSmallState extends State<DiaryCardSmall> {
   Widget icon() {
     return Image.asset(
       determineDiaryIcon(widget.diary),
-      height: 24,
-      width: 24,
+      height: getAdaptiveTextScaler(context).scale(24),
+      width: getAdaptiveTextScaler(context).scale(24),
       color: widget.study.color,
     );
   }
@@ -528,7 +544,10 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
       children: [
         Row(
           children: [
-            const Icon(CustomIcons.keyboardVoice),
+            const Icon(
+              CustomIcons.keyboardVoice,
+              applyTextScaling: true,
+            ),
             const SizedBox(width: 5),
             Text(
               "New Diary",
@@ -540,7 +559,10 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
           visible: widget.isExpanded,
           child: Row(
             children: [
-              const Icon(Icons.access_time_rounded),
+              const Icon(
+                Icons.access_time_rounded,
+                applyTextScaling: true,
+              ),
               const SizedBox(width: 5),
               Text(
                 formatDateShort(widget.recording.date),
@@ -571,7 +593,10 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
             children: [
               const IconButton(
                 onPressed: null,
-                icon: Icon(Icons.edit_note_rounded),
+                icon: Icon(
+                  Icons.edit_note_rounded,
+                  applyTextScaling: true,
+                ),
                 color: CustomColors.textSecondaryContent,
               ),
               Text("view full transcript",
@@ -617,13 +642,13 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
 
   Widget controls() {
     if (audioStatus == AudioStatus.loading) {
-      return const SizedBox(
+      return SizedBox(
         height: 48,
         child: Center(
           child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
+            width: getAdaptiveTextScaler(context).scale(20),
+            height: getAdaptiveTextScaler(context).scale(20),
+            child: const CircularProgressIndicator(
               strokeWidth: 2,
             ),
           ),
@@ -673,7 +698,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
                     CupertinoIcons.gobackward_15,
                   ),
                   color: Colors.black,
-                  iconSize: 24,
+                  iconSize: getAdaptiveTextScaler(context).scale(24),
                 ),
                 IconButton(
                   onPressed: () {
@@ -686,7 +711,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
                         : CupertinoIcons.play_arrow_solid,
                   ),
                   color: Colors.black,
-                  iconSize: 24,
+                  iconSize: getAdaptiveTextScaler(context).scale(24),
                 ),
                 IconButton(
                   onPressed: () {
@@ -697,7 +722,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
                     CupertinoIcons.goforward_15,
                   ),
                   color: Colors.black,
-                  iconSize: 24,
+                  iconSize: getAdaptiveTextScaler(context).scale(24),
                 ),
               ],
             ),
@@ -716,7 +741,7 @@ class _AudioDiaryCardState extends State<AudioDiaryCard>
                         CupertinoIcons.delete,
                       ),
                       color: CustomColors.warningActive,
-                      iconSize: 24,
+                      iconSize: getAdaptiveTextScaler(context).scale(24),
                     ),
                   ),
           ),
@@ -849,8 +874,8 @@ class _NewAudioCardState extends State<NewAudioCard>
         children: [
           Container(
               alignment: Alignment.center,
-              width: 24,
-              height: 24,
+              width: getAdaptiveTextScaler(context).scale(24),
+              height: getAdaptiveTextScaler(context).scale(24),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 color: CustomColors.productNormalActive,
@@ -859,23 +884,33 @@ class _NewAudioCardState extends State<NewAudioCard>
                 offset: isPlaying ? const Offset(0, -1) : const Offset(1, -1),
                 child: IconButton(
                   onPressed: () => play(),
-                  icon: Icon(isPlaying
-                      ? CupertinoIcons.pause_fill
-                      : CupertinoIcons.play_arrow_solid),
+                  icon: Icon(
+                      applyTextScaling: true,
+                      isPlaying
+                          ? CupertinoIcons.pause_fill
+                          : CupertinoIcons.play_arrow_solid),
                   color: CustomColors.fillWhite,
                   iconSize: 10,
                 ),
               )),
           const SizedBox(width: 3),
           Expanded(
+            flex: 2,
             child: slider(),
           ),
-          Row(
-            children: [
-              Text(formatDuration(currentSliderPosition.toInt())),
-              const Text(" / "),
-              Text(formatDuration(maxDuration.inMilliseconds.toInt()))
-            ],
+          Flexible(
+            flex: 2,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerEnd,
+              child: Text(
+                '${formatDuration(currentSliderPosition.toInt())} / ${formatDuration(maxDuration.inMilliseconds)}',
+                textScaler: getAdaptiveTextScaler(context),
+                maxLines: 1,
+                softWrap: false,
+                style: CustomTypography().bodyMedium(),
+              ),
+            ),
           ),
           widget.isVisible ?? false
               ? IconButton(
@@ -887,7 +922,8 @@ class _NewAudioCardState extends State<NewAudioCard>
                     });
                     delete();
                   },
-                  icon: const Icon(CupertinoIcons.delete),
+                  icon:
+                      const Icon(applyTextScaling: true, CupertinoIcons.delete),
                   color: CustomColors.warningActive,
                   iconSize: 20,
                 )
@@ -921,7 +957,7 @@ class _NewAudioCardState extends State<NewAudioCard>
         SizedBox(
             child: SliderTheme(
           data: SliderThemeData(
-              trackHeight: 5,
+              trackHeight: getAdaptiveTextScaler(context).scale(5),
               activeTrackColor: CustomColors.productNormalActive,
               thumbColor: CustomColors.productNormalActive,
               inactiveTrackColor: CustomColors.greyTrack,
@@ -966,6 +1002,7 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return Container(
+      constraints: const BoxConstraints(minHeight: 48),
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
       decoration: BoxDecoration(
@@ -976,11 +1013,15 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
       ),
       child: Row(children: [
         Expanded(
-          child: Text(widget.answer,
-              style: CustomTypography()
-                  .bodyLarge(color: CustomColors.textSecondaryContent),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis),
+          child: Text(
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
+            textScaler: getAdaptiveTextScaler(context),
+            widget.answer,
+            style: CustomTypography()
+                .bodyLarge(color: CustomColors.textSecondaryContent),
+            maxLines: 2,
+          ),
         ),
         widget.isVisible ?? false
             ? IconButton(
@@ -991,7 +1032,7 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
                 },
                 icon: const Icon(Icons.edit),
                 color: CustomColors.productNormal,
-                iconSize: 20,
+                iconSize: getAdaptiveTextScaler(context).scale(20),
               )
             : Container(),
         widget.isVisible ?? false
@@ -1001,7 +1042,7 @@ class _TextAnswerCardState extends State<TextAnswerCard> {
                 },
                 icon: const Icon(CupertinoIcons.delete),
                 color: CustomColors.warningActive,
-                iconSize: 20,
+                iconSize: getAdaptiveTextScaler(context).scale(20),
               )
             : Container()
       ]),
@@ -1080,7 +1121,10 @@ class _TextDiaryCardState extends State<TextDiaryCard> {
                     SizedBox(
                       child: Row(
                         children: [
-                          const Icon(CustomIcons.editDocument),
+                          const Icon(
+                            CustomIcons.editDocument,
+                            applyTextScaling: true,
+                          ),
                           const SizedBox(
                             width: 5,
                           ),
@@ -1096,7 +1140,10 @@ class _TextDiaryCardState extends State<TextDiaryCard> {
                       child: SizedBox(
                         child: Row(
                           children: [
-                            const Icon(Icons.timer),
+                            const Icon(
+                              Icons.timer,
+                              applyTextScaling: true,
+                            ),
                             const SizedBox(
                               width: 5,
                             ),
@@ -1157,6 +1204,7 @@ class _TextDiaryCardState extends State<TextDiaryCard> {
                             CustomIcons.delete,
                             size: 24,
                             color: CustomColors.warningActive,
+                            applyTextScaling: true,
                           ),
                         ),
                       ),
@@ -1227,6 +1275,7 @@ class PendingSubmissionCard extends StatelessWidget {
                 retry ? CupertinoIcons.clear_circled : CupertinoIcons.wifi,
                 size: 24,
                 color: color,
+                applyTextScaling: true,
               ),
               Expanded(
                 child: Padding(
@@ -1236,6 +1285,7 @@ class PendingSubmissionCard extends StatelessWidget {
                     spacing: 8,
                     children: [
                       Text(
+                        textScaler: getAdaptiveTextScaler(context),
                         retry ? 'Upload Failed' : "You're Back Online",
                         style:
                             CustomTypography().titleSmallCustom(color: color),
@@ -1248,6 +1298,7 @@ class PendingSubmissionCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(4)),
                         ),
                         child: Text(
+                          textScaler: getAdaptiveTextScaler(context),
                           retry ? retryText : text,
                           style: CustomTypography().bodyLarge(color: color),
                         ),
@@ -1269,6 +1320,7 @@ class PendingSubmissionCard extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
               children: Wrap(children: [
                 Text(
+                  textScaler: getAdaptiveTextScaler(context),
                   retry ? retryButtonText : buttonText,
                   style:
                       CustomTypography().button(color: CustomColors.textWhite),
@@ -1315,8 +1367,8 @@ class FailedSubmissionCard extends StatelessWidget {
             children: [
               Image.asset(
                 'assets/images/icons/arrow_upload_progress.png',
-                height: 24,
-                width: 24,
+                height: getAdaptiveTextScaler(context).scale(24),
+                width: getAdaptiveTextScaler(context).scale(24),
               ),
               Expanded(
                 child: Padding(
@@ -1433,11 +1485,12 @@ class _PendingSubmissionSmallCardState
                   Icons.check_rounded,
                   color: CustomColors.darkGreen,
                   size: 24,
+                  applyTextScaling: true,
                 ),
               SubmissionStatus.failed => Image.asset(
                   'assets/images/icons/arrow_upload_ready.png',
-                  height: 24,
-                  width: 24,
+                  height: getAdaptiveTextScaler(context).scale(24),
+                  width: getAdaptiveTextScaler(context).scale(24),
                 )
             }
           ],
@@ -1516,6 +1569,7 @@ class NoInternetCard extends StatelessWidget {
             CupertinoIcons.wifi_slash,
             size: 24,
             color: Color(0xFFD26B00),
+            applyTextScaling: true,
           ),
           Expanded(
             child: Padding(
@@ -1607,42 +1661,35 @@ class WebViewErrorCard extends StatelessWidget {
               "Are you currently offline?",
               style: CustomTypography().bodyLarge(),
             ),
-          Row(
-            spacing: 12,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (buttonText == "Try Again")
-                Expanded(
-                  child: CustomOutlineButton(
-                    onClick: onRetry,
-                    color: Color(0xFFFF3B30),
-                    backgroundColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 14.0),
-                    children: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      alignment: WrapAlignment.center,
-                      runAlignment: WrapAlignment.center,
-                      children: [
-                        Text(
-                          buttonText,
-                          style: CustomTypography()
-                              .button(color: Color(0xFFFF3B30)),
-                        ),
-                      ],
+          if (buttonText == "Try Again")
+            SizedBox(
+              width: double.infinity,
+              child: CustomOutlineButton(
+                onClick: onRetry,
+                color: Color(0xFFFF3B30),
+                backgroundColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 14.0),
+                children: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.center,
+                  runAlignment: WrapAlignment.center,
+                  children: [
+                    Text(
+                      textScaler: getAdaptiveTextScaler(context),
+                      buttonText,
+                      style:
+                          CustomTypography().button(color: Color(0xFFFF3B30)),
                     ),
-                  ),
+                  ],
                 ),
-              Expanded(
-                child: CustomFlatButton(
-                    color: Color(0xFFFF3B30),
-                    borderColor: Color(0xFFFF3B30),
-                    onClick: !connection ? screenChange : skip,
-                    text: !connection ? "Yes, I'm Offline" : "Skip"),
-              )
-            ],
-          ),
+              ),
+            ),
+          CustomFlatButton(
+              color: Color(0xFFFF3B30),
+              borderColor: Color(0xFFFF3B30),
+              onClick: !connection ? screenChange : skip,
+              text: !connection ? "Yes, I'm Offline" : "Skip"),
           if (showContactResearch)
             Padding(
               padding: const EdgeInsets.only(top: 142.0),
@@ -1783,6 +1830,7 @@ class WarningCard extends StatelessWidget {
             icon,
             color: CustomColors.pumpkinOrange,
             size: 24,
+            applyTextScaling: true,
           ),
           Expanded(
             child: Padding(
@@ -1792,6 +1840,7 @@ class WarningCard extends StatelessWidget {
                 spacing: 8,
                 children: [
                   Text(
+                    textScaler: getAdaptiveTextScaler(context),
                     title,
                     style: CustomTypography().titleSmallCustom(
                       color: CustomColors.pumpkinOrange,
@@ -1805,6 +1854,7 @@ class WarningCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4)),
                     ),
                     child: Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       message,
                       style: CustomTypography().bodyLarge(
                         color: CustomColors.pumpkinOrange,
@@ -1857,6 +1907,7 @@ class AlertCard extends StatelessWidget {
                 CupertinoIcons.xmark_circle_fill,
                 size: 24,
                 color: CustomColors.warningNormal,
+                applyTextScaling: true,
               ),
               Expanded(
                 child: Padding(
@@ -1876,7 +1927,11 @@ class AlertCard extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: TextButton.icon(
                 onPressed: onDismiss,
-                icon: const Icon(CupertinoIcons.delete, size: 18),
+                icon: const Icon(
+                  CupertinoIcons.delete,
+                  size: 18,
+                  applyTextScaling: true,
+                ),
                 label: Text(
                   "Dismiss",
                   style: CustomTypography().button(
@@ -1984,6 +2039,7 @@ class LowWarningCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(
+            applyTextScaling: true,
             CupertinoIcons.xmark_circle_fill,
             size: 24,
             color: CustomColors.yellowDark,

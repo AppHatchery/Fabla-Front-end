@@ -1,4 +1,5 @@
 import 'package:audio_diaries_flutter/core/usecases/diary.dart';
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/core/usecases/notifications.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
@@ -213,7 +214,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
                     );
                   },
                   icon: const Icon(CustomIcons.close),
-                  iconSize: 15.0,
+                  iconSize: getAdaptiveTextScaler(context).scale(15.0),
                 ),
                 Expanded(
                   child: CustomBarIndicator(
@@ -690,7 +691,8 @@ class _QuestionPageState extends State<QuestionPage>
         : prompt.responseType == ResponseType.instruction
             ? SingleChildScrollView(
                 child: SizedBox(
-                  child: CustomFormatterText(text: prompt.question),
+                  child: CustomFormatterText(
+                      text: prompt.question),
                 ),
               )
             : Container(
@@ -710,7 +712,7 @@ class _QuestionPageState extends State<QuestionPage>
                         children: [
                           Container(
                               alignment: Alignment.topLeft,
-                              child: Text(
+                              child: WordSafeText(
                                 "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
                                 style: CustomTypography().button(),
                               )),
@@ -726,6 +728,7 @@ class _QuestionPageState extends State<QuestionPage>
                         children: [
                           Expanded(
                             child: Text(
+                              textScaler: getAdaptiveTextScaler(context),
                               prompt.question.toString(),
                               style: CustomTypography().titleLarge(),
                             ),
@@ -735,7 +738,9 @@ class _QuestionPageState extends State<QuestionPage>
                       Row(
                         children: [
                           Expanded(
-                            child: Text(questionTip,
+                            child: Text(
+                              textScaler: getAdaptiveTextScaler(context),
+                                questionTip,
                                 style: CustomTypography().bodyLarge(
                                     color: CustomColors.textNormalContent,
                                     weight: FontWeight.w400)),

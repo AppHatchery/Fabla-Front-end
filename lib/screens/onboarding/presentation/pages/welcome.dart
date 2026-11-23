@@ -1,4 +1,3 @@
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/entities/participant.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
@@ -8,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../services/pendo_service.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
@@ -99,10 +99,13 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
                     RouteService()
                         .navigateBack(context: context, current: 'welcome')
                   },
-              icon: const Icon(
-                Icons.arrow_back_rounded,
-                color: CustomColors.fillWhite,
-                size: 32,
+              icon: FittedBox(
+                fit: BoxFit.contain,
+                child: Icon(
+                  Icons.arrow_back_rounded,
+                  color: CustomColors.fillWhite,
+                  size: getAdaptiveTextScaler(context).scale(32),
+                ),
               ))),
       backgroundColor: CustomColors.backgroundSecondary,
       body: SafeArea(
@@ -131,6 +134,8 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
+                                      textScaler:
+                                          getAdaptiveTextScaler(context),
                                       "Welcome P${_participant.studyCode}, \nYou've checked in!",
                                       style: CustomTypography().headlineLarge(
                                           color: CustomColors.textWhite),
@@ -139,6 +144,8 @@ class _WelcomePageState extends State<WelcomePage> with WidgetsBindingObserver {
                                       height: 16,
                                     ),
                                     Text(
+                                      textScaler:
+                                          getAdaptiveTextScaler(context),
                                       "You are now checked into our study. Thank you so much for joining our research! ${Strings.confetti}",
                                       style: CustomTypography().bodyLarge(
                                           color: CustomColors.textWhite),

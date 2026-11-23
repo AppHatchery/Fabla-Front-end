@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/formatter.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
@@ -22,6 +21,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rive/rive.dart';
 import 'dart:io' show Platform;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../core/utils/participant_experiment_details.dart';
 
 class DynamicOnBoardingHub extends StatefulWidget {
@@ -162,11 +162,11 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
   }
 
   Widget loading() {
-    return const Center(
+    return Center(
       child: CircularProgressIndicator(
         color: CustomColors.fillWhite,
         strokeCap: StrokeCap.round,
-        strokeWidth: 8,
+        strokeWidth: getAdaptiveTextScaler(context).scale(8),
       ),
     );
   }
@@ -187,7 +187,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
           const SizedBox(
             height: 24,
           ),
-          Text(
+          WordSafeText(
             "Setting up...",
             style: CustomTypography()
                 .headlineMedium(color: CustomColors.textWhite),
@@ -195,7 +195,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
           const SizedBox(
             height: 12,
           ),
-          Text(
+          WordSafeText(
             "Hang tight while we set things up for you - \nalmost there!",
             textAlign: TextAlign.center,
             style: CustomTypography().bodyLarge(color: CustomColors.textWhite),
@@ -232,21 +232,21 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
     }
   }
 
-  // List<Widget> pages(List<Questions> questions) {
-  //   return questions
-  //       .map((question) => DynamicOnBoardingPage(
-  //             question: question,
-  //             onPrevious: () => previousPage(),
-  //             onContinue: (answer) {
-  //               if (answer != null) {
-  //                 print("Answer: $answer");
-  //                 _cubit.save(question, answer);
-  //                 nextPage(questions.length);
-  //               }
-  //             },
-  //           ))
-  //       .toList();
-  // }
+// List<Widget> pages(List<Questions> questions) {
+//   return questions
+//       .map((question) => DynamicOnBoardingPage(
+//             question: question,
+//             onPrevious: () => previousPage(),
+//             onContinue: (answer) {
+//               if (answer != null) {
+//                 print("Answer: $answer");
+//                 _cubit.save(question, answer);
+//                 nextPage(questions.length);
+//               }
+//             },
+//           ))
+//       .toList();
+// }
 }
 
 class DynamicOnBoardingPage extends StatefulWidget {
@@ -325,10 +325,13 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
         scrolledUnderElevation: 0.0,
         leading: IconButton(
             onPressed: () => widget.onPrevious(),
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       body: SafeArea(
@@ -567,8 +570,8 @@ class _DynamicOnBoardingPageState extends State<DynamicOnBoardingPage> {
 
   void saveAnswer() {}
 
-  // @override
-  // bool get wantKeepAlive => false;
+// @override
+// bool get wantKeepAlive => false;
 }
 
 class DynamicWelcome extends StatefulWidget {
@@ -632,10 +635,13 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                   RouteService().navigateBack(
                       context: context, current: 'dynamic_onboarding')
                 },
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       backgroundColor: CustomColors.backgroundSecondary,
@@ -661,7 +667,7 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                                 Padding(
                                   padding: const EdgeInsets.only(
                                       left: 16.0, right: 16.0),
-                                  child: Text(
+                                  child: WordSafeText(
                                     "You’re almost done! Just a few more questions to personalize your study",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
@@ -771,10 +777,13 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
         scrolledUnderElevation: 0.0,
         leading: IconButton(
             onPressed: () => widget.onBack(),
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.textNormalContent,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       backgroundColor: CustomColors.fillWhite,
@@ -800,7 +809,9 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                    child: Text(widget.message,
+                    child: Text(
+                        textScaler: getAdaptiveTextScaler(context),
+                        widget.message,
                         textAlign: TextAlign.center,
                         style: CustomTypography().headlineMedium(
                             color: CustomColors.textNormalContent)),
@@ -845,10 +856,15 @@ class _DynamicErrorPageState extends State<DynamicErrorPage> {
                     ],
                   ),
 
-                  CustomTextButton(
-                    onClick: () => launchEmail(),
-                    text: 'Contact Researcher',
-                    textColor: CustomColors.warningActive,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CustomTextButton(
+                        onClick: () => launchEmail(),
+                        text: 'Contact Researcher',
+                        textColor: CustomColors.warningActive,
+                      ),
+                    ],
                   ),
                 ],
               ),

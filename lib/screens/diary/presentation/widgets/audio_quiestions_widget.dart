@@ -4,6 +4,8 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class AudioQuestionsWidget extends StatelessWidget {
   final DiaryModel diary;
   final PromptModel prompt;
@@ -42,7 +44,7 @@ class AudioQuestionsWidget extends StatelessWidget {
                 children: [
                   Container(
                       alignment: Alignment.topLeft,
-                      child: Text(
+                      child: WordSafeText(
                         "Question ${currentPage + 1}/${diary.prompts.length}",
                         style: CustomTypography().button(),
                       )),

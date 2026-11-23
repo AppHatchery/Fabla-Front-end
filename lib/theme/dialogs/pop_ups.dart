@@ -7,6 +7,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../core/utils/participant_experiment_details.dart';
 import '../../screens/hub/presentation/cubit/hub_cubit.dart';
 import '../components/buttons.dart';
@@ -966,29 +967,18 @@ class WarningPopUp extends StatelessWidget {
               ),
 
               // Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context),
-                      text: "Cancel",
-                      color: CustomColors.greyLight,
-                      borderColor: CustomColors.greyLight,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context),
-                      text: "Change Response",
-                      color: CustomColors.warningActive,
-                      borderColor: CustomColors.warningActive,
-                    ),
-                  ),
-                ],
-              )
+              CustomFlatButton(
+                onClick: () => Navigator.pop(context),
+                text: "Cancel",
+                color: CustomColors.greyLight,
+                borderColor: CustomColors.greyLight,
+              ),
+              CustomFlatButton(
+                onClick: () => Navigator.pop(context),
+                text: "Change Response",
+                color: CustomColors.warningActive,
+                borderColor: CustomColors.warningActive,
+              ),
             ],
           ),
         ),
@@ -1010,82 +1000,82 @@ class _RedoPopUpState extends State<RedoPopUp> {
 
   @override
   Widget build(BuildContext context) {
+    final largeText = MediaQuery.textScalerOf(context).scale(16.sp) > 24;
+    final dialogWidth = MediaQuery.sizeOf(context).width - 32;
+    final maxDialogHeight = MediaQuery.sizeOf(context).height - 48;
+
+    final cancelButton = CustomFlatButton(
+      key: const Key('redo_cancel_button'),
+      onClick: () => Navigator.pop(context, false),
+      text: "Cancel",
+      color: CustomColors.greyLight,
+      borderColor: CustomColors.greyLight,
+    );
+    final confirmButton = CustomFlatButton(
+      key: const Key('redo_confirm_button'),
+      onClick: () => Navigator.pop(context, true),
+      text: "Yes",
+      color: CustomColors.warningActive,
+      borderColor: CustomColors.warningActive,
+    );
+
     return SimpleDialog(
       contentPadding: const EdgeInsets.all(0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: Colors.grey, width: 1)),
       surfaceTintColor: CustomColors.fillWhite,
       children: [
-        Container(
-          constraints: const BoxConstraints.tightFor(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Title
-              Text(
-                "Redo Your Answer?",
-                style: CustomTypography().headlineMedium(),
-              ),
-
-              const SizedBox(
-                height: 24,
-              ),
-
-              // Message
-              Text(
-                "This will erase your current answer. Would you still like to redo it?",
-                style: CustomTypography().bodyLarge(),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-
-              //Checkbox
-              Container(
-                  alignment: Alignment.center,
-                  child: IntrinsicWidth(
-                    child: CustomCheckbox(
-                        value: _dontShowAgain,
-                        label: "Don't show me again",
-                        onChanged: (value) {
-                          setState(() {
-                            _dontShowAgain = value!;
-                          });
-                        }),
-                  )),
-
-              const SizedBox(
-                height: 24,
-              ),
-
-              // Buttons
-              Row(
+        SizedBox(
+          width: dialogWidth,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxDialogHeight),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "Cancel",
-                      color: CustomColors.greyLight,
-                      borderColor: CustomColors.greyLight,
+                  Text(
+                    "Redo Your Answer?",
+                    style: CustomTypography().headlineMedium(),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    "This will erase your current answer. Would you still like to redo it?",
+                    style: CustomTypography().bodyLarge(),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomCheckbox(
+                      value: _dontShowAgain,
+                      label: "Don't show me again",
+                      onChanged: (value) {
+                        setState(() {
+                          _dontShowAgain = value!;
+                        });
+                      },
                     ),
                   ),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, true),
-                      text: "Yes",
-                      color: CustomColors.warningActive,
-                      borderColor: CustomColors.warningActive,
+                  const SizedBox(height: 24),
+                  if (largeText) ...[
+                    SizedBox(width: double.infinity, child: cancelButton),
+                    const SizedBox(height: 8),
+                    SizedBox(width: double.infinity, child: confirmButton),
+                  ] else
+                    Row(
+                      children: [
+                        Expanded(child: cancelButton),
+                        const SizedBox(width: 18),
+                        Expanded(child: confirmButton),
+                      ],
                     ),
-                  ),
                 ],
-              )
-            ],
+              ),
+            ),
           ),
         ),
       ],
@@ -1103,6 +1093,7 @@ class DeletePopUp extends StatelessWidget {
   Widget build(BuildContext context) {
     return SimpleDialog(
       contentPadding: const EdgeInsets.all(0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: Colors.grey, width: 2)),
@@ -1117,6 +1108,7 @@ class DeletePopUp extends StatelessWidget {
             children: [
               // Title
               Text(
+                textScaler: getAdaptiveTextScaler(context),
                 title ?? "Do you want to delete your response?",
                 style: CustomTypography().headlineMedium(),
                 textAlign: TextAlign.center,
@@ -1128,6 +1120,7 @@ class DeletePopUp extends StatelessWidget {
 
               // Message
               Text(
+                textScaler: getAdaptiveTextScaler(context),
                 subheader ?? "You won't be able to undo this action",
                 style: CustomTypography()
                     .bodyLarge()
@@ -1139,28 +1132,19 @@ class DeletePopUp extends StatelessWidget {
               ),
 
               // Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, true),
-                      text: "Delete",
-                      color: CustomColors.fillWhite,
-                      borderColor: CustomColors.warningActive,
-                      textColor: CustomColors.warningActive,
-                    ),
-                  ),
-                  const SizedBox(width: 18),
-                  Expanded(
-                    child: CustomFlatButton(
-                      onClick: () => Navigator.pop(context, false),
-                      text: "Cancel",
-                      color: CustomColors.productNormal,
-                      borderColor: CustomColors.productNormal,
-                      textColor: CustomColors.fillWhite,
-                    ),
-                  ),
-                ],
+              CustomFlatButton(
+                onClick: () => Navigator.pop(context, true),
+                text: "Delete",
+                color: CustomColors.fillWhite,
+                borderColor: CustomColors.warningActive,
+                textColor: CustomColors.warningActive,
+              ),
+              CustomFlatButton(
+                onClick: () => Navigator.pop(context, false),
+                text: "Cancel",
+                color: CustomColors.productNormal,
+                borderColor: CustomColors.productNormal,
+                textColor: CustomColors.fillWhite,
               )
             ],
           ),
@@ -1185,6 +1169,7 @@ class ExitPopUp extends StatelessWidget {
     return SimpleDialog(
       backgroundColor: CustomColors.fillWhite,
       contentPadding: const EdgeInsets.all(0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: Colors.grey, width: 1)),
@@ -1279,14 +1264,15 @@ class StudyInfoPopUp extends StatelessWidget {
     return SimpleDialog(
         backgroundColor: CustomColors.fillWhite,
         contentPadding: const EdgeInsets.all(0),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 29),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16),
         title: Column(
           children: [
             Align(
               alignment: Alignment.topRight,
               child: GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
-                child: const Icon(Icons.close, size: 24),
+                child: Icon(Icons.close,
+                    size: getAdaptiveTextScaler(context).scale(24)),
               ),
             ),
             Row(
@@ -1297,12 +1283,13 @@ class StudyInfoPopUp extends StatelessWidget {
                       shape: BoxShape.circle, color: Colors.black26),
                   child: Image.asset(
                     "assets/images/study_info.png",
-                    height: 80,
-                    width: 80,
+                    height: getAdaptiveTextScaler(context).scale(80),
+                    width: getAdaptiveTextScaler(context).scale(80),
                   ),
                 ),
                 Flexible(
                   child: Text(
+                    textScaler: getAdaptiveTextScaler(context),
                     "What's my Study String?",
                     style: CustomTypography().custom(
                         fontSize: 22.sp,
@@ -1320,29 +1307,32 @@ class StudyInfoPopUp extends StatelessWidget {
             child: Column(
               children: [
                 const SizedBox(height: 26),
-                Text.rich(TextSpan(
-                    text: "Your ",
-                    style: CustomTypography().custom(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xA3000000)),
-                    children: [
-                      TextSpan(
-                        text: "Study String ",
-                        style: CustomTypography().titleSmall(
-                            color: CustomColors.backgroundSecondary),
-                      ),
-                      TextSpan(
-                        text:
-                            "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
+                Text.rich(
+                    textScaler: getAdaptiveTextScaler(context),
+                    TextSpan(
+                        text: "Your ",
                         style: CustomTypography().custom(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w400,
                             color: const Color(0xA3000000)),
-                      )
-                    ])),
+                        children: [
+                          TextSpan(
+                            text: "Study String ",
+                            style: CustomTypography().titleSmall(
+                                color: CustomColors.backgroundSecondary),
+                          ),
+                          TextSpan(
+                            text:
+                                "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
+                            style: CustomTypography().custom(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.w400,
+                                color: const Color(0xA3000000)),
+                          )
+                        ])),
                 const SizedBox(height: 26),
                 Text.rich(
+                  textScaler: getAdaptiveTextScaler(context),
                   TextSpan(
                     text: 'If you need help with your Study String, you may ',
                     style: CustomTypography().custom(
@@ -1397,12 +1387,14 @@ class CompletedPopUp extends StatelessWidget {
     return SimpleDialog(
       backgroundColor: CustomColors.fillWhite,
       contentPadding: const EdgeInsets.all(0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(25),
       ),
       surfaceTintColor: CustomColors.fillWhite,
       children: [
         Container(
+          width: MediaQuery.sizeOf(context).width - 32,
           constraints: const BoxConstraints.tightFor(),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 32),
           child: Column(
@@ -1541,13 +1533,14 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       child: SimpleDialog(
         backgroundColor: CustomColors.fillWhite,
         contentPadding: const EdgeInsets.all(0),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16),
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
             side: const BorderSide(color: Colors.grey, width: 2)),
         surfaceTintColor: CustomColors.fillWhite,
         children: [
           Container(
-            width: width - 70,
+            width: width - 32,
             constraints: const BoxConstraints.tightFor(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
             child: Center(
@@ -1574,15 +1567,16 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
   List<Widget> _buildAvailable() {
     return [
       Container(
-        width: 60,
-        height: 60,
+        width: getAdaptiveTextScaler(context).scale(60),
+        height: getAdaptiveTextScaler(context).scale(60),
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
           color: CustomColors.productLightPrimaryActive,
         ),
-        child: const Center(
+        child: Center(
           child: Icon(Icons.sync_rounded,
-              size: 40, color: CustomColors.productNormal),
+              size: getAdaptiveTextScaler(context).scale(40),
+              color: CustomColors.productNormal),
         ),
       ),
       const SizedBox(height: 12),
@@ -1625,8 +1619,8 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
       Center(
         child: Image.asset(
           'assets/images/icons/studyUpdateWarning.png',
-          height: 60,
-          width: 60,
+          height: getAdaptiveTextScaler(context).scale(60),
+          width: getAdaptiveTextScaler(context).scale(60),
         ),
       ),
       const SizedBox(height: 12),
@@ -1634,6 +1628,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         'Warning',
         style: CustomTypography()
             .headlineMedium(color: CustomColors.warningActive),
+        textAlign: TextAlign.center,
       ),
       const SizedBox(height: 12),
       Text(
@@ -1674,26 +1669,26 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
 
   List<Widget> _buildUpdating() {
     return [
-      const SizedBox(
-        width: 40,
-        height: 40,
+      SizedBox(
+        width: getAdaptiveTextScaler(context).scale(40),
+        height: getAdaptiveTextScaler(context).scale(40),
         child: Padding(
           padding: EdgeInsets.all(5.0),
           child: CircularProgressIndicator(
-            strokeWidth: 5,
+            strokeWidth: getAdaptiveTextScaler(context).scale(5),
             color: CustomColors.productNormal,
             strokeCap: StrokeCap.round,
           ),
         ),
       ),
       const SizedBox(height: 12),
-      Text(
+      WordSafeText(
         'Updating Study',
         textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
       ),
       const SizedBox(height: 12),
-      Text(
+      WordSafeText(
         "Hang tight! We're updating the experiment content. This won't take long!",
         textAlign: TextAlign.center,
         style: CustomTypography()
@@ -1706,26 +1701,28 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
     return [
       Align(
         alignment: Alignment.lerp(Alignment.topRight, Alignment.bottomLeft, 0)!,
-        child: GestureDetector(
-          onTap: _exit,
-          child: const Icon(Icons.close, size: 24),
+        child: IconButton(
+          onPressed: _exit,
+          icon: const Icon(applyTextScaling: true, Icons.close, size: 24),
         ),
       ),
       Center(
         child: Image.asset(
           'assets/images/icons/studyUpdateCompleted.png',
-          height: 60,
-          width: 60,
+          height: getAdaptiveTextScaler(context).scale(60),
+          width: getAdaptiveTextScaler(context).scale(60),
         ),
       ),
       const SizedBox(height: 12),
       Text(
+        textScaler: getAdaptiveTextScaler(context),
         'Study Update Successful',
         textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
       ),
       const SizedBox(height: 12),
       Text(
+        textScaler: getAdaptiveTextScaler(context),
         'Your study has been updated to the latest version.',
         textAlign: TextAlign.center,
         style: CustomTypography()
@@ -1739,8 +1736,8 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
     return [
       Image.asset(
         'assets/images/icons/studyUpdateFailed.png',
-        height: 60,
-        width: 60,
+        height: getAdaptiveTextScaler(context).scale(60),
+        width: getAdaptiveTextScaler(context).scale(60),
       ),
       const SizedBox(height: 12),
       Text(
@@ -1844,6 +1841,7 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
     return SimpleDialog(
       backgroundColor: CustomColors.fillWhite,
       contentPadding: const EdgeInsets.all(0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: Colors.grey, width: 2)),
@@ -1857,16 +1855,17 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
             children: [
               Align(
                 alignment: Alignment.topRight,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: const Icon(Icons.close, size: 24),
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon:
+                      const Icon(applyTextScaling: true, Icons.close, size: 24),
                 ),
               ),
               Center(
                 child: Image.asset(
                   'assets/images/icons/StudyUpdate.png',
-                  height: 60,
-                  width: 60,
+                  height: getAdaptiveTextScaler(context).scale(60),
+                  width: getAdaptiveTextScaler(context).scale(60),
                 ),
               ),
               SizedBox(
@@ -1896,29 +1895,32 @@ class StudyUpdateBlockedPopUp extends StatelessWidget {
                   children: [
                     Image.asset(
                       'assets/images/icons/warning.png',
-                      height: 24,
-                      width: 24,
+                      height: getAdaptiveTextScaler(context).scale(24),
+                      width: getAdaptiveTextScaler(context).scale(24),
                       color: CustomColors.pumpkinOrange,
                     ),
                     Expanded(
-                      child: Text.rich(TextSpan(
-                          text: "You have ",
-                          style: CustomTypography()
-                              .bodyLarge(color: CustomColors.pumpkinOrange),
-                          children: [
-                            TextSpan(
-                              text: "diaries submitted or pending submissions ",
-                              style: CustomTypography().bodyLarge(
-                                  color: CustomColors.pumpkinOrange,
-                                  weight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  "for the day. You cannot update the study right now. Please check again at the start of tomorrow.",
+                      child: Text.rich(
+                          textScaler: getAdaptiveTextScaler(context),
+                          TextSpan(
+                              text: "You have ",
                               style: CustomTypography()
                                   .bodyLarge(color: CustomColors.pumpkinOrange),
-                            )
-                          ])),
+                              children: [
+                                TextSpan(
+                                  text:
+                                      "diaries submitted or pending submissions ",
+                                  style: CustomTypography().bodyLarge(
+                                      color: CustomColors.pumpkinOrange,
+                                      weight: FontWeight.bold),
+                                ),
+                                TextSpan(
+                                  text:
+                                      "for the day. You cannot update the study right now. Please check again at the start of tomorrow.",
+                                  style: CustomTypography().bodyLarge(
+                                      color: CustomColors.pumpkinOrange),
+                                )
+                              ])),
                     ),
                   ],
                 ),

@@ -1,6 +1,6 @@
 import 'dart:async' show unawaited;
 
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
+
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/utils/quickstart_handler.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/custom_calender.dart';
@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:io' show Platform;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../services/preference_service.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -83,10 +84,13 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                   RouteService()
                       .navigateBack(context: context, current: 'active_dates')
                 },
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
       ),
       body: SafeArea(
@@ -144,7 +148,7 @@ class _ActiveDatesPageState extends State<ActiveDatesPage>
                         height: constraint.maxHeight,
                         width: width,
                         child: AvatarBackground(
-                            height: height,
+                            height: constraint.maxHeight,
                             width: width,
                             image: "",
                             avatarType: "animation",

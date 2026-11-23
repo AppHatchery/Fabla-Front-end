@@ -26,6 +26,7 @@ import 'package:path/path.dart' as p;
 import 'package:rive/rive.dart' as r;
 import 'package:video_player/video_player.dart';
 
+import '../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../core/usecases/webview_survey_detector.dart';
 import '../../core/utils/formatter.dart';
 import '../../services/crashlytics_service.dart';
@@ -202,6 +203,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                             ? null
                             : () => unawaited(_closeSheet()),
                         child: Icon(
+                          applyTextScaling: true,
                           CupertinoIcons.clear_circled_solid,
                           size: 32,
                           color: CustomColors.textSecondaryContent,
@@ -247,6 +249,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
+                      textScaler: getAdaptiveTextScaler(context),
                       recordingState.isPaused
                           ? "Resume Recording"
                           : recordingState.isRecording
@@ -410,119 +413,131 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     );
   }
 
-  Widget recordingControls(AudioRecordingState recordingState) {
-    // Completed by stop or timeout
-    final isCompleted = recordingState.hasCompletedTake;
-
-    return Column(
+  /// Main control stays centered; [trailing] sits after [gap] in the remaining
+  /// half. At large font scales that half can be too narrow, so the gap and
+  /// trailing control scale down together (keeping the circle round) instead of
+  /// overflowing.
+  Widget _centeredControlRow({
+    required Widget center,
+    required Widget trailing,
+    required double gap,
+  }) {
+    return Row(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (!isCompleted) ...[
-                // When stopped initially: Show mic
-                if (!recordingState.isRecording && !recordingState.isPaused)
-                  Container(
-                    height: 68,
-                    width: 68,
-                    decoration: BoxDecoration(
-                      color: CustomColors.fillWhite,
-                      borderRadius: BorderRadius.circular(42),
-                    ),
-                    child: _buildControlButton(
-                      icon: Icons.mic,
-                      size: 34,
-                      onPressed: () => unawaited(record()),
-                      color: CustomColors.warningActive,
-                    ),
-                  )
-                else
-                  // When recording or paused
-                  ...[
-                  SizedBox(width: recordingState.isRecording ? 90 : 130),
-                  // Stop button
-                  Container(
-                    height: recordingState.isPaused ? 40 : 68,
-                    width: recordingState.isPaused ? 40 : 68,
-                    decoration: BoxDecoration(
-                      color: CustomColors.fillWhite,
-                      borderRadius: BorderRadius.circular(42),
-                    ),
-                    child: _buildControlButton(
-                      icon: CupertinoIcons.stop_fill,
-                      size: recordingState.isPaused ? 24 : 34,
-                      onPressed: recordingState.elapsed < const Duration(seconds: 1)
-                          ? null
-                          : () => unawaited(_recordingService.stop()),
-                      color: CustomColors.warningActive,
-                    ),
-                  ),
-                  const SizedBox(width: 50),
-                  // Pause/Resume (right - swaps size)
-                  Container(
-                    height: recordingState.isPaused ? 68 : 40,
-                    width: recordingState.isPaused ? 68 : 40,
-                    decoration: BoxDecoration(
-                      color: recordingState.isRecording
-                          ? CustomColors.fillWhite
-                          : CustomColors.warningActive,
-                      borderRadius: BorderRadius.circular(42),
-                    ),
-                    child: _buildControlButton(
-                      icon: recordingState.isPaused
-                          ? Icons.mic
-                          : CupertinoIcons.pause_fill,
-                      color: recordingState.isPaused
-                          ? CustomColors.fillWhite
-                          : CustomColors.productNormal,
-                      size: recordingState.isPaused ? 34 : 24,
-                      onPressed: () => unawaited(record()),
-                    ),
-                  ),
-                ],
-              ] else ...[
-                // Checkmark button (left)
-                SizedBox(width: 90),
-                Container(
-                  height: 68,
-                  width: 68,
-                  decoration: BoxDecoration(
-                    color: CustomColors.fillWhite,
-                    borderRadius: BorderRadius.circular(42),
-                  ),
-                  child: _buildControlButton(
-                    icon: CupertinoIcons.checkmark_alt,
-                    size: 34,
-                    onPressed: () => unawaited(save()),
-                    color: CustomColors.productNormal,
-                  ),
-                ),
-                const SizedBox(width: 50),
-                // Redo button (right)
-                Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    color: CustomColors.fillWhite,
-                    borderRadius: BorderRadius.circular(42),
-                  ),
-                  child: Transform.rotate(
-                    angle: -40 * pi / 180,
-                    child: _buildControlButton(
-                      icon: CupertinoIcons.refresh_bold,
-                      size: 24,
-                      onPressed: () => unawaited(redo()),
-                      color: CustomColors.productNormal,
-                    ),
-                  ),
-                ),
-              ],
-            ],
+        const Spacer(),
+        center,
+        Expanded(
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [SizedBox(width: gap), trailing],
+              ),
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _circle({
+    required double diameter,
+    required Color background,
+    required Widget child,
+  }) {
+    return Container(
+      width: diameter,
+      height: diameter,
+      decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+      child: child,
+    );
+  }
+
+  Widget recordingControls(AudioRecordingState recordingState) {
+    final scaler = getAdaptiveTextScaler(context);
+    final isPaused = recordingState.isPaused;
+    final large = scaler.scale(68);
+    final small = scaler.scale(40);
+    final gap = scaler.scale(50);
+
+    final Widget content;
+    if (recordingState.hasCompletedTake) {
+      content = _centeredControlRow(
+        gap: gap,
+        center: _circle(
+          diameter: large,
+          background: CustomColors.fillWhite,
+          child: _buildControlButton(
+            icon: CupertinoIcons.checkmark_alt,
+            size: 34,
+            onPressed: () => unawaited(save()),
+            color: CustomColors.productNormal,
+          ),
+        ),
+        trailing: _circle(
+          diameter: small,
+          background: CustomColors.fillWhite,
+          child: Transform.rotate(
+            angle: -40 * pi / 180,
+            child: _buildControlButton(
+              icon: CupertinoIcons.refresh_bold,
+              size: 24,
+              onPressed: () => unawaited(redo()),
+              color: CustomColors.productNormal,
+            ),
+          ),
+        ),
+      );
+    } else if (!recordingState.isRecording && !isPaused) {
+      content = Center(
+        child: _circle(
+          diameter: large,
+          background: CustomColors.fillWhite,
+          child: _buildControlButton(
+            icon: Icons.mic,
+            size: 34,
+            onPressed: () => unawaited(record()),
+            color: CustomColors.warningActive,
+          ),
+        ),
+      );
+    } else {
+      content = _centeredControlRow(
+        gap: gap,
+        center: _circle(
+          diameter: isPaused ? small : large,
+          background: CustomColors.fillWhite,
+          child: _buildControlButton(
+            icon: CupertinoIcons.stop_fill,
+            size: isPaused ? 24 : 34,
+            // Disabled until at least 1 second is recorded (#1072).
+            onPressed: recordingState.elapsed < const Duration(seconds: 1)
+                ? null
+                : () => unawaited(_recordingService.stop()),
+            color: CustomColors.warningActive,
+          ),
+        ),
+        trailing: _circle(
+          diameter: isPaused ? large : small,
+          background:
+              isPaused ? CustomColors.warningActive : CustomColors.fillWhite,
+          child: _buildControlButton(
+            icon: isPaused ? Icons.mic : CupertinoIcons.pause_fill,
+            size: isPaused ? 34 : 24,
+            color:
+                isPaused ? CustomColors.fillWhite : CustomColors.productNormal,
+            onPressed: () => unawaited(record()),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: content,
     );
   }
 
@@ -536,7 +551,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       onPressed: onPressed,
       icon: Icon(
         icon,
-        size: size.toDouble(),
+        size: getAdaptiveTextScaler(context).scale(size.toDouble()),
         color: color,
       ),
     );
@@ -582,12 +597,14 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
         cancelText: "Save Recording",
         content: [
           Text(
+            textScaler: getAdaptiveTextScaler(context),
             "Save your recording?",
             style: CustomTypography().headlineMedium(),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           Text(
+            textScaler: getAdaptiveTextScaler(context),
             "If you close without saving, this recording will be lost.",
             style: CustomTypography().bodyLarge(),
             textAlign: TextAlign.center,
@@ -919,7 +936,6 @@ class _BottomTextModalState extends State<BottomTextModal>
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -931,28 +947,33 @@ class _BottomTextModalState extends State<BottomTextModal>
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(14), topRight: Radius.circular(14)),
         ),
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                controller: widget.scrollController,
-                child: Column(
-                  children: [
-                    questionAndHints(),
-
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    // Text controls
-                    responseField(),
-
-                    SizedBox(
-                        height: keyboardHeight > 0 ? keyboardHeight + 50 : 50),
-                  ],
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: widget.scrollController,
+                  child: Column(
+                    children: [
+                      questionAndHints(),
+                      const SizedBox(height: 16),
+                      responseField(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
+                child: SafeArea(top: false, child: saveButton()),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -973,6 +994,7 @@ class _BottomTextModalState extends State<BottomTextModal>
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: const Icon(
+                  applyTextScaling: true,
                   CupertinoIcons.clear_circled_solid,
                   size: 26,
                   color: CustomColors.textSecondaryContent,
@@ -983,7 +1005,7 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 16,
           ),
-          Text(
+          WordSafeText(
             widget.question,
             style: CustomTypography().titleLarge(),
           ),
@@ -991,8 +1013,8 @@ class _BottomTextModalState extends State<BottomTextModal>
             height: 32,
           ),
           SizedBox(
-            height: 100,
-            width: 100,
+            height: getAdaptiveTextScaler(context).scale(100),
+            width: getAdaptiveTextScaler(context).scale(100),
             child: _riveController != null
                 ? r.RiveWidget(controller: _riveController!)
                 : const SizedBox.shrink(),
@@ -1001,7 +1023,7 @@ class _BottomTextModalState extends State<BottomTextModal>
             height: 16,
           ),
           widget.hint != null && widget.hint!.isNotEmpty
-              ? Text(
+              ? WordSafeText(
                   widget.hint!,
                   style: CustomTypography().body(),
                 )
@@ -1035,78 +1057,69 @@ class _BottomTextModalState extends State<BottomTextModal>
   Widget responseField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: TextField(
+        key: fieldKey,
+        focusNode: textFocusNode,
+        controller: textController,
+        maxLines: 5,
+        scrollPadding: const EdgeInsets.only(bottom: 96),
+        cursorColor: CustomColors.productNormal,
+        style: CustomTypography().bodyLarge(),
+        decoration: InputDecoration(
+          hintText: "Type your response here",
+          hintStyle: CustomTypography()
+              .bodyLarge(color: CustomColors.textSecondaryContent),
+          enabledBorder: OutlineInputBorder(
+              borderSide: const BorderSide(
+                  width: 1, color: CustomColors.productBorderNormal),
+              borderRadius: BorderRadius.circular(11)),
+          border: OutlineInputBorder(
+              borderSide: const BorderSide(
+                  width: 1, color: CustomColors.productBorderNormal),
+              borderRadius: BorderRadius.circular(11)),
+          contentPadding: const EdgeInsets.all(16),
+          fillColor: CustomColors.fillWhite,
+          filled: true,
+          focusColor: CustomColors.productBorderActive,
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                width: getAdaptiveTextScaler(context).scale(1),
+                color: CustomColors.productBorderActive),
+            borderRadius: BorderRadius.circular(11),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget saveButton() {
+    return CustomOutlineButton(
+      onClick: () => {
+        if (!disabled)
+          {
+            widget.onSave?.call(textController.text),
+            Navigator.pop(context),
+          }
+      },
+      color: !disabled ? CustomColors.textWhite : CustomColors.fillDisabled,
+      backgroundColor:
+          !disabled ? CustomColors.productNormal : CustomColors.fillDisabled,
+      children: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          TextField(
-            key: fieldKey,
-            focusNode: textFocusNode,
-            controller: textController,
-            maxLines: 5,
-            cursorColor: CustomColors.productNormal,
-            style: CustomTypography().bodyLarge(),
-            decoration: InputDecoration(
-              hintText: "Type your response here",
-              hintStyle: CustomTypography()
-                  .bodyLarge(color: CustomColors.textSecondaryContent),
-              enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                      width: 1, color: CustomColors.productBorderNormal),
-                  borderRadius: BorderRadius.circular(11)),
-              border: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                      width: 1, color: CustomColors.productBorderNormal),
-                  borderRadius: BorderRadius.circular(11)),
-              contentPadding: const EdgeInsets.all(16),
-              fillColor: CustomColors.fillWhite,
-              filled: true,
-              focusColor: CustomColors.productBorderActive,
-              focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
-                    width: 1, color: CustomColors.productBorderActive),
-                borderRadius: BorderRadius.circular(11),
-              ),
+          Text(
+            "OK",
+            style: CustomTypography().button(
+              color: !disabled ? CustomColors.textWhite : CustomColors.greyDark,
             ),
           ),
-          const SizedBox(
-            height: 16,
+          const SizedBox(width: 8),
+          Icon(
+            applyTextScaling: true,
+            CupertinoIcons.checkmark_alt,
+            color: !disabled ? CustomColors.textWhite : CustomColors.greyDark,
+            size: 20,
           ),
-          CustomOutlineButton(
-              onClick: () => {
-                    if (!disabled)
-                      {
-                        widget.onSave?.call(textController.text),
-                        Navigator.pop(context)
-                      }
-                  },
-              color: !disabled
-                  ? CustomColors.textWhite
-                  : CustomColors.fillDisabled,
-              backgroundColor: !disabled
-                  ? CustomColors.productNormal
-                  : CustomColors.fillDisabled,
-              children: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    "OK",
-                    style: CustomTypography().button(
-                        color: !disabled
-                            ? CustomColors.textWhite
-                            : CustomColors.greyDark),
-                  ),
-                  const SizedBox(
-                    width: 8,
-                  ),
-                  Icon(
-                    CupertinoIcons.checkmark_alt,
-                    color: !disabled
-                        ? CustomColors.textWhite
-                        : CustomColors.greyDark,
-                    size: 20,
-                  )
-                ],
-              ))
         ],
       ),
     );
@@ -1383,6 +1396,7 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
                 GestureDetector(
                   onTap: () => exit(),
                   child: const Icon(
+                    applyTextScaling: true,
                     CupertinoIcons.clear_circled_solid,
                     size: 26,
                     color: CustomColors.textSecondaryContent,
@@ -1492,12 +1506,15 @@ class _BottomWebViewModalState extends State<BottomWebViewModal> {
               confirmText: "Yes, Leave Survey",
               content: [
                 Text(
+                  textScaler: getAdaptiveTextScaler(context),
                   "Exit Survey?",
                   style: CustomTypography().headlineMedium(),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                Text("If you exit, your progress will not be saved.",
+                Text(
+                    textScaler: getAdaptiveTextScaler(context),
+                    "If you exit, your progress will not be saved.",
                     style: CustomTypography().bodyLarge(),
                     textAlign: TextAlign.center),
               ],
@@ -1675,6 +1692,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: const Icon(
+                    applyTextScaling: true,
                     CupertinoIcons.clear_circled_solid,
                     size: 26,
                     color: CustomColors.textSecondaryContent,
@@ -1707,7 +1725,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    WordSafeText(
                       widget.prompt.question,
                       style: CustomTypography().titleLarge(),
                     ),
@@ -1724,7 +1742,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                     const SizedBox(
                       height: 16,
                     ),
-                    Text(
+                    WordSafeText(
                       widget.prompt.subtitle ??
                           "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
                       style: CustomTypography().body(),
@@ -1822,7 +1840,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                           child: Padding(
                             padding: const EdgeInsets.only(top: 9.0),
                             child: Container(
-                              width: 90,
+                              constraints: const BoxConstraints(minWidth: 90),
                               padding: EdgeInsets.symmetric(horizontal: 9),
                               decoration: ShapeDecoration(
                                   shape: RoundedRectangleBorder(
@@ -1831,9 +1849,11 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                                       ? CustomColors.productNormal
                                       : CustomColors.warningActive),
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
+                                    textScaler: getAdaptiveTextScaler(context),
                                     formatDurationtoHHMMSS(elapsed),
                                     style: CustomTypography().custom(
                                         fontSize: 16,
@@ -1862,8 +1882,8 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       children: [
         const SizedBox(width: 50),
         SizedBox(
-          height: 64,
-          width: 64,
+          height: getAdaptiveTextScaler(context).scale(64),
+          width: getAdaptiveTextScaler(context).scale(64),
           child: Material(
             color: Colors.transparent,
             child: Ink(
@@ -1878,8 +1898,8 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                   child: Padding(
                     padding: const EdgeInsets.all(4),
                     child: Container(
-                      height: 60,
-                      width: 60,
+                      height: getAdaptiveTextScaler(context).scale(60),
+                      width: getAdaptiveTextScaler(context).scale(60),
                       decoration: BoxDecoration(
                           color: CustomColors.fillWhite,
                           borderRadius: BorderRadius.circular(60)),
@@ -1891,17 +1911,18 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
         GestureDetector(
           onTap: () => flip(),
           child: Container(
-              height: 50,
-              width: 50,
+              height: getAdaptiveTextScaler(context).scale(50),
+              width: getAdaptiveTextScaler(context).scale(50),
               decoration: BoxDecoration(
                   color: CustomColors.fillWhite,
                   borderRadius: BorderRadius.circular(68)),
               padding: const EdgeInsets.all(4),
               child: SizedBox(
-                height: 45,
-                width: 45,
+                height: getAdaptiveTextScaler(context).scale(45),
+                width: getAdaptiveTextScaler(context).scale(45),
                 child: Center(
                   child: Icon(
+                    applyTextScaling: true,
                     CupertinoIcons.switch_camera_solid,
                     color: CustomColors.productNormal,
                     size: 25,
@@ -1913,172 +1934,191 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
     );
   }
 
-  Widget recordingControls() {
-    final width = MediaQuery.of(context).size.width;
-    return SizedBox(
-      width: width,
-      height: 68,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          //Pause
-          Visibility(
-              visible: controller.value.isRecordingVideo,
-              replacement: const SizedBox(width: 50),
-              child: GestureDetector(
-                  onTap: () => pause(),
-                  child: AnimatedContainer(
-                      duration: Duration(milliseconds: 100),
-                      height: controller.value.isRecordingPaused ? 68 : 50,
-                      width: controller.value.isRecordingPaused ? 68 : 50,
-                      decoration: BoxDecoration(
-                          color: controller.value.isRecordingPaused
-                              ? Colors.transparent
-                              : CustomColors.fillWhite,
-                          border: Border.all(
-                              color: CustomColors.fillWhite, width: 4),
-                          borderRadius: BorderRadius.circular(68)),
-                      padding: const EdgeInsets.all(4),
-                      child: AnimatedSwitcher(
-                        duration: Duration(milliseconds: 100),
-                        transitionBuilder: (child, animation) {
-                          return ScaleTransition(
-                              scale: animation, child: child);
-                        },
-                        child: controller.value.isRecordingPaused
-                            ? Container(
-                                key: ValueKey(1),
-                                height: 60,
-                                width: 60,
-                                decoration: BoxDecoration(
-                                    color: CustomColors.warningActive,
-                                    borderRadius: BorderRadius.circular(60)),
-                              )
-                            : SizedBox(
-                                key: ValueKey(2),
-                                height: 50,
-                                width: 50,
-                                child: Icon(
-                                  Icons.pause_rounded,
-                                  color: CustomColors.warningActive,
-                                  size: 30,
-                                ),
-                              ),
-                      )))),
+  /// Scale for the camera control buttons: follows the user's text size, but
+  /// never so large that the widest state (68 + 50 + 50, plus a minimum gap)
+  /// stops fitting in [maxWidth].
+  double _controlScale(double maxWidth,
+      {double widestRow = 68.0 + 50.0 + 50.0 + 24.0}) {
+    final textScale = getAdaptiveTextScaler(context).scale(1);
+    return max(1.0, min(textScale, maxWidth / widestRow));
+  }
 
-          //Record
-          GestureDetector(
-            onTap: () => record(),
-            child: AnimatedContainer(
-                duration: Duration(milliseconds: 100),
-                height: controller.value.isRecordingPaused ? 50 : 64,
-                width: controller.value.isRecordingPaused ? 50 : 64,
-                decoration: BoxDecoration(
-                    border: Border.all(color: CustomColors.fillWhite, width: 4),
-                    borderRadius: BorderRadius.circular(68)),
-                padding: EdgeInsets.all(controller.value.isRecordingPaused
-                    ? 10
-                    : controller.value.isRecordingVideo
-                        ? 15
-                        : 4),
-                child: Container(
-                  // height: controller.value.isRecordingPaused ? 42 : 50,
-                  // width: controller.value.isRecordingPaused ? 42 : 50,
+  Widget recordingControls() {
+    return LayoutBuilder(builder: (context, constraints) {
+      final s = _controlScale(constraints.maxWidth);
+      return SizedBox(
+        width: constraints.maxWidth,
+        height: 68 * s,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            //Pause
+            Visibility(
+                visible: controller.value.isRecordingVideo,
+                replacement: const SizedBox(width: 50),
+                child: GestureDetector(
+                    onTap: () => pause(),
+                    child: AnimatedContainer(
+                        duration: Duration(milliseconds: 100),
+                        height: controller.value.isRecordingPaused
+                            ? 68 * s
+                            : 50 * s,
+                        width: controller.value.isRecordingPaused
+                            ? 68 * s
+                            : 50 * s,
+                        decoration: BoxDecoration(
+                            color: controller.value.isRecordingPaused
+                                ? Colors.transparent
+                                : CustomColors.fillWhite,
+                            border: Border.all(
+                                color: CustomColors.fillWhite, width: 4),
+                            borderRadius: BorderRadius.circular(68)),
+                        padding: const EdgeInsets.all(4),
+                        child: AnimatedSwitcher(
+                          duration: Duration(milliseconds: 100),
+                          transitionBuilder: (child, animation) {
+                            return ScaleTransition(
+                                scale: animation, child: child);
+                          },
+                          child: controller.value.isRecordingPaused
+                              ? Container(
+                                  key: ValueKey(1),
+                                  height: 64 * s,
+                                  width: 64 * s,
+                                  decoration: BoxDecoration(
+                                      color: CustomColors.warningActive,
+                                      borderRadius: BorderRadius.circular(60)),
+                                )
+                              : SizedBox(
+                                  key: ValueKey(2),
+                                  height: 50 * s,
+                                  width: 50 * s,
+                                  child: Icon(
+                                    Icons.pause_rounded,
+                                    color: CustomColors.warningActive,
+                                    size: 30 * s,
+                                  ),
+                                ),
+                        )))),
+
+            //Record
+            GestureDetector(
+              onTap: () => record(),
+              child: AnimatedContainer(
+                  duration: Duration(milliseconds: 100),
+                  height: controller.value.isRecordingPaused ? 50 * s : 64 * s,
+                  width: controller.value.isRecordingPaused ? 50 * s : 64 * s,
                   decoration: BoxDecoration(
-                      color: CustomColors.warningActive,
-                      shape: controller.value.isRecordingVideo
-                          ? BoxShape.rectangle
-                          : BoxShape.circle,
-                      borderRadius: controller.value.isRecordingVideo
-                          ? BorderRadius.circular(4)
-                          : null),
-                )),
-          ),
-          GestureDetector(
-            onTap: () => flip(),
-            child: Container(
-                height: 50,
-                width: 50,
-                decoration: BoxDecoration(
-                    color: CustomColors.fillWhite,
-                    borderRadius: BorderRadius.circular(68)),
-                padding: const EdgeInsets.all(4),
-                child: SizedBox(
-                  height: 45,
-                  width: 45,
-                  child: Center(
-                    child: Icon(
-                      CupertinoIcons.switch_camera_solid,
-                      color: CustomColors.productNormal,
-                      size: 25,
+                      border:
+                          Border.all(color: CustomColors.fillWhite, width: 4),
+                      borderRadius: BorderRadius.circular(68)),
+                  padding: EdgeInsets.all(controller.value.isRecordingPaused
+                      ? 10
+                      : controller.value.isRecordingVideo
+                          ? 15
+                          : 4),
+                  child: Container(
+                    // height: controller.value.isRecordingPaused ? 42 : 50,
+                    // width: controller.value.isRecordingPaused ? 42 : 50,
+                    decoration: BoxDecoration(
+                        color: CustomColors.warningActive,
+                        shape: controller.value.isRecordingVideo
+                            ? BoxShape.rectangle
+                            : BoxShape.circle,
+                        borderRadius: controller.value.isRecordingVideo
+                            ? BorderRadius.circular(4)
+                            : null),
+                  )),
+            ),
+            GestureDetector(
+              onTap: () => flip(),
+              child: Container(
+                  height: 50 * s,
+                  width: 50 * s,
+                  decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      borderRadius: BorderRadius.circular(68)),
+                  padding: const EdgeInsets.all(4),
+                  child: SizedBox(
+                    height: 45 * s,
+                    width: 45 * s,
+                    child: Center(
+                      child: Icon(
+                        CupertinoIcons.switch_camera_solid,
+                        color: CustomColors.productNormal,
+                        size: 25 * s,
+                      ),
                     ),
-                  ),
-                )),
-          )
-        ],
-      ),
-    );
+                  )),
+            )
+          ],
+        ),
+      );
+    });
   }
 
   Widget playbackControls() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      spacing: 24,
-      children: [
-        GestureDetector(
-          onTap: () => redo(),
+    const gap = 24.0;
+    return LayoutBuilder(builder: (context, constraints) {
+      // Side buttons are 50 (13 padding + 24 icon), centre is 64.
+      final s = _controlScale(constraints.maxWidth,
+          widestRow: 50.0 + 64.0 + 50.0 + gap * 2);
+
+      Widget sideButton(IconData icon, VoidCallback onTap, {Key? key}) {
+        return GestureDetector(
+          key: key,
+          onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.all(13),
+            height: 50 * s,
+            width: 50 * s,
             decoration: BoxDecoration(
                 shape: BoxShape.circle, color: CustomColors.fillWhite),
-            child: Icon(
-              CupertinoIcons.arrow_uturn_left,
-              color: CustomColors.productNormalActive,
+            child: Center(
+              child: Icon(
+                icon,
+                color: CustomColors.productNormalActive,
+                size: 24 * s,
+              ),
             ),
           ),
-        ),
-        widget.isImage
-            ? const SizedBox(
-                height: 64,
-                width: 64,
-              )
-            : GestureDetector(
-                onTap: () => play(),
-                child: Container(
-                  height: 64,
-                  width: 64,
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle, color: CustomColors.fillWhite),
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.only(left: videoPlaying ? 0 : 4.0),
-                      child: Icon(
-                        videoPlaying
-                            ? CupertinoIcons.pause_fill
-                            : CupertinoIcons.play_arrow_solid,
-                        color: CustomColors.productNormalActive,
-                        size: 32,
+        );
+      }
+
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        spacing: gap,
+        children: [
+          sideButton(CupertinoIcons.arrow_uturn_left, () => redo()),
+          widget.isImage
+              ? SizedBox(height: 64 * s, width: 64 * s)
+              : GestureDetector(
+                  onTap: () => play(),
+                  child: Container(
+                    height: 64 * s,
+                    width: 64 * s,
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle, color: CustomColors.fillWhite),
+                    child: Center(
+                      child: Padding(
+                        padding:
+                            EdgeInsets.only(left: videoPlaying ? 0 : 4 * s),
+                        child: Icon(
+                          videoPlaying
+                              ? CupertinoIcons.pause_fill
+                              : CupertinoIcons.play_arrow_solid,
+                          color: CustomColors.productNormalActive,
+                          size: 32 * s,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-        GestureDetector(
-          key: const Key("save"),
-          onTap: () => save(),
-          child: Container(
-            padding: const EdgeInsets.all(13),
-            decoration: BoxDecoration(
-                shape: BoxShape.circle, color: CustomColors.fillWhite),
-            child: Icon(
-              CupertinoIcons.checkmark_alt,
-              color: CustomColors.productNormalActive,
-            ),
-          ),
-        ),
-      ],
-    );
+          sideButton(CupertinoIcons.checkmark_alt, () => save(),
+              key: const Key("save")),
+        ],
+      );
+    });
   }
 
   capture() async {
@@ -2309,17 +2349,34 @@ class _VideoPreviewState extends State<VideoPreview> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Each label gets at most half the row and shrinks to fit
+                  // when large text would push the two past each other.
                   //Elapsed
-                  Text(
-                    formatDurationtoHHMMSS(elapsed),
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textWhite),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        formatDurationtoHHMMSS(elapsed),
+                        textScaler: getAdaptiveTextScaler(context),
+                        style: CustomTypography()
+                            .bodyMedium(color: CustomColors.textWhite),
+                      ),
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   //Remaining
-                  Text(
-                    formatDurationtoHHMMSS(remaining),
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textWhite),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        formatDurationtoHHMMSS(remaining),
+                        textScaler: getAdaptiveTextScaler(context),
+                        style: CustomTypography()
+                            .bodyMedium(color: CustomColors.textWhite),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -2417,6 +2474,7 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: const Icon(
+                    applyTextScaling: true,
                     CupertinoIcons.clear_circled_solid,
                     size: 26,
                     color: CustomColors.textSecondaryContent,
@@ -2478,6 +2536,7 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
                                       shape: BoxShape.circle,
                                       color: Color(0xFF616161)),
                                   child: Icon(
+                                    applyTextScaling: true,
                                     Icons.remove,
                                     size: 28,
                                     color: CustomColors.fillWhite,
@@ -2537,6 +2596,7 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
                                       shape: BoxShape.circle,
                                       color: Color(0xFF616161)),
                                   child: Icon(
+                                    applyTextScaling: true,
                                     Icons.remove,
                                     size: 28,
                                     color: CustomColors.fillWhite,
@@ -2610,6 +2670,7 @@ class _ViewAllMediaModalState extends State<ViewAllMediaModal> {
                             child: GestureDetector(
                               onTap: () => Navigator.pop(context),
                               child: const Icon(
+                                applyTextScaling: true,
                                 CupertinoIcons.clear,
                                 size: 24,
                                 color: Colors.black,
@@ -2795,8 +2856,8 @@ class _BottomTimerModalState extends State<BottomTimerModal>
               ? const SizedBox.shrink()
               : Image.asset(
                   'assets/images/icons/pace.png',
-                  height: iconSize,
-                  width: iconSize,
+                  height: getAdaptiveTextScaler(context).scale(iconSize),
+                  width: getAdaptiveTextScaler(context).scale(iconSize),
                 ),
           const SizedBox(width: 8), // spacing proportional to width
           Flexible(
@@ -2905,13 +2966,16 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 64,
-        height: 64,
+        constraints: const BoxConstraints(maxHeight: 70, maxWidth: 70),
+        width: getAdaptiveTextScaler(context).scale(64),
+        height: getAdaptiveTextScaler(context).scale(64),
         decoration: BoxDecoration(
           border: Border.all(width: 2, color: borderColor),
           borderRadius: BorderRadius.circular(100),
         ),
-        child: Icon(icon, size: 24, color: CustomColors.fillWhite),
+        child: Icon(icon,
+            size: getAdaptiveTextScaler(context).scale(24),
+            color: CustomColors.fillWhite),
       ),
     );
   }
@@ -2920,28 +2984,29 @@ class _BottomTimerModalState extends State<BottomTimerModal>
     return GestureDetector(
       onTap: widget.showTimeUpOverlay ? widget.onStop : widget.onPauseResume,
       child: Container(
-        width: 80,
-        height: 80,
+        constraints: const BoxConstraints(maxHeight: 100, maxWidth: 100),
+        width: getAdaptiveTextScaler(context).scale(80),
+        height: getAdaptiveTextScaler(context).scale(80),
         decoration: BoxDecoration(
           color: CustomColors.fillWhite,
           shape: BoxShape.circle,
         ),
         child: Center(
           child: widget.showTimeUpOverlay
-              ? const Icon(
+              ? Icon(
                   CupertinoIcons.checkmark_alt,
-                  size: 40,
+                  size: getAdaptiveTextScaler(context).scale(40),
                   color: CustomColors.productNormal,
                 )
               : (widget.isRunning && !widget.isPaused)
-                  ? const Icon(
+                  ? Icon(
                       CupertinoIcons.pause_fill,
-                      size: 40,
+                      size: getAdaptiveTextScaler(context).scale(40),
                       color: CustomColors.warningActive,
                     )
-                  : const Icon(
+                  : Icon(
                       CupertinoIcons.play_fill,
-                      size: 40,
+                      size: getAdaptiveTextScaler(context).scale(40),
                       color: CustomColors.productNormal,
                     ),
         ),

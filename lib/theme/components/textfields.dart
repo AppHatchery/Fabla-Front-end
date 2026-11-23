@@ -109,6 +109,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           ),
         ),
         hintText: widget.hint,
+        hintMaxLines: 3,
         hintStyle: CustomTypography()
             .bodyLarge(color: CustomColors.textTertiaryContent),
         errorStyle:

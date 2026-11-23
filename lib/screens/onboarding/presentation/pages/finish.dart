@@ -1,4 +1,4 @@
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
+
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/domain/repository/setup_repository.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:rive/rive.dart' as rive;
 import 'dart:io' show Platform;
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../theme/components/buttons.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_typography.dart';
@@ -115,6 +116,7 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
+                                          textScaler: getAdaptiveTextScaler(context),
                                           "Welcome, \nLet's Get Started",
                                           style: CustomTypography()
                                               .headlineLarge(
@@ -125,6 +127,7 @@ class _FinishPageState extends State<FinishPage> with WidgetsBindingObserver {
                                           height: 16,
                                         ),
                                         Text(
+                                          textScaler: getAdaptiveTextScaler(context),
                                           "Congratulations! ${Strings.confetti} You are all set! Your participation is invaluable to our research. We're thrilled to have you on board!",
                                           style: CustomTypography().bodyLarge(
                                               color: CustomColors.textWhite),

@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/screens/hub/presentation/cubit/hub_cubit.dart';
 import 'package:audio_diaries_flutter/screens/onboarding/data/questions.dart';
@@ -98,10 +99,14 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Expanded(
-              child: Text(
-                "Participant Details",
-                style: CustomTypography()
-                    .titleLarge(color: CustomColors.textNormalContent),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  textScaler: getAdaptiveTextScaler(context),
+                  "Participant Details",
+                  style: CustomTypography()
+                      .titleLarge(color: CustomColors.textNormalContent),
+                ),
               ),
             ),
           ],
@@ -126,16 +131,16 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Flexible(
-                          child: Text(
-                            "Participant ID",
-                            style: CustomTypography().bodyLarge(
-                              weight: FontWeight.w500,
-                            ),
+                        Text(
+                          textScaler: getAdaptiveTextScaler(context),
+                          "Participant ID",
+                          style: CustomTypography().bodyLarge(
+                            weight: FontWeight.w500,
                           ),
                         ),
                         Flexible(
                           child: Text(
+                            textScaler: getAdaptiveTextScaler(context),
                             participant!.studyCode,
                             style: CustomTypography().bodyMedium(
                                 color: CustomColors.textSecondaryContent),
@@ -147,16 +152,16 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Flexible(
-                          child: Text(
-                            "Study String",
-                            style: CustomTypography().bodyLarge(
-                              weight: FontWeight.w500,
-                            ),
+                        Text(
+                          textScaler: getAdaptiveTextScaler(context),
+                          "Study String",
+                          style: CustomTypography().bodyLarge(
+                            weight: FontWeight.w500,
                           ),
                         ),
                         Flexible(
                           child: Text(
+                            textScaler: getAdaptiveTextScaler(context),
                             experiment!.login,
                             style: CustomTypography().bodyMedium(
                                 color: CustomColors.textSecondaryContent),
@@ -171,18 +176,20 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                             children: [
                               Flexible(
                                 child: Text(
+                                  textScaler: getAdaptiveTextScaler(context),
                                   "Date Joined",
                                   style: CustomTypography().bodyLarge(
                                     weight: FontWeight.w500,
                                   ),
                                 ),
                               ),
+                              const SizedBox(width: 12),
                               Flexible(
                                 child: Text(
+                                  textScaler: getAdaptiveTextScaler(context),
                                   dateJoined ?? "-",
                                   style: CustomTypography().bodyMedium(
-                                      color:
-                                          CustomColors.textSecondaryContent),
+                                      color: CustomColors.textSecondaryContent),
                                 ),
                               ),
                             ],
@@ -226,13 +233,14 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                     children: [
                       Text(
                         "Onboarding Survey",
-                        style: CustomTypography()
-                            .bodyLarge(color: CustomColors.productNormalActive, weight: FontWeight.w500),
+                        style: CustomTypography().bodyLarge(
+                            color: CustomColors.productNormalActive,
+                            weight: FontWeight.w500),
                       ),
                       Text(
                         hasSurvey ? "Completed $date" : "",
-                        style: CustomTypography()
-                            .bodyMedium(color: CustomColors.textTertiaryContent),
+                        style: CustomTypography().bodyMedium(
+                            color: CustomColors.textTertiaryContent),
                       ),
                       const SizedBox(height: 12),
                     ],
@@ -242,7 +250,7 @@ class _ParticipantDetailsState extends State<ParticipantDetails> {
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: Icon(
                     Icons.chevron_right_rounded,
-                    size: 24,
+                    size: getAdaptiveTextScaler(context).scale(24),
                     color: CustomColors.productNormalActive,
                   ),
                 ),

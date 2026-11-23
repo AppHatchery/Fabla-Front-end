@@ -6,6 +6,8 @@ import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class WeeklyGoalWidget extends StatefulWidget {
   final List<StudyModel> studies;
   final List<DiaryModel> diaries;
@@ -42,22 +44,29 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text("Weekly Goal", style: CustomTypography().bodyLarge()),
-            const SizedBox(width: 6),
-            GestureDetector(
-              child: Icon(
-                key: const Key('weekly_goal_icon'),
-                widget.isExpanded
-                    ? Icons.keyboard_arrow_up_rounded
-                    : Icons.keyboard_arrow_down_rounded,
-                color: CustomColors.textTertiaryContent,
-                size: 20,
-              ),
-            )
-          ],
+        // This sits in the fixed-height app bar, so at the largest text sizes
+        // shrink the label to one line rather than wrapping it.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text("Weekly Goal", style: CustomTypography().bodyLarge()),
+              const SizedBox(width: 6),
+              GestureDetector(
+                child: Icon(
+                  applyTextScaling: true,
+                  key: const Key('weekly_goal_icon'),
+                  widget.isExpanded
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                  color: CustomColors.textTertiaryContent,
+                  size: 20,
+                ),
+              )
+            ],
+          ),
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -71,7 +80,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                     bottom: 0,
                     child: Container(
                       width: 70,
-                      height: 6,
+                      height: getAdaptiveTextScaler(context).scale(6),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(27),
@@ -84,7 +93,7 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                     child: Container(
                       key: const Key('weekly_goal_progress_bar'),
                       width: progressBarWidth,
-                      height: 6,
+                      height: getAdaptiveTextScaler(context).scale(6),
                       decoration: BoxDecoration(
                         color: color,
                         borderRadius: BorderRadius.circular(27),
@@ -98,8 +107,11 @@ class _WeeklyGoalWidgetState extends State<WeeklyGoalWidget> {
                           // left: 70 * value - 10,
                           left: lowerGoal,
                           top: 2,
-                          child: Icon(CupertinoIcons.flag_fill,
-                              color: color, size: 12),
+                          child: Icon(
+                            CupertinoIcons.flag_fill,
+                            color: color,
+                            size: getAdaptiveTextScaler(context).scale(12),
+                          ),
                         ),
                 ],
               ),

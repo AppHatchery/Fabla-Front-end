@@ -1,7 +1,7 @@
 import 'package:app_settings/app_settings.dart';
-import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector.dart';
 import 'package:audio_diaries_flutter/core/usecases/page_timer.dart';
 import 'package:audio_diaries_flutter/core/usecases/permission_request_guard.dart';
+import 'package:audio_diaries_flutter/screens/onboarding/presentation/widgets/confirm_tile.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart';
 import 'package:audio_diaries_flutter/services/preference_service.dart';
 import 'package:audio_diaries_flutter/services/route_service.dart';
@@ -14,6 +14,8 @@ import 'package:location/location.dart' as l;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rive/rive.dart' as rive;
 import 'dart:io' show Platform;
+
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 
 class LocationAccess extends StatefulWidget {
   const LocationAccess({super.key});
@@ -103,10 +105,13 @@ class _LocationAccessState extends State<LocationAccess>
                   RouteService()
                       .navigateBack(context: context, current: 'location')
                 },
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: CustomColors.fillWhite,
-              size: 32,
+            icon: FittedBox(
+              fit: BoxFit.contain,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: CustomColors.fillWhite,
+                size: getAdaptiveTextScaler(context).scale(32),
+              ),
             )),
         automaticallyImplyLeading: false,
       ),
@@ -132,6 +137,7 @@ class _LocationAccessState extends State<LocationAccess>
                               child: Column(
                                 children: [
                                   Text(
+                                    textScaler: getAdaptiveTextScaler(context),
                                     "Let's enable access to your location.",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),
@@ -156,8 +162,8 @@ class _LocationAccessState extends State<LocationAccess>
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                  const Icon(CustomIcons.cancel,
-                                                      size: 20,
+                                                  Icon(CustomIcons.cancel,
+                                                      size: getAdaptiveTextScaler(context).scale(16),
                                                       color: CustomColors
                                                           .warningActive),
                                                   const SizedBox(
@@ -165,6 +171,7 @@ class _LocationAccessState extends State<LocationAccess>
                                                   ),
                                                   Flexible(
                                                     child: Text(
+                                                      textScaler: getAdaptiveTextScaler(context),
                                                       "Oops! You need to enable location access to participate in the study.",
                                                       style: CustomTypography()
                                                           .bodyLarge(
@@ -207,6 +214,7 @@ class _LocationAccessState extends State<LocationAccess>
                                                       onPressed:
                                                           openPermissionSettings,
                                                       child: Text(
+                                                          textScaler: getAdaptiveTextScaler(context),
                                                           "Open Settings",
                                                           style: CustomTypography()
                                                               .bodyLarge(

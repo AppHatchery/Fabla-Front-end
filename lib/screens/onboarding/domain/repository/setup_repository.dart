@@ -696,7 +696,7 @@ class SetupRepository {
     );
 
     final result =
-        await post(path: "/fabla/updateuserextras", body: map).then((value) {
+    await post(path: "/fabla/updateuserextras", body: map).then((value) {
       if (value != null) {
         final response = jsonDecode(value);
         return response['status'] == 'success';

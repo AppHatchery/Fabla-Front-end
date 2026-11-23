@@ -1,3 +1,4 @@
+import 'package:audio_diaries_flutter/core/usecases/font_scaler_detector_and_adjuster.dart';
 import 'package:audio_diaries_flutter/core/utils/statuses.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
@@ -80,7 +81,7 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                 const Expanded(flex: 1, child: SizedBox()),
                 Expanded(
                   flex: 3,
-                  child: Text(
+                  child: WordSafeText(
                     diary.status == DiaryStatus.missed ||
                             diary.start.isBefore(DateTime.now())
                         ? "Response of ${_formatDate(diary.start)}"
@@ -95,21 +96,21 @@ class _ReviewDiaryState extends State<ReviewDiary> {
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close_rounded),
+                      icon: const Icon(Icons.close_rounded, applyTextScaling: true,),
                     ),
                   ),
                 )
               ],
             ),
           ),
-          const Divider(
-            thickness: 1,
+          Divider(
+            thickness: getAdaptiveTextScaler(context).scale(1),
             height: 0,
           ),
           const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
+            child: WordSafeText(
               diary.status == DiaryStatus.missed ||
                       diary.start.isBefore(DateTime.now())
                   ? "Response Summary"
@@ -292,8 +293,8 @@ class _ReviewDiaryState extends State<ReviewDiary> {
             child: Row(children: [
               Image.asset(
                 "assets/images/icons/block.png",
-                height: 16,
-                width: 16,
+                height: getAdaptiveTextScaler(context).scale(16),
+                width: getAdaptiveTextScaler(context).scale(16),
               ),
               SizedBox(
                 width: 5,
@@ -319,8 +320,8 @@ class _ReviewDiaryState extends State<ReviewDiary> {
             child: Row(children: [
               Image.asset(
                 "assets/images/icons/task_alt.png",
-                height: 16,
-                width: 16,
+                height: getAdaptiveTextScaler(context).scale(16),
+                width:getAdaptiveTextScaler(context).scale(16),
               ),
               SizedBox(
                 width: 5,

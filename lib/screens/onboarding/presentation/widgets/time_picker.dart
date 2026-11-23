@@ -4,6 +4,8 @@ import 'package:audio_diaries_flutter/theme/custom_colors.dart';
 import 'package:audio_diaries_flutter/theme/custom_typography.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
+
 class OnboardingTimePicker extends StatefulWidget {
   final String? time;
   final String title;
@@ -70,6 +72,7 @@ class _OnboardingTimePickerState extends State<OnboardingTimePicker> {
 
   void pickTime(TimeOfDay? date) async {
     final _time = await showModalBottomSheet(
+      useSafeArea: true,
         backgroundColor: CustomColors.fillWhite,
         isScrollControlled: true,
         enableDrag: false,
@@ -132,7 +135,7 @@ class _TimeElapsedPickerState extends State<TimeElapsedPicker> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              WordSafeText(
                 elapsed != null
                     ? "${elapsed!.inHours.toString().padLeft(2, '0')} h ${elapsed!.inMinutes.remainder(60).toString().padLeft(2, '0')} min"
                     : 'Select Time',

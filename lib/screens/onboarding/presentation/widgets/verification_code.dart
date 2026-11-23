@@ -1,13 +1,12 @@
-
 import 'package:audio_diaries_flutter/theme/components/textfields.dart';
 import 'package:audio_diaries_flutter/theme/dialogs/pop_ups.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/usecases/font_scaler_detector_and_adjuster.dart';
 import '../../../../core/utils/participant_experiment_details.dart';
 import '../../../../theme/custom_colors.dart';
 import '../../../../theme/custom_icons.dart';
 import '../../../../theme/custom_typography.dart';
-
 
 class VerificationCodeTextField extends StatefulWidget {
   final String title;
@@ -20,14 +19,14 @@ class VerificationCodeTextField extends StatefulWidget {
   final bool warning;
   const VerificationCodeTextField(
       {super.key,
-      required this.title,
-      required this.errorMessage,
-      required this.hint,
-      this.controller,
-      this.fieldType = TextInputType.text,
-      this.error = false,
-      required this.warningMessage,
-      this.warning = false});
+        required this.title,
+        required this.errorMessage,
+        required this.hint,
+        this.controller,
+        this.fieldType = TextInputType.text,
+        this.error = false,
+        required this.warningMessage,
+        this.warning = false});
 
   @override
   State<VerificationCodeTextField> createState() =>
@@ -44,13 +43,14 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
         Row(
           children: [
             Text(
+              textScaler: getAdaptiveTextScaler(context),
               widget.title,
               style:
-                  CustomTypography().titleSmall(color: CustomColors.textWhite),
+              CustomTypography().titleSmall(color: CustomColors.textWhite),
             ),
             if (widget.title == "Study String")
               IconButton(
-                iconSize: 20,
+                iconSize: getAdaptiveTextScaler(context).scale(20),
                 onPressed: () async => await showDialog(
                     context: context, builder: (context) => StudyInfoPopUp()),
                 icon: const Icon(
@@ -72,14 +72,14 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           filled: true,
           borderColor:
-              widget.warning ? CustomColors.pumpkinOrange : Colors.transparent,
+          widget.warning ? CustomColors.pumpkinOrange : Colors.transparent,
           borderRadius: BorderRadius.circular(11),
           borderWidth: widget.warning ? 2 : 0,
           suffix: IconButton(
               onPressed: () => widget.controller!.clear(),
-              icon: const Icon(
+              icon: Icon(
                 CustomIcons.cancel,
-                size: 20,
+                size: getAdaptiveTextScaler(context).scale(24),
               ),
               color: CustomColors.productBorderNormal),
         ),
@@ -88,115 +88,120 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
         // ),
         widget.warning
             ? Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: Container(
-                  width: width,
-                  padding: const EdgeInsets.all(16),
-                  decoration: ShapeDecoration(
-                      color: CustomColors.fillVanilla,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(11),
-                      )),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.warning_rounded,
-                        size: 24,
-                        color: CustomColors.pumpkinOrange, // Same orange
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 8,
-                            children: [
-                              Text(
-                                "Participant ID Already in Use",
-                                style: CustomTypography().bodyLarge(
-                                    color: CustomColors.pumpkinOrange,
-                                    weight: FontWeight.w700),
+          padding: const EdgeInsets.only(top: 12.0),
+          child: Container(
+            width: width,
+            padding: const EdgeInsets.all(16),
+            decoration: ShapeDecoration(
+                color: CustomColors.fillVanilla,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(11),
+                )),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.warning_rounded,
+                  size:getAdaptiveTextScaler(context).scale(24),
+                  color: CustomColors.pumpkinOrange, // Same orange
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 8,
+                      children: [
+                        Text(
+                          textScaler: getAdaptiveTextScaler(context),
+                          "Participant ID Already in Use",
+                          style: CustomTypography().bodyLarge(
+                              color: CustomColors.pumpkinOrange,
+                              weight: FontWeight.w700),
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              textScaler: getAdaptiveTextScaler(context),
+                              widget.warningMessage,
+                              style: CustomTypography().bodyLarge(
+                                color: CustomColors.pumpkinOrange,
                               ),
-                              Column(
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              child: Row(
                                 children: [
-                                  Text(
-                                    widget.warningMessage,
-                                    style: CustomTypography().bodyLarge(
-                                      color: CustomColors.pumpkinOrange,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  SizedBox(
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          height: 45,
-                                          decoration: ShapeDecoration(
-                                            color: CustomColors.pumpkinOrange,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(11),
-                                            ),
-                                          ),
-                                          child: TextButton(
-                                            onPressed: () => launchEmail(),
-                                            child: FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              child: Text(
-                                                "Contact Researcher",
-                                                style: CustomTypography()
-                                                    .bodyLarge(
-                                                  color:
-                                                      CustomColors.fillVanilla,
-                                                  weight: FontWeight.w400,
-                                                ),
-                                              ),
-                                            ),
+                                  Flexible(
+                                    child: Container(
+                                      constraints: BoxConstraints(
+                                        minHeight: getAdaptiveTextScaler(context).scale(45),
+                                      ),
+                                      decoration: ShapeDecoration(
+                                        color: CustomColors.pumpkinOrange,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(11),
+                                        ),
+                                      ),
+                                      child: TextButton(
+                                        onPressed: () => launchEmail(),
+                                        child: Text(
+                                          "Contact Researcher",
+                                          maxLines: 2,
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
+                                          textScaler: getAdaptiveTextScaler(context),
+                                          style: CustomTypography().bodyLarge(
+                                            color: CustomColors.fillVanilla,
+                                            weight: FontWeight.w400,
                                           ),
                                         ),
-                                      ],
+                                      ),
                                     ),
-                                  )
+                                  ),
                                 ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                              ),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
                   ),
                 ),
-              )
+              ],
+            ),
+          ),
+        )
             : const SizedBox.shrink(),
         widget.error
             ? Container(
-                width: width,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: CustomColors.warningFill,
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(CustomIcons.cancel,
-                        size: 20, color: CustomColors.warningActive),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Flexible(
-                      child: Text(
-                        widget.errorMessage,
-                        style: CustomTypography()
-                            .bodyLarge(color: CustomColors.warningActive),
-                      ),
-                    )
-                  ],
+          width: width,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: CustomColors.warningFill,
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                  CustomIcons.cancel,
+                  size: getAdaptiveTextScaler(context).scale(24),
+                  color: CustomColors.warningActive),
+              const SizedBox(
+                width: 10,
+              ),
+              Flexible(
+                child: Text(
+                  textScaler: getAdaptiveTextScaler(context),
+                  widget.errorMessage,
+                  style: CustomTypography()
+                      .bodyLarge(color: CustomColors.warningActive),
                 ),
               )
+            ],
+          ),
+        )
             : const SizedBox.shrink(),
       ],
     );
@@ -207,10 +212,10 @@ class _VerificationCodeTextFieldState extends State<VerificationCodeTextField> {
 Future<void> launchEmail() async {
   await ParticipantAndExperimentDetails().loginSupportEmail(
       subject: 'Assistance Needed: Participant ID Already in Use',
-      body: ''' Participant ID entered is already in use. Please confirm or advise next steps.
+      body:
+      ''' Participant ID entered is already in use. Please confirm or advise next steps.
         
         
 Name: ''',
-      example: ''
-  );
+      example: '');
 }
