@@ -39,11 +39,29 @@ void main() {
       expect(calls, hasLength(1));
       expect(calls.single.method, 'show');
       expect(calls.single.arguments, <String, dynamic>{
-        'title': 'Diary Timer',
+        'title': 'Meditation timer',
         'totalSeconds': 60,
         'remainingSeconds': 45,
         'isPaused': false,
+        'questionNumber': null,
+        'questionCount': null,
+        'playbackControls': false,
       });
+    });
+
+    test('forwards the question position and playback controls', () async {
+      await service.show(
+        total: const Duration(minutes: 1),
+        remaining: const Duration(seconds: 45),
+        isPaused: false,
+        questionNumber: 5,
+        questionCount: 8,
+        playbackControls: true,
+      );
+
+      expect(calls.single.arguments['questionNumber'], 5);
+      expect(calls.single.arguments['questionCount'], 8);
+      expect(calls.single.arguments['playbackControls'], isTrue);
     });
 
     test('forwards a paused state', () async {
@@ -124,6 +142,48 @@ void main() {
       );
 
       expect(calls.map((call) => call.method), <String>['hide']);
+    });
+  });
+
+  group('TimerLiveUpdateService notification actions', () {
+    Future<void> sendFromPlatform(String method) async {
+      final codec = const StandardMethodCodec();
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(channel.name,
+              codec.encodeMethodCall(MethodCall(method)), (_) {});
+    }
+
+    test('togglePause from the notification reaches the callback', () async {
+      var toggles = 0;
+      service = TimerLiveUpdateService(
+          isAndroid: true, onTogglePause: () => toggles++);
+
+      await service.show(
+        total: const Duration(minutes: 1),
+        remaining: const Duration(seconds: 30),
+        isPaused: false,
+        playbackControls: true,
+      );
+      await sendFromPlatform('togglePause');
+
+      expect(toggles, 1);
+    });
+
+    test('togglePause is ignored once the notification is hidden', () async {
+      var toggles = 0;
+      service = TimerLiveUpdateService(
+          isAndroid: true, onTogglePause: () => toggles++);
+
+      await service.show(
+        total: const Duration(minutes: 1),
+        remaining: const Duration(seconds: 30),
+        isPaused: false,
+        playbackControls: true,
+      );
+      await service.hide();
+      await sendFromPlatform('togglePause');
+
+      expect(toggles, 0);
     });
   });
 

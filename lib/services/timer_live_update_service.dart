@@ -16,19 +16,28 @@ class TimerLiveUpdateService {
       MethodChannel('edu.emory.audio_diaries_flutter/timer_live_update');
   static const _iosChannel = MethodChannel('diary/live_activity');
 
-  static const _defaultTitle = 'Diary Timer';
+  static const _defaultTitle = 'Meditation timer';
 
   /// [isAndroid]/[isIOS] are injectable so the channel contracts can be
   /// exercised in tests, which run on the host platform. [enabled] gates
   /// both platforms at once — e.g. for a timer question configured not to
   /// show live updates.
-  TimerLiveUpdateService({bool? isAndroid, bool? isIOS, this.enabled = true})
-      : _isAndroid = isAndroid ?? Platform.isAndroid,
+  ///
+  /// [onTogglePause] runs when the Android notification's Pause/Resume
+  /// action is tapped. The action is only shown when [show] is called with
+  /// `playbackControls: true`.
+  TimerLiveUpdateService({
+    bool? isAndroid,
+    bool? isIOS,
+    this.enabled = true,
+    this.onTogglePause,
+  })  : _isAndroid = isAndroid ?? Platform.isAndroid,
         _isIOS = isIOS ?? Platform.isIOS;
 
   final bool _isAndroid;
   final bool _isIOS;
   final bool enabled;
+  final void Function()? onTogglePause;
 
   /// Starts the iOS Live Activity for a fresh countdown ending at [endDate].
   /// Skipped when the user has Live Activities disabled: requesting one then
@@ -60,21 +69,37 @@ class TimerLiveUpdateService {
       });
 
   /// Posts or refreshes the Android notification. Safe to call repeatedly.
+  ///
+  /// [questionNumber]/[questionCount] render as "Q5 of 8". The Pause/Resume
+  /// action is only added when [playbackControls] is true.
   Future<void> show({
     required Duration total,
     required Duration remaining,
     required bool isPaused,
     String title = _defaultTitle,
+    int? questionNumber,
+    int? questionCount,
+    bool playbackControls = false,
   }) async {
     if (!_isAndroid || !enabled) return;
     if (total <= Duration.zero || remaining <= Duration.zero) return hide();
+
+    _androidChannel.setMethodCallHandler(_handleAndroidCall);
 
     await _invokeAndroid('show', <String, dynamic>{
       'title': title,
       'totalSeconds': total.inSeconds,
       'remainingSeconds': remaining.inSeconds,
       'isPaused': isPaused,
+      'questionNumber': questionNumber,
+      'questionCount': questionCount,
+      'playbackControls': playbackControls,
     });
+  }
+
+  /// Calls coming back from the native notification (its action buttons).
+  Future<void> _handleAndroidCall(MethodCall call) async {
+    if (call.method == 'togglePause') onTogglePause?.call();
   }
 
   /// Removes the Android notification and ends the iOS Live Activity. Safe
@@ -87,6 +112,7 @@ class TimerLiveUpdateService {
   /// Removes the Android notification. Safe to call when nothing is showing.
   Future<void> hide() async {
     if (!_isAndroid || !enabled) return;
+    _androidChannel.setMethodCallHandler(null);
     await _invokeAndroid('hide', null);
   }
 
