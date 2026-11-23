@@ -196,8 +196,7 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                                     ),
                                   ),
                                   Flexible(
-                                    child: Text(
-                                      textScaler: getAdaptiveTextScaler(context),
+                                    child: WordSafeText(
                                       "Fabla Quickstart",
                                       style: CustomTypography().bodyLarge(
                                           color: CustomColors.productNormal,

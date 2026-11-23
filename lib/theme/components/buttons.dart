@@ -153,17 +153,13 @@ class CustomElevatedIconButton extends StatelessWidget {
                 : () => {
                       if (onClick != null) {onClick!()}
                     },
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 48.0),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0, vertical: 12.0),
-                child: Center(
-                    child: Icon(
-                  applyTextScaling: true,
-                  icon,
-                  color: iconColor,
-                )),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+              child: Center(
+                  child: Icon(
+                    applyTextScaling: true,
+                    icon,
+                    color: iconColor,)
               ),
             ),
           ),
@@ -316,7 +312,6 @@ class CustomFlatButton extends StatelessWidget {
                       horizontal: 10.0, vertical: 14.0),
                   child: Center(
                     child: Text(
-                      textScaler: getAdaptiveTextScaler(context),
                       text.toString(),
                       style: CustomTypography()
                           .button(
@@ -495,7 +490,7 @@ class CustomTextAnswerButton extends StatelessWidget {
                   ),
                   Flexible(
                     child: Text(
-                     textScaler:  getAdaptiveTextScaler(context),
+                      textScaler: getAdaptiveTextScaler(context),
                       text.toString(),
                       style: CustomTypography()
                           .button(color: CustomColors.productNormal),

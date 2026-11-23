@@ -712,8 +712,7 @@ class _QuestionPageState extends State<QuestionPage>
                         children: [
                           Container(
                               alignment: Alignment.topLeft,
-                              child: Text(
-                                textScaler: getAdaptiveTextScaler(context),
+                              child: WordSafeText(
                                 "Question ${widget.currentPage + 1}/${widget.diary.prompts.length}",
                                 style: CustomTypography().button(),
                               )),

@@ -122,7 +122,7 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
                         width: 8,
                       ),
                       Expanded(
-                        child: Text(
+                        child: WordSafeText(
                           "Changing the settings here will change the properties related to the study. Please only do so under the researcher’s instructions.",
                           style: CustomTypography()
                               .bodyLarge(color: Color(0xFF0066E6)),
@@ -186,13 +186,12 @@ class _SettingsOnboardingState extends State<SettingsOnboarding> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  textScaler: getAdaptiveTextScaler(context),
+                WordSafeText(
                   question.title,
                   style: CustomTypography()
                       .titleLarge(color: CustomColors.textNormalContent),
                 ),
-                Text(
+                WordSafeText(
                   getAnswer(question),
                   style: CustomTypography()
                       .bodyMedium(color: CustomColors.textSecondaryContent),

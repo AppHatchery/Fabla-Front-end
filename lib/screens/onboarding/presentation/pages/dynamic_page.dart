@@ -187,7 +187,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
           const SizedBox(
             height: 24,
           ),
-          Text(
+          WordSafeText(
             "Setting up...",
             style: CustomTypography()
                 .headlineMedium(color: CustomColors.textWhite),
@@ -195,7 +195,7 @@ class _DynamicOnBoardingHubState extends State<DynamicOnBoardingHub>
           const SizedBox(
             height: 12,
           ),
-          Text(
+          WordSafeText(
             "Hang tight while we set things up for you - \nalmost there!",
             textAlign: TextAlign.center,
             style: CustomTypography().bodyLarge(color: CustomColors.textWhite),
@@ -667,8 +667,7 @@ class _DynamicWelcomeState extends State<DynamicWelcome> {
                                 Padding(
                                   padding: const EdgeInsets.only(
                                       left: 16.0, right: 16.0),
-                                  child: Text(
-                                    textScaler: getAdaptiveTextScaler(context),
+                                  child: WordSafeText(
                                     "You’re almost done! Just a few more questions to personalize your study",
                                     style: CustomTypography().headlineLarge(
                                         color: CustomColors.textWhite),

@@ -1108,6 +1108,7 @@ class DeletePopUp extends StatelessWidget {
             children: [
               // Title
               Text(
+                textScaler: getAdaptiveTextScaler(context),
                 title ?? "Do you want to delete your response?",
                 style: CustomTypography().headlineMedium(),
                 textAlign: TextAlign.center,
@@ -1119,6 +1120,7 @@ class DeletePopUp extends StatelessWidget {
 
               // Message
               Text(
+                textScaler: getAdaptiveTextScaler(context),
                 subheader ?? "You won't be able to undo this action",
                 style: CustomTypography()
                     .bodyLarge()
@@ -1269,7 +1271,8 @@ class StudyInfoPopUp extends StatelessWidget {
               alignment: Alignment.topRight,
               child: GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
-                child:  Icon(Icons.close, size: getAdaptiveTextScaler(context).scale(24)),
+                child: Icon(Icons.close,
+                    size: getAdaptiveTextScaler(context).scale(24)),
               ),
             ),
             Row(
@@ -1304,29 +1307,32 @@ class StudyInfoPopUp extends StatelessWidget {
             child: Column(
               children: [
                 const SizedBox(height: 26),
-                Text.rich(TextSpan(
-                    text: "Your ",
-                    style: CustomTypography().custom(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xA3000000)),
-                    children: [
-                      TextSpan(
-                        text: "Study String ",
-                        style: CustomTypography().titleSmall(
-                            color: CustomColors.backgroundSecondary),
-                      ),
-                      TextSpan(
-                        text:
-                        "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
+                Text.rich(
+                    textScaler: getAdaptiveTextScaler(context),
+                    TextSpan(
+                        text: "Your ",
                         style: CustomTypography().custom(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w400,
                             color: const Color(0xA3000000)),
-                      )
-                    ])),
+                        children: [
+                          TextSpan(
+                            text: "Study String ",
+                            style: CustomTypography().titleSmall(
+                                color: CustomColors.backgroundSecondary),
+                          ),
+                          TextSpan(
+                            text:
+                                "is an alphanumeric code (e.g. ABC123) shared by your researcher to grant you access to your study on Fabla",
+                            style: CustomTypography().custom(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.w400,
+                                color: const Color(0xA3000000)),
+                          )
+                        ])),
                 const SizedBox(height: 26),
                 Text.rich(
+                  textScaler: getAdaptiveTextScaler(context),
                   TextSpan(
                     text: 'If you need help with your Study String, you may ',
                     style: CustomTypography().custom(
@@ -1363,7 +1369,6 @@ class StudyInfoPopUp extends StatelessWidget {
         example: ': e.g. I do not know my study string');
   }
 }
-
 
 class CompletedPopUp extends StatelessWidget {
   final void Function(BuildContext) onYes;
@@ -1569,8 +1574,7 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
           color: CustomColors.productLightPrimaryActive,
         ),
         child: Center(
-          child: Icon(
-              Icons.sync_rounded,
+          child: Icon(Icons.sync_rounded,
               size: getAdaptiveTextScaler(context).scale(40),
               color: CustomColors.productNormal),
         ),
@@ -1678,13 +1682,13 @@ class _StudyUpdatePopUpState extends State<StudyUpdatePopUp> {
         ),
       ),
       const SizedBox(height: 12),
-      Text(
+      WordSafeText(
         'Updating Study',
         textAlign: TextAlign.center,
         style: CustomTypography().headlineMedium(),
       ),
       const SizedBox(height: 12),
-      Text(
+      WordSafeText(
         "Hang tight! We're updating the experiment content. This won't take long!",
         textAlign: TextAlign.center,
         style: CustomTypography()

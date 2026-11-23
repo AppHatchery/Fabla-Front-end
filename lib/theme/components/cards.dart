@@ -199,6 +199,7 @@ class _DiaryCardState extends State<DiaryCard> {
         "diary_day_viewed": "${DateTime.now()}"
       });
       showModalBottomSheet(
+          useSafeArea: true,
           context: context,
           isScrollControlled: true,
           routeSettings: RouteSettings(name: "/ReviewDiaryModal"),

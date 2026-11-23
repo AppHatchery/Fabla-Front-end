@@ -147,7 +147,7 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
             ),
             const SizedBox(width: 6),
             Flexible(
-              child: Text(
+              child: WordSafeText(
                 study.name,
                 style: CustomTypography().bodyLarge(),
               ),
@@ -164,10 +164,9 @@ class _WeeklyGoalPopupState extends State<WeeklyGoalPopup>
               width: width - 50,
               child: Padding(
                 padding: const EdgeInsets.only(right: 8.0),
-                child: Text(
+                child: WordSafeText(
                   "Submit at least $lowerGoal ${goal > 1 ? "entries" : "entry"} this week to complete your goal.",
                   style: CustomTypography().bodyMedium(),
-                  softWrap: true,
                 ),
               ),
             ),

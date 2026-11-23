@@ -1005,7 +1005,7 @@ class _BottomTextModalState extends State<BottomTextModal>
           const SizedBox(
             height: 16,
           ),
-          Text(
+          WordSafeText(
             widget.question,
             style: CustomTypography().titleLarge(),
           ),
@@ -1023,7 +1023,7 @@ class _BottomTextModalState extends State<BottomTextModal>
             height: 16,
           ),
           widget.hint != null && widget.hint!.isNotEmpty
-              ? Text(
+              ? WordSafeText(
                   widget.hint!,
                   style: CustomTypography().body(),
                 )
@@ -1725,7 +1725,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    WordSafeText(
                       widget.prompt.question,
                       style: CustomTypography().titleLarge(),
                     ),
@@ -1742,7 +1742,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                     const SizedBox(
                       height: 16,
                     ),
-                    Text(
+                    WordSafeText(
                       widget.prompt.subtitle ??
                           "Please chat about only one encounter. Got more to say? We'd love for you to take another entry.",
                       style: CustomTypography().body(),
@@ -1840,7 +1840,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                           child: Padding(
                             padding: const EdgeInsets.only(top: 9.0),
                             child: Container(
-                              width: 90,
+                              constraints: const BoxConstraints(minWidth: 90),
                               padding: EdgeInsets.symmetric(horizontal: 9),
                               decoration: ShapeDecoration(
                                   shape: RoundedRectangleBorder(
@@ -1849,6 +1849,7 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                                       ? CustomColors.productNormal
                                       : CustomColors.warningActive),
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
@@ -1881,8 +1882,8 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
       children: [
         const SizedBox(width: 50),
         SizedBox(
-          height: 64,
-          width: 64,
+          height: getAdaptiveTextScaler(context).scale(64),
+          width: getAdaptiveTextScaler(context).scale(64),
           child: Material(
             color: Colors.transparent,
             child: Ink(
@@ -1897,8 +1898,8 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
                   child: Padding(
                     padding: const EdgeInsets.all(4),
                     child: Container(
-                      height: 60,
-                      width: 60,
+                      height: getAdaptiveTextScaler(context).scale(60),
+                      width: getAdaptiveTextScaler(context).scale(60),
                       decoration: BoxDecoration(
                           color: CustomColors.fillWhite,
                           borderRadius: BorderRadius.circular(60)),
@@ -1910,15 +1911,15 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
         GestureDetector(
           onTap: () => flip(),
           child: Container(
-              height: 50,
-              width: 50,
+              height: getAdaptiveTextScaler(context).scale(50),
+              width: getAdaptiveTextScaler(context).scale(50),
               decoration: BoxDecoration(
                   color: CustomColors.fillWhite,
                   borderRadius: BorderRadius.circular(68)),
               padding: const EdgeInsets.all(4),
               child: SizedBox(
-                height: 45,
-                width: 45,
+                height: getAdaptiveTextScaler(context).scale(45),
+                width: getAdaptiveTextScaler(context).scale(45),
                 child: Center(
                   child: Icon(
                     applyTextScaling: true,
@@ -1933,190 +1934,191 @@ class _BottomCameraModalState extends State<BottomCameraModal> {
     );
   }
 
-  Widget recordingControls() {
-    final width = MediaQuery.of(context).size.width;
-    return SizedBox(
-      width: width,
-      height: getAdaptiveTextScaler(context).scale(68),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          //Pause
-          Visibility(
-              visible: controller.value.isRecordingVideo,
-              replacement: const SizedBox(width: 50),
-              child: GestureDetector(
-                  onTap: () => pause(),
-                  child: AnimatedContainer(
-                      duration: Duration(milliseconds: 100),
-                      height: controller.value.isRecordingPaused
-                          ? getAdaptiveTextScaler(context).scale(68)
-                          : getAdaptiveTextScaler(context).scale(50),
-                      width: controller.value.isRecordingPaused
-                          ? getAdaptiveTextScaler(context).scale(68)
-                          : getAdaptiveTextScaler(context).scale(50),
-                      decoration: BoxDecoration(
-                          color: controller.value.isRecordingPaused
-                              ? Colors.transparent
-                              : CustomColors.fillWhite,
-                          border: Border.all(
-                              color: CustomColors.fillWhite, width: 4),
-                          borderRadius: BorderRadius.circular(68)),
-                      padding: const EdgeInsets.all(4),
-                      child: AnimatedSwitcher(
-                        duration: Duration(milliseconds: 100),
-                        transitionBuilder: (child, animation) {
-                          return ScaleTransition(
-                              scale: animation, child: child);
-                        },
-                        child: controller.value.isRecordingPaused
-                            ? Container(
-                                key: ValueKey(1),
-                                height:
-                                    getAdaptiveTextScaler(context).scale(64),
-                                width: getAdaptiveTextScaler(context).scale(64),
-                                decoration: BoxDecoration(
-                                    color: CustomColors.warningActive,
-                                    borderRadius: BorderRadius.circular(60)),
-                              )
-                            : SizedBox(
-                                key: ValueKey(2),
-                                height:
-                                    getAdaptiveTextScaler(context).scale(50),
-                                width: getAdaptiveTextScaler(context).scale(50),
-                                child: Icon(
-                                  applyTextScaling: true,
-                                  Icons.pause_rounded,
-                                  color: CustomColors.warningActive,
-                                  size: 30,
-                                ),
-                              ),
-                      )))),
+  /// Scale for the camera control buttons: follows the user's text size, but
+  /// never so large that the widest state (68 + 50 + 50, plus a minimum gap)
+  /// stops fitting in [maxWidth].
+  double _controlScale(double maxWidth,
+      {double widestRow = 68.0 + 50.0 + 50.0 + 24.0}) {
+    final textScale = getAdaptiveTextScaler(context).scale(1);
+    return max(1.0, min(textScale, maxWidth / widestRow));
+  }
 
-          //Record
-          GestureDetector(
-            onTap: () => record(),
-            child: AnimatedContainer(
-                duration: Duration(milliseconds: 100),
-                height: controller.value.isRecordingPaused
-                    ? getAdaptiveTextScaler(context).scale(50)
-                    : getAdaptiveTextScaler(context).scale(64),
-                width: controller.value.isRecordingPaused
-                    ? getAdaptiveTextScaler(context).scale(50)
-                    : getAdaptiveTextScaler(context).scale(64),
-                decoration: BoxDecoration(
-                    border: Border.all(color: CustomColors.fillWhite, width: 4),
-                    borderRadius: BorderRadius.circular(68)),
-                padding: EdgeInsets.all(controller.value.isRecordingPaused
-                    ? 10
-                    : controller.value.isRecordingVideo
-                        ? 15
-                        : 4),
-                child: Container(
-                  // height: controller.value.isRecordingPaused ? 42 : 50,
-                  // width: controller.value.isRecordingPaused ? 42 : 50,
+  Widget recordingControls() {
+    return LayoutBuilder(builder: (context, constraints) {
+      final s = _controlScale(constraints.maxWidth);
+      return SizedBox(
+        width: constraints.maxWidth,
+        height: 68 * s,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            //Pause
+            Visibility(
+                visible: controller.value.isRecordingVideo,
+                replacement: const SizedBox(width: 50),
+                child: GestureDetector(
+                    onTap: () => pause(),
+                    child: AnimatedContainer(
+                        duration: Duration(milliseconds: 100),
+                        height: controller.value.isRecordingPaused
+                            ? 68 * s
+                            : 50 * s,
+                        width: controller.value.isRecordingPaused
+                            ? 68 * s
+                            : 50 * s,
+                        decoration: BoxDecoration(
+                            color: controller.value.isRecordingPaused
+                                ? Colors.transparent
+                                : CustomColors.fillWhite,
+                            border: Border.all(
+                                color: CustomColors.fillWhite, width: 4),
+                            borderRadius: BorderRadius.circular(68)),
+                        padding: const EdgeInsets.all(4),
+                        child: AnimatedSwitcher(
+                          duration: Duration(milliseconds: 100),
+                          transitionBuilder: (child, animation) {
+                            return ScaleTransition(
+                                scale: animation, child: child);
+                          },
+                          child: controller.value.isRecordingPaused
+                              ? Container(
+                                  key: ValueKey(1),
+                                  height: 64 * s,
+                                  width: 64 * s,
+                                  decoration: BoxDecoration(
+                                      color: CustomColors.warningActive,
+                                      borderRadius: BorderRadius.circular(60)),
+                                )
+                              : SizedBox(
+                                  key: ValueKey(2),
+                                  height: 50 * s,
+                                  width: 50 * s,
+                                  child: Icon(
+                                    Icons.pause_rounded,
+                                    color: CustomColors.warningActive,
+                                    size: 30 * s,
+                                  ),
+                                ),
+                        )))),
+
+            //Record
+            GestureDetector(
+              onTap: () => record(),
+              child: AnimatedContainer(
+                  duration: Duration(milliseconds: 100),
+                  height: controller.value.isRecordingPaused ? 50 * s : 64 * s,
+                  width: controller.value.isRecordingPaused ? 50 * s : 64 * s,
                   decoration: BoxDecoration(
-                      color: CustomColors.warningActive,
-                      shape: controller.value.isRecordingVideo
-                          ? BoxShape.rectangle
-                          : BoxShape.circle,
-                      borderRadius: controller.value.isRecordingVideo
-                          ? BorderRadius.circular(4)
-                          : null),
-                )),
-          ),
-          GestureDetector(
-            onTap: () => flip(),
-            child: Container(
-                height: getAdaptiveTextScaler(context).scale(50),
-                width: getAdaptiveTextScaler(context).scale(50),
-                decoration: BoxDecoration(
-                    color: CustomColors.fillWhite,
-                    borderRadius: BorderRadius.circular(68)),
-                padding: const EdgeInsets.all(4),
-                child: SizedBox(
-                  height: getAdaptiveTextScaler(context).scale(45),
-                  width: getAdaptiveTextScaler(context).scale(45),
-                  child: Center(
-                    child: Icon(
-                      CupertinoIcons.switch_camera_solid,
-                      color: CustomColors.productNormal,
-                      size: getAdaptiveTextScaler(context).scale(25),
+                      border:
+                          Border.all(color: CustomColors.fillWhite, width: 4),
+                      borderRadius: BorderRadius.circular(68)),
+                  padding: EdgeInsets.all(controller.value.isRecordingPaused
+                      ? 10
+                      : controller.value.isRecordingVideo
+                          ? 15
+                          : 4),
+                  child: Container(
+                    // height: controller.value.isRecordingPaused ? 42 : 50,
+                    // width: controller.value.isRecordingPaused ? 42 : 50,
+                    decoration: BoxDecoration(
+                        color: CustomColors.warningActive,
+                        shape: controller.value.isRecordingVideo
+                            ? BoxShape.rectangle
+                            : BoxShape.circle,
+                        borderRadius: controller.value.isRecordingVideo
+                            ? BorderRadius.circular(4)
+                            : null),
+                  )),
+            ),
+            GestureDetector(
+              onTap: () => flip(),
+              child: Container(
+                  height: 50 * s,
+                  width: 50 * s,
+                  decoration: BoxDecoration(
+                      color: CustomColors.fillWhite,
+                      borderRadius: BorderRadius.circular(68)),
+                  padding: const EdgeInsets.all(4),
+                  child: SizedBox(
+                    height: 45 * s,
+                    width: 45 * s,
+                    child: Center(
+                      child: Icon(
+                        CupertinoIcons.switch_camera_solid,
+                        color: CustomColors.productNormal,
+                        size: 25 * s,
+                      ),
                     ),
-                  ),
-                )),
-          )
-        ],
-      ),
-    );
+                  )),
+            )
+          ],
+        ),
+      );
+    });
   }
 
   Widget playbackControls() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      spacing: 24,
-      children: [
-        GestureDetector(
-          onTap: () => redo(),
+    const gap = 24.0;
+    return LayoutBuilder(builder: (context, constraints) {
+      // Side buttons are 50 (13 padding + 24 icon), centre is 64.
+      final s = _controlScale(constraints.maxWidth,
+          widestRow: 50.0 + 64.0 + 50.0 + gap * 2);
+
+      Widget sideButton(IconData icon, VoidCallback onTap, {Key? key}) {
+        return GestureDetector(
+          key: key,
+          onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.all(13),
+            height: 50 * s,
+            width: 50 * s,
             decoration: BoxDecoration(
                 shape: BoxShape.circle, color: CustomColors.fillWhite),
-            child: Icon(
-              applyTextScaling: true,
-              CupertinoIcons.arrow_uturn_left,
-              color: CustomColors.productNormalActive,
+            child: Center(
+              child: Icon(
+                icon,
+                color: CustomColors.productNormalActive,
+                size: 24 * s,
+              ),
             ),
           ),
-        ),
-        widget.isImage
-            ? SizedBox(
-                height: 64,
-                width: 64,
-              )
-            : GestureDetector(
-                onTap: () => play(),
-                child: Container(
-                  height: getAdaptiveTextScaler(context).scale(64),
-                  width: getAdaptiveTextScaler(context).scale(64),
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle, color: CustomColors.fillWhite),
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        left: videoPlaying
-                            ? getAdaptiveTextScaler(context).scale(0)
-                            : getAdaptiveTextScaler(context).scale(4.0),
-                      ),
-                      child: Icon(
-                        videoPlaying
-                            ? CupertinoIcons.pause_fill
-                            : CupertinoIcons.play_arrow_solid,
-                        color: CustomColors.productNormalActive,
-                        size: 32,
-                        applyTextScaling: true,
+        );
+      }
+
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        spacing: gap,
+        children: [
+          sideButton(CupertinoIcons.arrow_uturn_left, () => redo()),
+          widget.isImage
+              ? SizedBox(height: 64 * s, width: 64 * s)
+              : GestureDetector(
+                  onTap: () => play(),
+                  child: Container(
+                    height: 64 * s,
+                    width: 64 * s,
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle, color: CustomColors.fillWhite),
+                    child: Center(
+                      child: Padding(
+                        padding:
+                            EdgeInsets.only(left: videoPlaying ? 0 : 4 * s),
+                        child: Icon(
+                          videoPlaying
+                              ? CupertinoIcons.pause_fill
+                              : CupertinoIcons.play_arrow_solid,
+                          color: CustomColors.productNormalActive,
+                          size: 32 * s,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-        GestureDetector(
-          key: const Key("save"),
-          onTap: () => save(),
-          child: Container(
-            padding: const EdgeInsets.all(13),
-            decoration: BoxDecoration(
-                shape: BoxShape.circle, color: CustomColors.fillWhite),
-            child: Icon(
-              applyTextScaling: true,
-              CupertinoIcons.checkmark_alt,
-              color: CustomColors.productNormalActive,
-            ),
-          ),
-        ),
-      ],
-    );
+          sideButton(CupertinoIcons.checkmark_alt, () => save(),
+              key: const Key("save")),
+        ],
+      );
+    });
   }
 
   capture() async {
@@ -2347,17 +2349,34 @@ class _VideoPreviewState extends State<VideoPreview> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Each label gets at most half the row and shrinks to fit
+                  // when large text would push the two past each other.
                   //Elapsed
-                  Text(
-                    formatDurationtoHHMMSS(elapsed),
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textWhite),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        formatDurationtoHHMMSS(elapsed),
+                        textScaler: getAdaptiveTextScaler(context),
+                        style: CustomTypography()
+                            .bodyMedium(color: CustomColors.textWhite),
+                      ),
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   //Remaining
-                  Text(
-                    formatDurationtoHHMMSS(remaining),
-                    style: CustomTypography()
-                        .bodyMedium(color: CustomColors.textWhite),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        formatDurationtoHHMMSS(remaining),
+                        textScaler: getAdaptiveTextScaler(context),
+                        style: CustomTypography()
+                            .bodyMedium(color: CustomColors.textWhite),
+                      ),
+                    ),
                   ),
                 ],
               ),
