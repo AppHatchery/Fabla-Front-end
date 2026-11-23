@@ -13,7 +13,7 @@ TextScaler getAdaptiveTextScaler(BuildContext context) {
   final maxScaleFactor = Platform.isIOS ? 2.0 : 1.5;
 
   return MediaQuery.textScalerOf(context).clamp(
-    minScaleFactor: 1.0,
+    minScaleFactor: 0.8,
     maxScaleFactor: maxScaleFactor,
   );
 }

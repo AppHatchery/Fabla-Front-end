@@ -42,9 +42,6 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
     hoursController = FixedExtentScrollController(
       initialItem: (_date.hour % 12) == 0 ? 11 : (_date.hour % 12) - 1,
     );
-    minutesController = FixedExtentScrollController(
-      initialItem: _date.minute,
-    );
     minutesController = FixedExtentScrollController(initialItem: minuteIndex);
     periodController = FixedExtentScrollController(
       initialItem: (_date.hour >= 12) ? 1 : 0,
