@@ -24,6 +24,7 @@ import '../../data/prompt.dart';
 import '../../domain/repository/diary_repository.dart';
 import '../cubit/prompt/prompt_cubit.dart';
 import 'diarysummary.dart';
+import 'package:audio_diaries_flutter/services/diary_progress_live_activity_service.dart';
 import '../../../../core/utils/recording_answer_gate.dart';
 
 /// This class holds and manages all the pages in the page view
@@ -51,12 +52,38 @@ class _NewDiaryPageState extends State<NewDiaryPage>
   // Functions to run before moving to the next page
   List<Function> preFunctions = [];
   final List<GlobalKey<_QuestionPageState>> _questionPageKeys = [];
+  // The diary's progress away from the app: an Android notification, and
+  // an iOS Live Activity. Each is a no-op on the other platform.
   late final DiaryProgressNotificationService _progressNotification =
       DiaryProgressNotificationService(
           onAnswerNext: _answerNextFromNotification);
+  late final DiaryProgressLiveActivityService _liveActivity =
+      DiaryProgressLiveActivityService(
+          questionCount: widget.diary.prompts.length,
+          closesAt: widget.diary.due.isAfter(DateTime.now())
+              ? widget.diary.due
+              : null);
 
   bool get _appInForeground =>
       WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+
+  /// Whether the open question counts as answered, for "Next question
+  /// waiting". ableToContinue also unlocks optional questions and
+  /// instructions straight away, so only a required, answered one counts.
+  bool get _currentAnswered {
+    final prompt = widget.diary.prompts[currentPage];
+    return ableToContinue &&
+        prompt.required &&
+        prompt.responseType != ResponseType.instruction;
+  }
+
+  /// Puts the open question on the Lock Screen and Dynamic Island, or the
+  /// next one once this one is answered ("Next question waiting").
+  void _syncLiveActivity() {
+    if (!_unfinished) return;
+    _liveActivity.show(currentPage + 1,
+        waiting: _currentAnswered && !isCurrentPageLast);
+  }
 
   //get page => currentPage = widget.diary.prompts.length;
 
@@ -81,6 +108,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
           controller.jumpToPage(currentPage);
         }
       }
+      _syncLiveActivity();
     });
   }
 
@@ -109,7 +137,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
     _progressNotification.show(
       questionNumber: currentPage + 1,
       questionCount: widget.diary.prompts.length,
-      currentAnswered: ableToContinue,
+      currentAnswered: _currentAnswered,
       closesAt: widget.diary.due,
     );
     _scheduleClosingReminder();
@@ -128,7 +156,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
       closesAt: widget.diary.due,
       questionNumber: currentPage + 1,
       questionCount: widget.diary.prompts.length,
-      currentAnswered: ableToContinue,
+      currentAnswered: _currentAnswered,
     );
   }
 
@@ -167,6 +195,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
         _progressNotification.cancelClosingReminder(widget.diary.id);
         repository.updateDiary(widget.diary);
         diaryEnd(diaryID: widget.diary.id.toString());
+        _liveActivity.end();
         track(timer.stop(), "Finished");
         Navigator.push(
             context,
@@ -208,6 +237,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
 
   @override
   void dispose() {
+    _liveActivity.end();
     // Leaving an unfinished diary: the reminder keeps its place for later.
     _scheduleClosingReminder();
     _progressNotification.dispose();
@@ -382,6 +412,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
             setState(() {
               ableToContinue = value;
             });
+            _syncLiveActivity();
             if (value) _onAnswerSavedInBackground();
           }
         },
@@ -403,6 +434,7 @@ class _NewDiaryPageState extends State<NewDiaryPage>
           setState(() {
             currentPage = controller.page!.round();
           });
+          _syncLiveActivity();
         }
       }
     });
@@ -689,6 +721,8 @@ class _QuestionPageState extends State<QuestionPage>
         time: prompt.option?.timerLength ?? Duration(seconds: 30),
         userInteraction: prompt.option?.userInteraction ?? false,
         playbackControls: prompt.option?.playbackControl ?? false,
+        // This page's own place, not the pager's current page: the pager
+        // builds the next page while the previous one is still showing.
         questionNumber:
             widget.diary.prompts.indexWhere((p) => p.id == prompt.id) + 1,
         questionCount: widget.diary.prompts.length,

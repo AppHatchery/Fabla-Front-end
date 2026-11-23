@@ -10,6 +10,7 @@ import 'package:audio_diaries_flutter/screens/diary/data/prompt.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/recording.dart';
 import 'package:audio_diaries_flutter/screens/diary/presentation/widgets/question_widgets.dart';
 import 'package:audio_diaries_flutter/services/audio_recording_service.dart';
+import 'package:audio_diaries_flutter/services/recording_live_activity_service.dart';
 import 'package:audio_diaries_flutter/services/recording_live_update_service.dart';
 import 'package:audio_diaries_flutter/services/pendo_service.dart'
     show PendoService;
@@ -46,7 +47,8 @@ class BottomRecordingModal extends StatefulWidget {
   final String? subtitle;
 
   /// 1-based position of this question and the diary's question count, shown
-  /// as "Q3 of 8" on the Android Live Update notification.
+  /// as "Q3 of 8" on the Android Live Update notification and the iOS Live
+  /// Activity.
   final int? questionNumber;
   final int? questionCount;
 
@@ -72,6 +74,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   /// the foreground service, the wakelock, the elapsed timer, the file. This
   /// modal only renders what the service publishes and forwards taps to it.
   late final AudioRecordingService _recordingService;
+
+  /// Mirrors the take onto the iOS Lock Screen and Dynamic Island.
+  late final RecordingLiveActivityService _liveActivity;
 
   /// Mirrors the take onto the Android Live Update notification.
   late final RecordingLiveUpdateService _liveUpdate;
@@ -126,6 +131,18 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       onLimitReached: () => unawaited(save()),
     );
     unawaited(_recordingService.initialize());
+    _liveActivity = RecordingLiveActivityService(
+      // The same length the sheet's own timer and progress bar show.
+      limit: _displayedDuration,
+      // A suggestion is only a guide; the last-minute warning needs the
+      // length the recorder actually stops at.
+      hardLimit: widget.limit,
+      questionNumber: widget.questionNumber,
+      questionCount: widget.questionCount,
+      onTogglePause: _recordingService.record,
+      onSave: save,
+    )..attach();
+    _recordingService.state.addListener(_syncLiveActivity);
     _liveUpdate = RecordingLiveUpdateService(
       onPause: () => _onLiveUpdateAction(pause: true),
       onResume: () => _onLiveUpdateAction(pause: false),
@@ -145,6 +162,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     _loadRive();
     super.initState();
   }
+
+  void _syncLiveActivity() =>
+      unawaited(_liveActivity.sync(_recordingService.state.value));
 
   /// Whether Fabla is on screen. Outcomes the sheet already shows ("Saved",
   /// "Recording stopped") only get a notification when it isn't.
@@ -240,6 +260,9 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
     // Fire-and-forget: the teardown inside awaits platform calls, and the
     // service marks itself spent synchronously so nothing it publishes can
     // reach this modal afterwards.
+    _recordingService.state.removeListener(_syncLiveActivity);
+    _liveActivity.detach();
+    unawaited(_liveActivity.end());
     _recordingService.state.removeListener(_syncLiveUpdate);
     if (!_showingFinalNotice) unawaited(_liveUpdate.hide());
     unawaited(_recordingService.dispose());
@@ -553,9 +576,10 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
                     child: _buildControlButton(
                       icon: CupertinoIcons.stop_fill,
                       size: recordingState.isPaused ? 24 : 34,
-                      onPressed: recordingState.elapsed < const Duration(seconds: 1)
-                          ? null
-                          : () => unawaited(_recordingService.stop()),
+                      onPressed:
+                          recordingState.elapsed < const Duration(seconds: 1)
+                              ? null
+                              : () => unawaited(_recordingService.stop()),
                       color: CustomColors.warningActive,
                     ),
                   ),
@@ -748,6 +772,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
   Future<void> save() async {
     if (!mounted || _completingTake) return;
     _completingTake = true;
+    var saved = false;
+    _liveActivity.holdForSave();
 
     // Read before saving: the save resets the take.
     final kept = _recordingService.state.value.elapsed;
@@ -760,6 +786,8 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       switch (result.outcome) {
         case RecordingSaveOutcome.saved:
           widget.onSave?.call(basePath(result.path!));
+          saved = true;
+          unawaited(_liveActivity.saved());
           // Saved from the shade, or by the limit with the app away.
           if (!_appInForeground) {
             _pushLiveUpdate(RecordingLiveUpdatePhase.saved, kept);
@@ -788,6 +816,7 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       _trackFailedSave();
     } finally {
       _completingTake = false;
+      if (!saved) unawaited(_liveActivity.releaseHold());
     }
   }
 
