@@ -139,8 +139,17 @@ class _BottomRecordingModalState extends State<BottomRecordingModal>
       hardLimit: widget.limit,
       questionNumber: widget.questionNumber,
       questionCount: widget.questionCount,
-      onTogglePause: _recordingService.record,
-      onSave: save,
+      // Same guards as the Android actions: a stale tap must not start a new
+      // take or save one that is still recording.
+      onTogglePause: () async {
+        final state = _recordingService.state.value;
+        if (!mounted || !(state.isRecording || state.isPaused)) return;
+        await _recordingService.record();
+      },
+      onSave: () async {
+        if (!mounted || !_recordingService.state.value.hasCompletedTake) return;
+        await save();
+      },
     )..attach();
     _recordingService.state.addListener(_syncLiveActivity);
     _liveUpdate = RecordingLiveUpdateService(
