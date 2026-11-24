@@ -148,7 +148,7 @@ class AndroidTimerNotifications(private val context: Context) : TimerNotificatio
         notificationManager.createNotificationChannel(channel)
     }
 
-    private companion object {
+    internal companion object {
         const val CHANNEL_ID = "diary_timer_live_update"
         const val CHANNEL_NAME = "Diary Timer"
 

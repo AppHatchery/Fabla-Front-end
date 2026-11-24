@@ -136,6 +136,13 @@ import AVFoundation
   }
 
   private func handleLiveActivityCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    // Answered before the guard below, which turns every other call away
+    // on older iOS, so Settings can hide the option there.
+    if call.method == "isLiveActivitySupported" {
+      if #available(iOS 16.2, *) { result(true) } else { result(false) }
+      return
+    }
+
     guard #available(iOS 16.2, *) else {
       result(FlutterError(code: "UNAVAILABLE", message: "Live Activities require iOS 16.2+", details: nil))
       return

@@ -6,6 +6,7 @@ import edu.emory.audio_diaries_flutter.features.battery.presentation.BatteryChan
 import edu.emory.audio_diaries_flutter.features.diary.data.AndroidDiaryClosingReminders
 import edu.emory.audio_diaries_flutter.features.diary.data.AndroidDiaryProgressNotifications
 import edu.emory.audio_diaries_flutter.features.diary.presentation.DiaryProgressChannel
+import edu.emory.audio_diaries_flutter.features.liveupdates.presentation.LiveUpdatesChannel
 import edu.emory.audio_diaries_flutter.features.recording.data.AndroidRecordingNotifications
 import edu.emory.audio_diaries_flutter.features.recording.presentation.RecordingChannel
 import edu.emory.audio_diaries_flutter.features.timer.data.AndroidTimerNotifications
@@ -20,6 +21,7 @@ import io.flutter.embedding.engine.FlutterEngine
 class MainActivity : FlutterFragmentActivity() {
 
     private var batteryChannel: BatteryChannel? = null
+    private var liveUpdatesChannel: LiveUpdatesChannel? = null
 
     private var timerNotifications: AndroidTimerNotifications? = null
     private var timerChannel: TimerChannel? = null
@@ -37,6 +39,7 @@ class MainActivity : FlutterFragmentActivity() {
         val appContext = applicationContext
 
         batteryChannel = BatteryChannel(appContext).also { it.attach(messenger) }
+        liveUpdatesChannel = LiveUpdatesChannel(appContext).also { it.attach(messenger) }
 
         val timer = AndroidTimerNotifications(appContext).also { it.start() }
         timerNotifications = timer
@@ -69,6 +72,7 @@ class MainActivity : FlutterFragmentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         batteryChannel?.detach()
+        liveUpdatesChannel?.detach()
         timerChannel?.detach()
         timerNotifications?.stop()
         recordingChannel?.detach()

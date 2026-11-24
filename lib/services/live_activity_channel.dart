@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
 import 'package:flutter/services.dart';
 
 /// The `diary/live_activity` channel, shared by the timer and recording Live
@@ -39,6 +40,22 @@ class LiveActivityChannel {
     } catch (e) {
       dev.log('Live Activity permission check failed: $e',
           name: 'LiveActivityChannel');
+      return false;
+    }
+  }
+
+  /// Whether this iOS has Live Activities at all (16.2+). False when the
+  /// check fails, so Settings never offers a switch that can't work.
+  static Future<bool> isSupported() async {
+    try {
+      return await channel.invokeMethod<bool>('isLiveActivitySupported') ??
+          false;
+    } catch (e, stackTrace) {
+      dev.log('Live Activity support check failed: $e',
+          name: 'LiveActivityChannel');
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {'channel': channel.name, 'method': 'isLiveActivitySupported'},
+          reason: 'iOS Live Activity support check failed');
       return false;
     }
   }

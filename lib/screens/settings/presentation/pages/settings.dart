@@ -341,24 +341,8 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                 ),
 
                 //Live Activity
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Lock Screen",
-                      style: CustomTypography().titleLarge(),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                LiveActivity(),
-
-                const SizedBox(
-                  height: 24,
-                ),
+                // whole section hides where the device can't show them.
+                const LiveActivity(),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

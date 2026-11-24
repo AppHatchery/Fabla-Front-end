@@ -127,7 +127,7 @@ class AndroidDiaryProgressNotifications(private val context: Context) : DiaryPro
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
-    private companion object {
+    internal companion object {
         /**
          * IMPORTANCE_DEFAULT: alerts with sound. A channel's importance is fixed once created, so
          * this id must change if the importance ever does.

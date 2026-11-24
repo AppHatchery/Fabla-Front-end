@@ -221,7 +221,7 @@ class AndroidRecordingNotifications(private val context: Context) : RecordingNot
         )
     }
 
-    private companion object {
+    internal companion object {
         /**
          * Same channel the recording foreground service (flutter_foreground_task, see
          * lib/services/recording_foreground_service.dart) posts on, so taking over its
