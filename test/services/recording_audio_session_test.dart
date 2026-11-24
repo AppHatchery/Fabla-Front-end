@@ -13,7 +13,8 @@ import 'package:flutter_test/flutter_test.dart';
 // What is driven here, and what is not
 // ------------------------------------------------------------------
 // `activate()` and `deactivate()` reach the platform, so they are out of range
-// without a device.
+// without a device. What `reclaim()` calls, and in what order, is checked
+// through a subclass that records the calls instead.
 //
 // What is reachable is the input-device bookkeeping: which removals count as
 // losing the route a take started on. That runs entirely on a snapshot held in
@@ -35,6 +36,25 @@ AudioDevice _output(String id) => AudioDevice(
       isOutput: true,
       type: AudioDeviceType.bluetoothA2dp,
     );
+
+/// Records what [RecordingAudioSession.reclaim] calls instead of reaching the
+/// platform.
+class _RecordingCalls extends RecordingAudioSession {
+  _RecordingCalls({required this.activates})
+      : super(onCaptureCompromised: (_) async {});
+
+  final bool activates;
+  final List<String> calls = [];
+
+  @override
+  Future<void> releaseFocus() async => calls.add('release');
+
+  @override
+  Future<bool> activate() async {
+    calls.add('activate');
+    return activates;
+  }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -172,6 +192,19 @@ void main() {
     // so there is nothing to report and nothing to reclaim here. This used to
     // reclaim the session and clear the interrupted flag, which took the
     // notice down the moment Siri finished, mid-take.
+    test('an interruption ending is passed on, not reported as a loss',
+        () async {
+      var ended = 0;
+      session.onInterruptionEnded = () async => ended++;
+
+      await session.handleInterruption(
+        AudioInterruptionEvent(false, AudioInterruptionType.pause),
+      );
+
+      expect(ended, 1);
+      expect(compromised, 0);
+    });
+
     test('an interruption ending does nothing', () async {
       await session.handleInterruption(
         AudioInterruptionEvent(true, AudioInterruptionType.pause),
@@ -204,6 +237,31 @@ void main() {
       );
 
       expect(compromised, 0);
+    });
+  });
+
+  // audio_session answers `setActive(true)` from a focus request it still
+  // holds, so after a call (a transient loss) Android was never asked again.
+  group('reclaim()', () {
+    test('on Android, drops the held focus request before asking again',
+        () async {
+      final calls = _RecordingCalls(activates: true)..isAndroidOverride = true;
+
+      expect(await calls.reclaim(), isTrue);
+      expect(calls.calls, ['release', 'activate']);
+    });
+
+    test('on Android, reports a refusal so the take stays paused', () async {
+      final calls = _RecordingCalls(activates: false)..isAndroidOverride = true;
+
+      expect(await calls.reclaim(), isFalse);
+    });
+
+    test('on iOS, asks straight away', () async {
+      final calls = _RecordingCalls(activates: true)..isAndroidOverride = false;
+
+      expect(await calls.reclaim(), isTrue);
+      expect(calls.calls, ['activate']);
     });
   });
 }

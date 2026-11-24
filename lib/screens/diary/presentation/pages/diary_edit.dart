@@ -317,6 +317,9 @@ class _EditDiaryPageState extends State<EditDiaryPage>
           time: prompt.option?.timerLength ?? Duration(seconds: 30),
           userInteraction: prompt.option?.userInteraction ?? false,
           playbackControls: prompt.option?.playbackControl ?? false,
+          questionNumber:
+              widget.diary.prompts.indexWhere((p) => p.id == prompt.id) + 1,
+          questionCount: widget.diary.prompts.length,
           respond: (answer) {
             final completed = completedTimes ?? [];
             completed.add(answer);
@@ -373,6 +376,9 @@ class _EditDiaryPageState extends State<EditDiaryPage>
                     subtitle: prompt.subtitle,
                     hint: hint,
                     limit: prompt.option?.maxLength,
+                    questionNumber:
+                        widget.diary.prompts.indexWhere((p) => p.id == prompt.id) + 1,
+                    questionCount: widget.diary.prompts.length,
                     suggested: prompt.option?.suggestedLength,
                     onSave: (value) {
                       save(prompt, value.toString(), "audio", null);

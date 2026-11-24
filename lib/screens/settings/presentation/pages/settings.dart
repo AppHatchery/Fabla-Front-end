@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audio_diaries_flutter/screens/settings/presentation/pages/quickstart.dart';
+import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/live_activity.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/participant_details.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/settings_active_reminders.dart';
 import 'package:audio_diaries_flutter/screens/settings/presentation/widgets/study_details.dart';
@@ -338,6 +339,10 @@ class _SettingsState extends State<Settings> with WidgetsBindingObserver {
                 const SizedBox(
                   height: 24,
                 ),
+
+                //Live Activity
+                // whole section hides where the device can't show them.
+                const LiveActivity(),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

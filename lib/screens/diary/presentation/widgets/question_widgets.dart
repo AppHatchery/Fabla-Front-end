@@ -950,6 +950,12 @@ class TimerWidget extends StatefulWidget {
   final bool playbackControls;
   final bool userInteraction;
   final bool? showLiveUpdates;
+
+  /// 1-based position of this question and the diary's question count, shown
+  /// as "Q5 of 8" on the Android Live Update notification and the iOS Live
+  /// Activity.
+  final int? questionNumber;
+  final int? questionCount;
   final void Function(String) respond;
   final Function(Function) addToPreFunction;
 
@@ -959,6 +965,8 @@ class TimerWidget extends StatefulWidget {
     required this.playbackControls,
     required this.userInteraction,
     this.showLiveUpdates = true,
+    this.questionNumber,
+    this.questionCount,
     required this.respond,
     required this.addToPreFunction,
   });
@@ -1003,8 +1011,14 @@ class _TimerWidgetState extends State<TimerWidget>
   void initState() {
     super.initState();
 
-    _liveUpdate =
-        TimerLiveUpdateService(enabled: widget.showLiveUpdates ?? true);
+    _liveUpdate = TimerLiveUpdateService(
+      enabled: widget.showLiveUpdates ?? true,
+      questionNumber: widget.questionNumber,
+      questionCount: widget.questionCount,
+      playbackControls: widget.playbackControls,
+      // The notification's and Live Activity's button does what the sheet's does.
+      onTogglePause: _onNotificationTogglePause,
+    )..attach();
 
     WidgetsBinding.instance.addObserver(this);
 
@@ -1068,6 +1082,7 @@ class _TimerWidgetState extends State<TimerWidget>
     WidgetsBinding.instance.removeObserver(this);
 
     _timer?.cancel();
+    _liveUpdate.detach();
     _liveUpdate.end();
     _shakeController.dispose();
     _remainingNotifier.dispose();
@@ -1093,7 +1108,20 @@ class _TimerWidgetState extends State<TimerWidget>
       total: duration,
       remaining: remaining,
       isPaused: isPaused,
+      questionNumber: widget.questionNumber,
+      questionCount: widget.questionCount,
+      playbackControls: widget.playbackControls,
     );
+  }
+
+  /// Pause/Resume tapped on the Android notification or the iOS Live
+  /// Activity — same path as the modal's button, so the alarm, Live Activity
+  /// and notification all follow.
+  void _onNotificationTogglePause() {
+    if (!mounted || !widget.playbackControls) return;
+    if (!isRunning && !isPaused) return;
+    _pauseResumeTimer();
+    _refreshModal();
   }
 
   void _startTimer() {

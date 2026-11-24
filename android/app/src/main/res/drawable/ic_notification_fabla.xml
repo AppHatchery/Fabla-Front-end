@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Monochrome Fabla speech-bubble logo for the status bar / Live Update header. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFFFF">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M12.9,2A9,9 0,1,1 9.1,19.16L2.6,21.4L5.11,15.5A9,9 0,0,1 12.9,2Z M14.93,7.49A4.05,4.05 0,1,1 8.91,11.7A0.95,0.95 0,0,1 10.78,11.37A2.15,2.15 0,1,0 13.98,9.14A0.95,0.95 0,0,1 14.93,7.49Z" />
+</vector>

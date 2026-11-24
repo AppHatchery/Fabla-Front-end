@@ -79,6 +79,16 @@
             android:foregroundServiceType="microphone"
             android:stopWithTask="true"
             android:exported="false" />
+        <!-- Posts "Diary closes soon" 15 minutes before a started diary closes, with or
+             without the app running, and re-arms those alarms after a reboot. Only the app's
+             own alarms and the system's boot broadcast reach it. -->
+        <receiver
+            android:name=".features.diary.data.DiaryClosingReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
@@ -90,6 +100,10 @@
             <intent>
                 <action android:name="android.intent.action.VIEW"/>
                 <data android:scheme="mailto"/>
+            </intent>
+            <!-- Lets LiveUpdatesChannel check the Live Updates settings screen exists. -->
+            <intent>
+                <action android:name="android.settings.APP_NOTIFICATION_PROMOTION_SETTINGS"/>
             </intent>
         </queries>
 </manifest>

@@ -2,6 +2,7 @@ import 'dart:developer' as dev;
 import 'dart:io' show Platform;
 
 import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:audio_diaries_flutter/services/live_activity_channel.dart';
 import 'package:flutter/services.dart';
 
 /// Drives the platform-native "live" surfaces for the diary timer countdown:
@@ -14,31 +15,74 @@ import 'package:flutter/services.dart';
 class TimerLiveUpdateService {
   static const _androidChannel =
       MethodChannel('edu.emory.audio_diaries_flutter/timer_live_update');
-  static const _iosChannel = MethodChannel('diary/live_activity');
+  static const _iosChannel = LiveActivityChannel.channel;
 
-  static const _defaultTitle = 'Diary Timer';
+  static const _defaultTitle = 'Meditation timer';
 
   /// [isAndroid]/[isIOS] are injectable so the channel contracts can be
   /// exercised in tests, which run on the host platform. [enabled] gates
   /// both platforms at once — e.g. for a timer question configured not to
   /// show live updates.
-  TimerLiveUpdateService({bool? isAndroid, bool? isIOS, this.enabled = true})
-      : _isAndroid = isAndroid ?? Platform.isAndroid,
+  ///
+  /// [onTogglePause] runs when the Android notification's Pause/Resume
+  /// action or the iOS Live Activity's button is tapped. Android shows the
+  /// action when [show] is called with `playbackControls: true`; iOS shows
+  /// its button when [playbackControls] is set here.
+  TimerLiveUpdateService({
+    bool? isAndroid,
+    bool? isIOS,
+    this.enabled = true,
+    this.questionNumber,
+    this.questionCount,
+    this.playbackControls = false,
+    this.onTogglePause,
+  })  : _isAndroid = isAndroid ?? Platform.isAndroid,
         _isIOS = isIOS ?? Platform.isIOS;
 
   final bool _isAndroid;
   final bool _isIOS;
   final bool enabled;
+  final void Function()? onTogglePause;
+
+  /// The question's place in the diary, shown as "Q5 of 8" on the iOS Live
+  /// Activity. Both or neither.
+  final int? questionNumber;
+  final int? questionCount;
+
+  /// Whether the timer can be paused, and so whether the iOS Live Activity
+  /// shows its pause button.
+  final bool playbackControls;
+
+  /// Takes the Live Activity's pause button. Call once, before [start].
+  void attach() {
+    if (!_isIOS || !enabled || onTogglePause == null) return;
+    LiveActivityChannel.on('timerTogglePause', _handleTogglePause);
+  }
+
+  void detach() {
+    if (!_isIOS) return;
+    LiveActivityChannel.off('timerTogglePause', _handleTogglePause);
+  }
+
+  Future<dynamic> _handleTogglePause() async {
+    onTogglePause?.call();
+    return null;
+  }
 
   /// Starts the iOS Live Activity for a fresh countdown ending at [endDate].
   /// Skipped when the user has Live Activities disabled: requesting one then
   /// only fails natively. The later update/end calls are no-ops without one.
   Future<void> start(DateTime endDate, Duration totalDuration) async {
     if (!_isIOS || !enabled) return;
-    if (!await _isLiveActivityEnabled()) return;
+    if (!await LiveActivityChannel.areActivitiesEnabled()) return;
     await _invokeIOS('start', {
       'endDateMillis': endDate.millisecondsSinceEpoch.toDouble(),
       'totalDurationMillis': totalDuration.inMilliseconds.toDouble(),
+      'canPause': playbackControls && onTogglePause != null,
+      if (questionNumber != null && questionCount != null) ...{
+        'questionNumber': questionNumber,
+        'questionCount': questionCount,
+      },
     });
   }
 
@@ -60,21 +104,37 @@ class TimerLiveUpdateService {
       });
 
   /// Posts or refreshes the Android notification. Safe to call repeatedly.
+  ///
+  /// [questionNumber]/[questionCount] render as "Q5 of 8". The Pause/Resume
+  /// action is only added when [playbackControls] is true.
   Future<void> show({
     required Duration total,
     required Duration remaining,
     required bool isPaused,
     String title = _defaultTitle,
+    int? questionNumber,
+    int? questionCount,
+    bool playbackControls = false,
   }) async {
     if (!_isAndroid || !enabled) return;
     if (total <= Duration.zero || remaining <= Duration.zero) return hide();
+
+    _androidChannel.setMethodCallHandler(_handleAndroidCall);
 
     await _invokeAndroid('show', <String, dynamic>{
       'title': title,
       'totalSeconds': total.inSeconds,
       'remainingSeconds': remaining.inSeconds,
       'isPaused': isPaused,
+      'questionNumber': questionNumber,
+      'questionCount': questionCount,
+      'playbackControls': playbackControls,
     });
+  }
+
+  /// Calls coming back from the native notification (its action buttons).
+  Future<void> _handleAndroidCall(MethodCall call) async {
+    if (call.method == 'togglePause') onTogglePause?.call();
   }
 
   /// Removes the Android notification and ends the iOS Live Activity. Safe
@@ -87,6 +147,7 @@ class TimerLiveUpdateService {
   /// Removes the Android notification. Safe to call when nothing is showing.
   Future<void> hide() async {
     if (!_isAndroid || !enabled) return;
+    _androidChannel.setMethodCallHandler(null);
     await _invokeAndroid('hide', null);
   }
 
@@ -109,20 +170,6 @@ class TimerLiveUpdateService {
           reason: 'Android Live Update channel unavailable: $method');
       dev.log('TimerLiveUpdateService.$method (Android) failed: $e',
           name: 'TimerLiveUpdateService');
-    }
-  }
-
-  /// Whether the user allows Live Activities for the app. Treated as
-  /// disabled if the native side cannot answer.
-  Future<bool> _isLiveActivityEnabled() async {
-    try {
-      return await _iosChannel
-              .invokeMethod<bool>('checkLiveActivityPermission') ??
-          false;
-    } catch (e) {
-      dev.log('TimerLiveUpdateService permission check failed: $e',
-          name: 'TimerLiveUpdateService');
-      return false;
     }
   }
 

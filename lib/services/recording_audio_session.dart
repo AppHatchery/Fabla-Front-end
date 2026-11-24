@@ -35,12 +35,21 @@ class RecordingAudioSession {
 
   final Future<void> Function(CaptureLoss loss) onCaptureCompromised;
 
+  /// Called when an interruption ends. Set by the recorder, which decides
+  /// whether there is a take worth reclaiming the session for.
+  Future<void> Function()? onInterruptionEnded;
+
   StreamSubscription<AudioInterruptionEvent>? _interruptionSubscription;
   StreamSubscription<AudioDevicesChangedEvent>? _devicesChangedSubscription;
   StreamSubscription<void>? _becomingNoisySubscription;
 
   /// `'!pri'`, AVAudioSessionErrorCodeInsufficientPriority.
   static const _insufficientPriorityCode = '561017449';
+
+  /// `'!int'`, AVAudioSessionErrorCodeCannotInterruptOthers: iOS refusing a
+  /// background app the session, as after a call when the take is resumed
+  /// from its Live Activity. That resume then continues in the foreground.
+  static const _cannotInterruptOthersCode = '560557684';
 
   final Set<String> _inputDeviceIds = {};
 
@@ -104,6 +113,11 @@ class RecordingAudioSession {
         CrashlyticsService().log(
           'Audio session activation refused: another client holds the session',
         );
+      } else if (e is PlatformException &&
+          e.code == _cannotInterruptOthersCode) {
+        CrashlyticsService().log(
+          'Audio session activation refused: app is in the background',
+        );
       } else {
         CrashlyticsService().recordError(
           e,
@@ -115,6 +129,47 @@ class RecordingAudioSession {
       return false;
     }
   }
+
+  /// Claims the session again for a take an interruption paused, reporting
+  /// whether it took.
+  ///
+  /// [activate] alone can't answer that on Android. A call costs us focus only
+  /// transiently, so audio_session keeps its old focus request, and while it
+  /// holds one `setActive(true)` returns true without asking Android. Resuming
+  /// mid-call then "succeeded" and recorded over a microphone the call held.
+  /// Dropping the stale request first makes the next one a real request, which
+  /// Android refuses while a call holds focus.
+  ///
+  /// iOS asks the system on every `setActive(true)`, so it goes straight on.
+  Future<bool> reclaim() async {
+    if (_isAndroid) await releaseFocus();
+    return activate();
+  }
+
+  /// Drops audio_session's held focus request without the iOS-only hint
+  /// [deactivate] sends. Failures are logged: [activate] still runs after.
+  ///
+  /// Only [reclaim] should call it; visible so a test can see the order.
+  @visibleForTesting
+  Future<void> releaseFocus() async {
+    try {
+      final session = await AudioSession.instance;
+      await session.setActive(false);
+    } catch (e, s) {
+      CrashlyticsService().recordError(
+        e,
+        s,
+        reason: 'Releasing stale audio focus failed',
+      );
+    }
+  }
+
+  bool get _isAndroid =>
+      isAndroidOverride ?? defaultTargetPlatform == TargetPlatform.android;
+
+  /// Lets a test pick the platform branch of [reclaim].
+  @visibleForTesting
+  bool? isAndroidOverride;
 
   /// Hands the session back once capture is done.
   ///
@@ -164,12 +219,10 @@ class RecordingAudioSession {
 
   /// The `interruptionEventStream` subscription's target.
   ///
-  /// Only the beginning of an interruption is reported. The end of one needs
-  /// no response: by then the take is either paused, waiting for the
-  /// participant to resume it, or already finished. Siri finishing is not the
-  /// participant deciding to go back to their answer. Reclaiming the session
-  /// here instead reconfigured it under a paused recorder for nothing, and
-  /// took down the notice telling the participant what happened.
+  /// The beginning of an interruption compromises capture. The end is only
+  /// passed on to [onInterruptionEnded]: the take stays paused until the
+  /// participant resumes it, because Siri finishing is not them deciding to
+  /// go back to their answer.
   ///
   /// Not private so a test can drive it without a live audio session; nothing
   /// else should call it.
@@ -177,7 +230,11 @@ class RecordingAudioSession {
   Future<void> handleInterruption(AudioInterruptionEvent event) async {
     if (_stopped) return;
 
-    if (event.begin) await onCaptureCompromised(CaptureLoss.interruption);
+    if (event.begin) {
+      await onCaptureCompromised(CaptureLoss.interruption);
+    } else {
+      await onInterruptionEnded?.call();
+    }
   }
 
   /// Reports a take losing the input it started on.

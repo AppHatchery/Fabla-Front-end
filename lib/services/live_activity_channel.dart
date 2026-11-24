@@ -1,0 +1,62 @@
+import 'dart:developer' as dev;
+
+import 'package:audio_diaries_flutter/services/crashlytics_service.dart';
+import 'package:flutter/services.dart';
+
+/// The `diary/live_activity` channel, shared by the timer and recording Live
+/// Activities (ios/Runner/AppDelegate.swift).
+///
+/// A channel takes one handler, so each service registers the calls it
+/// answers here instead of replacing the other's.
+class LiveActivityChannel {
+  static const channel = MethodChannel('diary/live_activity');
+
+  static final _handlers = <String, Future<dynamic> Function()>{};
+
+  /// Answers [method] with [handler] until [off].
+  static void on(String method, Future<dynamic> Function() handler) {
+    _handlers[method] = handler;
+    channel.setMethodCallHandler(_dispatch);
+  }
+
+  /// Stops answering [method]. Given a [handler], only if it is still the
+  /// one registered, so a newer owner of the call keeps it.
+  static void off(String method, [Future<dynamic> Function()? handler]) {
+    // Tear-offs of one method on one object are equal, not identical.
+    if (handler != null && _handlers[method] != handler) return;
+    _handlers.remove(method);
+  }
+
+  static Future<dynamic> _dispatch(MethodCall call) async =>
+      _handlers[call.method]?.call();
+
+  /// Whether the user allows Fabla's Live Activities (the app's switch in
+  /// iOS Settings). False on iOS before 16.2, where they don't exist, and
+  /// when the check fails.
+  static Future<bool> areActivitiesEnabled() async {
+    try {
+      return await channel.invokeMethod<bool>('checkLiveActivityPermission') ??
+          false;
+    } catch (e) {
+      dev.log('Live Activity permission check failed: $e',
+          name: 'LiveActivityChannel');
+      return false;
+    }
+  }
+
+  /// Whether this iOS has Live Activities at all (16.2+). False when the
+  /// check fails, so Settings never offers a switch that can't work.
+  static Future<bool> isSupported() async {
+    try {
+      return await channel.invokeMethod<bool>('isLiveActivitySupported') ??
+          false;
+    } catch (e, stackTrace) {
+      dev.log('Live Activity support check failed: $e',
+          name: 'LiveActivityChannel');
+      CrashlyticsService().recordError(e, stackTrace,
+          context: {'channel': channel.name, 'method': 'isLiveActivitySupported'},
+          reason: 'iOS Live Activity support check failed');
+      return false;
+    }
+  }
+}

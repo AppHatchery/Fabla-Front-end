@@ -44,3 +44,19 @@ enum AudioStatus {
   noAudioLength,
   canNotPlay
 }
+
+/// How Fabla's progress notifications reach the user on Android.
+enum LiveUpdatesStatus {
+  /// Notifications are off for the app, so nothing is shown.
+  notificationsOff,
+
+  /// Shown as plain notifications; the user can turn on Live Updates.
+  plain,
+
+  /// Shown as Live Updates.
+  liveUpdates,
+
+  /// Before Android 16 Live Updates don't exist, so plain notifications are
+  /// all there is and nothing more to turn on.
+  unsupported,
+}
