@@ -1,8 +1,8 @@
 import 'package:audio_diaries_flutter/core/database/dao/prompt_dao.dart';
+import 'package:audio_diaries_flutter/objectbox.g.dart';
 import 'package:audio_diaries_flutter/screens/diary/domain/entities/prompt_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:objectbox/objectbox.dart';
 
 import '../../../dummy_data.dart';
 
@@ -25,11 +25,8 @@ void main() {
     test('getPrompt returns prompt with specified ID', () {
       // ───── Arrange ─────
       final expectedPrompt = createTestPrompt(id: 1);
-      final allPrompts = [createTestPrompt(id: 1), createTestPrompt(id: 2)];
 
-      when(() => mockBox.query()).thenReturn(mockQueryBuilder);
-      when(() => mockQueryBuilder.build()).thenReturn(mockQuery);
-      when(() => mockQuery.find()).thenReturn(allPrompts);
+      when(() => mockBox.get(1)).thenReturn(expectedPrompt);
 
       // ───── Act ─────
       final result = promptDAO.getPrompt(1);
@@ -45,9 +42,15 @@ void main() {
       expect(result.multipleAnswer, expectedPrompt.multipleAnswer);
       expect(result.diary.target?.id, expectedPrompt.diary.target?.id);
 
-      verify(() => mockBox.query()).called(1);
-      verify(() => mockQueryBuilder.build()).called(1);
-      verify(() => mockQuery.find()).called(1);
+      verify(() => mockBox.get(1)).called(1);
+    });
+
+    test('getPrompt throws StateError when prompt is missing', () {
+      // ───── Arrange ─────
+      when(() => mockBox.get(99)).thenReturn(null);
+
+      // ───── Act & Assert ─────
+      expect(() => promptDAO.getPrompt(99), throwsStateError);
     });
 
     test('getPrompts returns prompts for specific diary ID', () {
@@ -57,14 +60,14 @@ void main() {
         createTestPrompt(id: 1, diaryId: diaryId),
         createTestPrompt(id: 2, diaryId: diaryId),
       ];
-      final allPrompts = [
-        ...expectedPrompts,
-        createTestPrompt(id: 3, diaryId: 2),
-      ];
 
-      when(() => mockBox.query()).thenReturn(mockQueryBuilder);
+      // Filtering and ordering happen in the ObjectBox query, so the mock
+      // query only ever returns the matching rows.
+      when(() => mockBox.query(any())).thenReturn(mockQueryBuilder);
+      when(() => mockQueryBuilder.order(Prompt_.questionNumber))
+          .thenReturn(mockQueryBuilder);
       when(() => mockQueryBuilder.build()).thenReturn(mockQuery);
-      when(() => mockQuery.find()).thenReturn(allPrompts);
+      when(() => mockQuery.find()).thenReturn(expectedPrompts);
 
       // ───── Act ─────
       final result = promptDAO.getPrompts(id: diaryId);
@@ -76,7 +79,8 @@ void main() {
         expect(result[i].diary.target?.id, expectedPrompts[i].diary.target?.id);
       }
 
-      verify(() => mockBox.query()).called(1);
+      verify(() => mockBox.query(any())).called(1);
+      verify(() => mockQueryBuilder.order(Prompt_.questionNumber)).called(1);
       verify(() => mockQueryBuilder.build()).called(1);
       verify(() => mockQuery.find()).called(1);
     });
