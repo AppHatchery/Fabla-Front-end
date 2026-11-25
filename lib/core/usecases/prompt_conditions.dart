@@ -59,30 +59,51 @@ extension PromptConditionEvaluation on PromptCondition {
     return !_evaluateEquals(answer);
   }
 
+  /// Multi-select answers are stored as one "/ "-joined string such as
+  /// "none/ people/ nothing" (see MultipleQuestion in new_diary.dart).
+  /// Splits on the same "/ " separator the app uses, so an option like
+  /// "Yes/No" stays whole. Returns the selected options, normalised for
+  /// exact comparison.
+  Set<String> _selectedOptions(Answer answer) {
+    return answer.response!.first
+        .toLowerCase()
+        .split('/ ')
+        .map((entry) => entry.trim())
+        .toSet()
+      ..remove('');
+  }
+
+  /// True when [value] exactly matches one selected option (case-insensitive).
+  /// Substrings do not count: "no" does not match "none".
+  bool _hasOption(Set<String> options, dynamic value) =>
+      options.contains(value.toString().trim().toLowerCase());
+
   bool _evaluateContains(Answer? answer) {
     if (answer == null || answer.response == null) return false;
+    if (answer.response!.isEmpty) return false;
 
-    // Check if the answer list contains the expected value
+    final options = _selectedOptions(answer);
+
+    // Every value in an expectedValue list must be selected
     if (expectedValue is List) {
-      // Check if answer contains ALL values in expectedValue list
-      return (expectedValue as List)
-          .every((item) => answer.response!.first.contains(item));
+      return (expectedValue as List).every((item) => _hasOption(options, item));
     }
 
-    // Check if answer contains a single expected value
-    return answer.response!.first.contains(expectedValue);
+    return _hasOption(options, expectedValue);
   }
 
   bool _evaluateNotContains(Answer? answer) {
     if (answer == null || answer.response == null) return true;
+    if (answer.response!.isEmpty) return true;
 
+    final options = _selectedOptions(answer);
+
+    // None of the values in an expectedValue list may be selected
     if (expectedValue is List) {
-      // Check if answer contains NONE of the values in expectedValue list
-      return !(expectedValue as List)
-          .any((item) => answer.response!.first.contains(item));
+      return !(expectedValue as List).any((item) => _hasOption(options, item));
     }
 
-    return !answer.response!.first.contains(expectedValue);
+    return !_hasOption(options, expectedValue);
   }
 
   bool _evaluateAnswered(Answer? answer) {

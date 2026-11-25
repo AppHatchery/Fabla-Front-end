@@ -32,7 +32,8 @@ void main() {
     });
 
     test('tolerates stray separators and whitespace', () {
-      expect(equalsComplete.evaluate(answerOf('Complete | Complete |')), isTrue);
+      expect(
+          equalsComplete.evaluate(answerOf('Complete | Complete |')), isTrue);
       expect(equalsComplete.evaluate(answerOf('| Complete')), isTrue);
     });
 
@@ -75,11 +76,39 @@ void main() {
   });
 
   group('contains / notContains', () {
-    test('contains matches a substring', () {
+    test('contains matches a selected option exactly', () {
       final c = condition(ConditionType.contains, 'Anxious');
       expect(c.evaluate(answerOf('Calm/ Anxious')), isTrue);
+      expect(c.evaluate(answerOf('Anxious')), isTrue);
+      expect(c.evaluate(answerOf('calm/ anxious')), isTrue);
       expect(c.evaluate(answerOf('Calm')), isFalse);
       expect(c.evaluate(null), isFalse);
+    });
+
+    test('contains does not match substrings of an option', () {
+      final c = condition(ConditionType.contains, 'no');
+      expect(c.evaluate(answerOf('none/ people/ nothering')), isFalse);
+      expect(c.evaluate(answerOf('none/ no/ people')), isTrue);
+      expect(
+          condition(ConditionType.contains, 'Anx')
+              .evaluate(answerOf('Calm/ Anxious')),
+          isFalse);
+    });
+
+    test('contains matches an option whose text includes "/"', () {
+      final c = condition(ConditionType.contains, 'Yes/No');
+      expect(c.evaluate(answerOf('Yes/No')), isTrue);
+      expect(c.evaluate(answerOf('Calm/ Yes/No/ Tired')), isTrue);
+      expect(
+          condition(ConditionType.contains, 'Yes')
+              .evaluate(answerOf('Calm/ Yes/No')),
+          isFalse);
+    });
+
+    test('notContains ignores substrings of an option', () {
+      final c = condition(ConditionType.notContains, 'no');
+      expect(c.evaluate(answerOf('none/ people/ nothering')), isTrue);
+      expect(c.evaluate(answerOf('none/ no')), isFalse);
     });
 
     test('contains with a list requires every value', () {
@@ -124,7 +153,8 @@ void main() {
           isTrue);
       expect(condition(ConditionType.greaterThan, '5').evaluate(answerOf('5')),
           isFalse);
-      expect(condition(ConditionType.greaterThan, 2.5).evaluate(answerOf('3.0')),
+      expect(
+          condition(ConditionType.greaterThan, 2.5).evaluate(answerOf('3.0')),
           isTrue);
     });
 
@@ -157,8 +187,8 @@ void main() {
     });
 
     test('between needs a map with min and max', () {
-      expect(condition(ConditionType.between, 5).evaluate(answerOf('5')),
-          isFalse);
+      expect(
+          condition(ConditionType.between, 5).evaluate(answerOf('5')), isFalse);
       expect(
           condition(ConditionType.between, {'min': 1}).evaluate(answerOf('5')),
           isFalse);
@@ -167,37 +197,48 @@ void main() {
 
   group('time comparisons', () {
     test('beforeTime and afterTime compare HH:mm strings', () {
-      expect(condition(ConditionType.beforeTime, '12:00')
-          .evaluate(answerOf('09:30')), isTrue);
-      expect(condition(ConditionType.beforeTime, '12:00')
-          .evaluate(answerOf('12:00')), isFalse);
-      expect(condition(ConditionType.afterTime, '12:00')
-          .evaluate(answerOf('12:01')), isTrue);
-      expect(condition(ConditionType.afterTime, '12:00')
-          .evaluate(answerOf('11:59')), isFalse);
+      expect(
+          condition(ConditionType.beforeTime, '12:00')
+              .evaluate(answerOf('09:30')),
+          isTrue);
+      expect(
+          condition(ConditionType.beforeTime, '12:00')
+              .evaluate(answerOf('12:00')),
+          isFalse);
+      expect(
+          condition(ConditionType.afterTime, '12:00')
+              .evaluate(answerOf('12:01')),
+          isTrue);
+      expect(
+          condition(ConditionType.afterTime, '12:00')
+              .evaluate(answerOf('11:59')),
+          isFalse);
     });
 
     test('compares hours before minutes', () {
-      expect(condition(ConditionType.afterTime, '09:45')
-          .evaluate(answerOf('10:05')), isTrue);
+      expect(
+          condition(ConditionType.afterTime, '09:45')
+              .evaluate(answerOf('10:05')),
+          isTrue);
     });
 
     test('accepts an expected value as an hour/minute map', () {
-      final c =
-          condition(ConditionType.beforeTime, {'hour': 21, 'minute': 30});
+      final c = condition(ConditionType.beforeTime, {'hour': 21, 'minute': 30});
       expect(c.evaluate(answerOf('21:15')), isTrue);
       expect(c.evaluate(answerOf('22:00')), isFalse);
     });
 
     test('unparseable or missing times are false', () {
-      expect(condition(ConditionType.beforeTime, '12:00')
-          .evaluate(answerOf('noon')), isFalse);
+      expect(
+          condition(ConditionType.beforeTime, '12:00')
+              .evaluate(answerOf('noon')),
+          isFalse);
       expect(condition(ConditionType.afterTime, 12).evaluate(answerOf('13:00')),
           isFalse);
-      expect(condition(ConditionType.beforeTime, '12:00').evaluate(null),
-          isFalse);
-      expect(condition(ConditionType.afterTime, '12:00').evaluate(null),
-          isFalse);
+      expect(
+          condition(ConditionType.beforeTime, '12:00').evaluate(null), isFalse);
+      expect(
+          condition(ConditionType.afterTime, '12:00').evaluate(null), isFalse);
     });
   });
 }
